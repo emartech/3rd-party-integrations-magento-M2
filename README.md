@@ -4,7 +4,7 @@
 - If the code folder is not there, create it.
 - Remove the "Emarsys" directory from "MAGENTO_ROOT/app/code" directory if exists
 - Download the latest files from master branch and extract the contents
-- Copy "emarsys/app/code/Emarsys" from the downloaded codebase to the "MAGENTO_ROOT/app/code" directory on you Magento instance
+- Copy all files from the downloaded codebase to the "MAGENTO_ROOT/app/code/Emarsys/Emarsys" directory on you Magento instance
 
 
 ### Magento Setup
@@ -14,8 +14,16 @@
 ```php bin/magento setup:static-content:deploy - This tells magento to deploy static files.```
 ```php bin/magento cache:flush - This flushes the cache so the app appears in the admin area correctly.```
 
+
+### Composer Setup
+1. ```composer config repositories.emartech-3rd-party-integrations-magento-m2 git git@github.com:emartech/3rd-party-integrations-magento-M2```
+2. ```composer require emarsys/emarsys:"1.0.6"```
+3. ```php bin/magento setup:upgrade```
+4. ```php bin/magento setup:static-content:deploy```
+5. ```php bin/magento cache:flush```
+
+
 # Release Notes
 
-## v1.0.4
-
-- Fixed compile errors in production mode
+## v1.0.6
+Added Composer Installation method

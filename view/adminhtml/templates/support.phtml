@@ -1,0 +1,26 @@
+<div class="content-header-support">
+    <h3 class="icon-head head-adminhtml-support">
+        <span class='acu-icon'></span>
+        <span class='acu-title'><?php echo __('Emarsys Support') ?></span>
+    </h3>
+</div>
+<div class="box-left">
+    <div id="support_system_requirements_container" class="entry-edit">
+         <div class="example-responsive-block">
+            <h4><?php echo __('About Extension') ?></h4>
+        </div>
+        <div class="fieldset sys-req">
+            <div class="hor-scroll">
+                <?php echo $block->getChildHtml('about_emarsys'); ?>
+            </div>
+        </div>
+        <div class="example-responsive-block">
+            <h4><?php echo __('System Requirements') ?></h4>
+        </div>
+        <div class="fieldset sys-req">
+            <div class="hor-scroll">
+                <?php echo $block->getChildHtml('system_requirements'); ?>
+            </div>
+        </div>
+    </div>
+</div>
