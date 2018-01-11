@@ -6,21 +6,27 @@
  */
 namespace Emarsys\Emarsys\Block\Adminhtml;
 
-class Scheduler extends \Magento\Backend\Block\Template
-{
+use Magento\Backend\Block\Template;
+use Magento\Backend\Block\Widget\Context;
 
+/**
+ * Class Scheduler
+ * @package Emarsys\Emarsys\Block\Adminhtml
+ */
+class Scheduler extends Template
+{
     protected $_template = 'cron/grid.phtml';
 
     /**
-     * @param \Magento\Backend\Block\Widget\Context $context
+     * Scheduler constructor.
+     * @param Context $context
      * @param array $data
      */
     public function __construct(
-        \Magento\Backend\Block\Widget\Context $context,
+        Context $context,
         $data = []
     ) {
-    
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**

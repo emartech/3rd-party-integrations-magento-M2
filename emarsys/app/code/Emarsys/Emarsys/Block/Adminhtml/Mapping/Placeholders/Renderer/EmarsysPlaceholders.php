@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Placeholders\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class EmarsysPlaceholders
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Placeholders\Renderer
+ */
 class EmarsysPlaceholders extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -42,11 +46,14 @@ class EmarsysPlaceholders extends \Magento\Backend\Block\Widget\Grid\Column\Rend
     protected $_storeManager;
 
     /**
+     * EmarsysPlaceholders constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Emarsys\Emarsys\Model\ResourceModel\Customer\CollectionFactory $collectionFactory
      * @param \Magento\Backend\Helper\Data $backendHelper
-     * @param \Emarsys\Emarsys\Model\ResourceModel\Customer $resourceModelEvent
+     * @param \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents $Emarsysmagentoevents
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Emarsys\Emarsys\Model\Logs $emarsysLogs
+     * @param \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory $CollectionFactory
      */
     public function __construct(
         \Magento\Backend\Model\Session $session,
@@ -57,7 +64,6 @@ class EmarsysPlaceholders extends \Magento\Backend\Block\Widget\Grid\Column\Rend
         \Emarsys\Emarsys\Model\Logs $emarsysLogs,
         \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory $CollectionFactory
     ) {
-    
         $this->session = $session;
         $this->collectionFactory = $collectionFactory;
         $this->backendHelper = $backendHelper;
@@ -87,7 +93,7 @@ class EmarsysPlaceholders extends \Magento\Backend\Block\Widget\Grid\Column\Rend
             $i++;
         } catch (\Exception $e) {
             $storeId = $this->_storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'render(EmarsysPlaceholders)');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'render(EmarsysPlaceholders)');
         }
     }
 }

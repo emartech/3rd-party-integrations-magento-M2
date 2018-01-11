@@ -17,6 +17,7 @@ use Magento\Framework\Registry;
 use Magento\ImportExport\Model\Source\Export\FormatFactory;
 use Magento\Framework\App\Request\Http;
 use Magento\Backend\Block\Widget\Form\Generic;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * Class Form
@@ -31,7 +32,6 @@ class Form extends Generic
 
     /**
      * Form constructor.
-     *
      * @param Context $context
      * @param Session $session
      * @param FormFactory $formFactory
@@ -75,7 +75,7 @@ class Form extends Generic
     protected function _prepareForm()
     {
         $params = $this->getRequest->getParams();
-        $scope = 'websites';
+        $scope = ScopeInterface::SCOPE_WEBSITES;
         $storeId = $params['store'];
         $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
 

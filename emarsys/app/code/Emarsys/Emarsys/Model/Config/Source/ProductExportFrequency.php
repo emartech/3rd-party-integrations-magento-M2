@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class ProductExportFrequency
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class ProductExportFrequency implements \Magento\Framework\Option\ArrayInterface
 {
     /**

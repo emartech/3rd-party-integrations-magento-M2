@@ -4,97 +4,34 @@
  * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
-
 namespace Emarsys\Emarsys\Controller\Adminhtml\Log;
 
-use Magento\Framework\Filesystem\DriverInterface;
 use Magento\Backend\App\Action;
-use Magento\Framework\View\Result\PageFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Psr\Log\LoggerInterface as Logger;
+use Emarsys\Emarsys\Model\ResourceModel\Customer;
+use Magento\Backend\App\Action\Context;
 
-class EmarsysLogger extends \Magento\Backend\App\Action
+/**
+ * Class EmarsysLogger
+ * @package Emarsys\Emarsys\Controller\Adminhtml\Log
+ */
+class EmarsysLogger extends Action
 {
-
     /**
-     * @var PageFactory
+     * @var Customer
      */
-    protected $resultPageFactory;
+    protected $customerResourceModel;
 
     /**
-     * @var Logger
-     */
-    protected $logger;
-
-    /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
-     */
-    protected $date;
-
-    /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
-    protected $storeManager;
-
-    /**
-     * @var \Magento\Framework\Filesystem\Io\File
-     */
-    protected $file;
-
-    /**
-     * @var ScopeConfigInterface
-     */
-    protected $scopeConfigInterface;
-
-    /**
-     * @var \Magento\Backend\Helper\Data
-     */
-    protected $backendHelper;
-
-
-    /**
-     * 
-     * @param ScopeConfigInterface $scopeConfigInterface
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Framework\Filesystem\Io\File $file
-     * @param PageFactory $resultPageFactory
-     * @param \Emarsys\Emarsys\Helper\Data $dataHelper
-     * @param \Emarsys\Emarsys\Model\ResourceModel\Customer $customerResourceModel
-     * @param \Magento\Framework\Controller\Result\RawFactory $resultRawFactory
-     * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactory
+     * EmarsysLogger constructor.
      * @param Context $context
-     * @param \Magento\Framework\App\Request\Http $request
-     * @param Logger $logger
+     * @param Customer $customerResourceModel
      */
     public function __construct(
-        ScopeConfigInterface $scopeConfigInterface,
-        \Magento\Framework\Stdlib\DateTime\DateTime $date,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\Filesystem\Io\File $file,
-        PageFactory $resultPageFactory,
-        \Emarsys\Emarsys\Helper\Data $dataHelper,
-        \Emarsys\Emarsys\Model\ResourceModel\Customer $customerResourceModel,
-        \Magento\Framework\Controller\Result\RawFactory $resultRawFactory,
-        \Magento\Framework\App\Response\Http\FileFactory $fileFactory,
-        \Magento\Backend\App\Action\Context $context,
-        \Magento\Framework\App\Request\Http $request,
-        Logger $logger
+        Context $context,
+        Customer $customerResourceModel
     ) {
         parent::__construct($context);
-        $this->scopeConfigInterface = $scopeConfigInterface;
-        $this->resultPageFactory = $resultPageFactory;
-        $this->date = $date;
-        $this->backendHelper = $context->getHelper();
-        $this->dataHelper = $dataHelper;
-        $this->storeManager = $storeManager;
-        $this->file = $file;
-        $this->logger = $logger;
-        $this->request = $request;
-        $this->resultRawFactory = $resultRawFactory;
         $this->customerResourceModel = $customerResourceModel;
-        $this->fileFactory = $fileFactory;
-        parent::__construct($context);
     }
 
     /**
@@ -105,8 +42,6 @@ class EmarsysLogger extends \Magento\Backend\App\Action
 
     public function execute()
     {
-        $params = $this->request->getParams();
-        $websiteId = $params['website'];
         $logData = $this->customerResourceModel->getLogsData();
         $filePath = BP . "/var/log/emarsys.log";
         if (file_exists($filePath)) {

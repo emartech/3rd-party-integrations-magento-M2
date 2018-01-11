@@ -64,21 +64,21 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
         /** @var \Magento\Framework\Data\Form $form */
         $form = $this->_formFactory->create();
 
-        $fieldset = $form->addFieldset("support_form", ["legend"=>'<h4 class="" style="background-color: #41362f;color:#fff;line-height: 20px;padding:10px">Support Information</h4>']);
+        $fieldset = $form->addFieldset("support_form", ["legend" => '<h4 class="" style="background-color: #41362f;color:#fff;line-height: 20px;padding:10px">Support Information</h4>']);
         $fieldset->addField("type", "select", [
             'label'     => 'Support Type',
             'name'      => 'type',
             'required'  => true,
             'values'    => [
-                ['value' => '' ,'label' => 'Please Select'],
-                ['value' => 'Sales Support||connect@emarsys.com','label' => 'Sales Support'],
-                ['value' => 'Customization Service||support@emarsys.com,emarsyssupport@kensium.com','label' => 'Customization Service'],
-                ['value' => 'Feedback and Complaint||connect@emarsys.com,support@emarsys.com','label' => 'Feedback and Complaint'],
-                ['value' => 'Technical Support||support@emarsys.com,emarsyssupport@kensium.com','label' => 'Technical Support'],
-                ['value' => 'Urgent Issue||support@emarsys.com,emarsyssupport@kensium.com','label' => 'Urgent Issue'],
-                ['value' => 'Installation Service||support@emarsys.com,emarsyssupport@kensium.com','label' => 'Installation Service'],
-                ['value' => 'Request Upgrade||support@emarsys.com,emarsyssupport@kensium.com','label' => 'Request Upgrade'],
-                ['value' => 'Other||connect@emarsys.com,support@emarsys.com','label' => 'Other']
+                ['value' => '', 'label' => 'Please Select'],
+                ['value' => 'Sales Support||connect@emarsys.com', 'label' => 'Sales Support'],
+                ['value' => 'Customization Service||support@emarsys.com,emarsyssupport@kensium.com', 'label' => 'Customization Service'],
+                ['value' => 'Feedback and Complaint||connect@emarsys.com,support@emarsys.com', 'label' => 'Feedback and Complaint'],
+                ['value' => 'Technical Support||support@emarsys.com,emarsyssupport@kensium.com', 'label' => 'Technical Support'],
+                ['value' => 'Urgent Issue||support@emarsys.com,emarsyssupport@kensium.com', 'label' => 'Urgent Issue'],
+                ['value' => 'Installation Service||support@emarsys.com,emarsyssupport@kensium.com', 'label' => 'Installation Service'],
+                ['value' => 'Request Upgrade||support@emarsys.com,emarsyssupport@kensium.com', 'label' => 'Request Upgrade'],
+                ['value' => 'Other||connect@emarsys.com,support@emarsys.com', 'label' => 'Other']
             ],
         ]);
 

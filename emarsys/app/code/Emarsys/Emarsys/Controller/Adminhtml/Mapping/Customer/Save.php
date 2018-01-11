@@ -96,7 +96,7 @@ class Save extends Action
             $storeId = $this->emsrsysHelper->getFirstStoreId();
         }
         try {
-            $savedFields = array();
+            $savedFields = [];
             $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
             $logsArray['job_code'] = 'Customer Mapping';
             $logsArray['status'] = 'started';
@@ -112,9 +112,11 @@ class Save extends Action
             $stringArrayData = (array)$stringJSONData;
 
             foreach ($stringArrayData as $key => $value) {
-                $customId = $this->resourceModelCustomer->getCustAttIdByCode($key,$storeId);
+                $customId = $this->resourceModelCustomer->getCustAttIdByCode($key, $storeId);
                 $magentoAttributeId = $this->resourceModelCustomer->getCustomerAttributeId($key);
-                $attData = $this->customerFactory->create()->getCollection()->addFieldToFilter('store_id', array('eq'=>$storeId))->addFieldToFilter('magento_custom_attribute_id',array('eq'=>$customId['id']));
+                $attData = $this->customerFactory->create()->getCollection()
+                    ->addFieldToFilter('store_id', ['eq' => $storeId])
+                    ->addFieldToFilter('magento_custom_attribute_id', ['eq' => $customId['id']]);
 
                 if (is_array($attData->getData()) && !empty($attData->getData())) {
                     $attDataAll = $attData->getData();
@@ -140,14 +142,14 @@ class Save extends Action
                          $savedFields[] = $value;
                          $attModel->setData('emarsys_contact_field', $value);
                      }
-                    $attModel->setData('magento_custom_attribute_id',$customId['id']);
-                    $attModel->setData('magento_attribute_id',$magentoAttributeId);
-                    $attModel->setData('store_id',$storeId);
+                    $attModel->setData('magento_custom_attribute_id', $customId['id']);
+                    $attModel->setData('magento_attribute_id', $magentoAttributeId);
+                    $attModel->setData('store_id', $storeId);
                     $attModel->save();
                 }
             }
             if ($savedFields) {
-                $logsArray['description'] = 'Saved Fields Id(s) '.print_r(implode(",",$savedFields),true);
+                $logsArray['description'] = 'Saved Fields Id(s) ' . print_r(implode(",", $savedFields), true);
             } else {
                 $logsArray['description'] = 'Customer Mapping Saved';
             }
@@ -164,8 +166,8 @@ class Save extends Action
             $this->logHelper->manualLogs($logsArray);
             $this->messageManager->addSuccessMessage('Customer attributes mapped successfully');
         } catch (\Exception $e) {
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'SaveSchema(Customer)');
-            $this->messageManager->addErrorMessage('("Error occurred while mapping Customer attribute');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'SaveSchema(Customer)');
+            $this->messageManager->addErrorMessage('Error occurred while mapping Customer attribute');
         }
         $resultRedirect = $this->resultRedirectFactory->create();
 

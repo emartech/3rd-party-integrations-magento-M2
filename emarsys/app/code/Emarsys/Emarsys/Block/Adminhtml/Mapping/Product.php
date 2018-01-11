@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
+/**
+ * Class Product
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
+ */
 class Product extends \Magento\Backend\Block\Widget\Container
 {
     /**
@@ -14,6 +18,7 @@ class Product extends \Magento\Backend\Block\Widget\Container
     protected $_template = 'mapping/product/view.phtml';
 
     /**
+     * Product constructor.
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param array $data
      */
@@ -21,8 +26,7 @@ class Product extends \Magento\Backend\Block\Widget\Container
         \Magento\Backend\Block\Widget\Context $context,
         $data = []
     ) {
-    
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**

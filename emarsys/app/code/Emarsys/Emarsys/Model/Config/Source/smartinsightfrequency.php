@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class smartinsightfrequency
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class smartinsightfrequency implements \Magento\Framework\Option\ArrayInterface
 {
     /**

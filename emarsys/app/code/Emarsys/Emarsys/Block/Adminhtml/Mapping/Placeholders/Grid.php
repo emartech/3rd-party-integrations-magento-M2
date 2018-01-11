@@ -84,7 +84,6 @@ class Grid extends Extended
 
     /**
      * Grid constructor.
-     *
      * @param Context $context
      * @param Data $backendHelper
      * @param Type $entityType
@@ -132,7 +131,7 @@ class Grid extends Extended
         $this->_responseFactory = $responseFactory;
         $this->_messageManager = $messageManager;
         $this->formKey = $context->getFormKey();
-        parent::__construct($context, $backendHelper, $data = []);
+        parent::__construct($context, $backendHelper, $data);
     }
 
     /**
@@ -176,7 +175,7 @@ class Grid extends Extended
             $val = $this->EmarsysHelper->insertFirstimeMappingPlaceholders($mapping_id, $storeId);
             if ($val == "") {
                 $this->_messageManager->addErrorMessage(__("Please Assign Email Template to event"));
-                $RedirectUrl = $this->_url->getUrl('emarsys_emarsys/mapping_event/index/store_id/' . $storeId);
+                $RedirectUrl = $this->_url->getUrl('emarsys_emarsys/mapping_event/index', ["store_id" => $storeId]);
                 $this->_responseFactory->create()->setRedirect($RedirectUrl)->sendResponse();
             }
         }

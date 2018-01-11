@@ -108,7 +108,7 @@ class SaveSchema extends Action
                 $logId = $this->logHelper->manualLogs($logsArray);
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'Update Schema';
-                $logsArray['description'] = 'Updated Schema as '.print_r($schemaData,true);
+                $logsArray['description'] = 'Updated Schema as ' .print_r($schemaData,true);
                 $logsArray['action'] = 'Update Schema Successful';
                 $logsArray['message_type'] = 'Success';
                 $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());

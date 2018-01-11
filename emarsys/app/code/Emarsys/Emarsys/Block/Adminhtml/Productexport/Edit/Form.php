@@ -8,6 +8,10 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Productexport\Edit;
 
+/**
+ * Class Form
+ * @package Emarsys\Emarsys\Block\Adminhtml\Productexport\Edit
+ */
 class Form extends \Magento\Backend\Block\Widget\Form\Generic
 {
     /**

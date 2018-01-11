@@ -12,6 +12,7 @@ use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Eav\Model\Entity\Type;
 use Magento\Eav\Model\Entity\Attribute;
 use Magento\Store\Api\StoreRepositoryInterface;
+use Emarsys\Emarsys\Helper\Data as EmarsysDataHelper;
 
 /**
  * Class Order
@@ -35,6 +36,11 @@ class Order extends AbstractDb
     protected $entityType;
 
     /**
+     * @var EmarsysDataHelper
+     */
+    protected $emarsysDataHelper;
+
+    /**
      * Order constructor.
      *
      * @param Context $context
@@ -48,11 +54,13 @@ class Order extends AbstractDb
         Type $entityType,
         Attribute $attribute,
         StoreRepositoryInterface $storeRepository,
+        EmarsysDataHelper $emarsysDataHelper,
         $connectionName = null
     ) {
         $this->entityType = $entityType;
         $this->attribute = $attribute;
         $this->storeRepository = $storeRepository;
+        $this->emarsysDataHelper = $emarsysDataHelper;
         parent::__construct($context, $connectionName);
     }
 
@@ -93,7 +101,7 @@ class Order extends AbstractDb
      */
     public function getSalesOrderColumnNames()
     {
-        $stmt = $this->getConnection()->query("SELECT `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE  `TABLE_NAME`='" .
+        $stmt = $this->getConnection()->query("SELECT `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE table_schema = DATABASE() AND `TABLE_NAME`='" .
             $this->getTable('sales_order') . "'");
         $result = $stmt->fetchAll();
         return $result;
@@ -188,10 +196,10 @@ class Order extends AbstractDb
      */
     public function getEmarsysOrderFields()
     {
-        $heading = ['order', 'date', 'customer', 'item', 'unit_price', 'c_sales_amount', 'quantity'];
+        $heading = $this->emarsysDataHelper->getSalesOrderCsvDefaultHeader();
         $excludeFields = implode("', '", $heading);
         $headingStr = implode(',', $heading);
-        $stmt = $this->getConnection()->query("SELECT emarsys_order_field FROM " . $this->getTable('emarsys_order_field_mapping') . " WHERE emarsys_order_field NOT IN ('" . $excludeFields . "') ");
+        $stmt = $this->getConnection()->query("SELECT emarsys_order_field FROM " . $this->getTable('emarsys_order_field_mapping') . " WHERE emarsys_order_field NOT IN ('" . $excludeFields . "') and emarsys_order_field not in (\"'\", \"\") ");
         $result = $stmt->fetchAll();
         return $result;
     }
@@ -204,20 +212,20 @@ class Order extends AbstractDb
     public function getOrderColValue($emarsysField, $orderId)
     {
         $emarsysField = $this->getConnection()->quote($emarsysField);
-        $heading = ['order', 'date', 'customer', 'item', 'unit_price', 'c_sales_amount', 'quantity'];
+        $heading = $this->emarsysDataHelper->getSalesOrderCsvDefaultHeader();
         if (in_array($emarsysField, $heading)) {
             return;
         }
         $stmt = $this->getConnection()->query("SELECT magento_column_name FROM " . $this->getTable('emarsys_order_field_mapping') . " WHERE emarsys_order_field = " . $emarsysField);
         $result = $stmt->fetch();
         if ($result['magento_column_name'] == 'created_at') {
-            $stmt = $this->getConnection()->query("SELECT ".$result['magento_column_name']." as created_at FROM ".$this->getTable('sales_order')." WHERE entity_id = '".$orderId."'  ");
+            $stmt = $this->getConnection()->query("SELECT " . $result['magento_column_name']. " as created_at FROM " . $this->getTable('sales_order') . " WHERE entity_id = '" . $orderId. "'  ");
         } elseif ($result['magento_column_name'] == 'updated_at') {
-            $stmt = $this->getConnection()->query("SELECT ".$result['magento_column_name']." as updated_at FROM ".$this->getTable('sales_order')." WHERE entity_id = '".$orderId."'  ");
+            $stmt = $this->getConnection()->query("SELECT " . $result['magento_column_name']. " as updated_at FROM " . $this->getTable('sales_order') . " WHERE entity_id = '" . $orderId. "'  ");
         } elseif ($result['magento_column_name'] == 'customer_dob') {
-            $stmt = $this->getConnection()->query("SELECT DATE_FORMAT(".$result['magento_column_name'].",'%Y-%m-%d') as magento_column_value FROM ".$this->getTable('sales_order')." WHERE entity_id = '".$orderId."'  ");
+            $stmt = $this->getConnection()->query("SELECT DATE_FORMAT(" . $result['magento_column_name']. ",'%Y-%m-%d') as magento_column_value FROM " . $this->getTable('sales_order') . " WHERE entity_id = '" . $orderId. "'  ");
         } else {
-            $stmt = $this->getConnection()->query("SELECT ".$result['magento_column_name']." as magento_column_value FROM ".$this->getTable('sales_order')." WHERE entity_id = '".$orderId."'  ");
+            $stmt = $this->getConnection()->query("SELECT " . $result['magento_column_name']. " as magento_column_value FROM " . $this->getTable('sales_order') . " WHERE entity_id = '" . $orderId. "'  ");
         }
 
         return $stmt->fetch();

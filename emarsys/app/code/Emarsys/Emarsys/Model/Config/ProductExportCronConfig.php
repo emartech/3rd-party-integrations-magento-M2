@@ -1,13 +1,21 @@
 <?php
-
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
 namespace Emarsys\Emarsys\Model\Config;
 
+/**
+ * Class ProductExportCronConfig
+ * @package Emarsys\Emarsys\Model\Config
+ */
 class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
 {
     /**
      * Cron string path
      */
-    const CRON_STRING_PATH = 'crontab/default/jobs/emarsys_productexport_sync/schedule/cron_expr';
+    const CRON_STRING_PATH = 'crontab/default/jobs/emarsys_product_sync/schedule/cron_expr';
 
     /**
      * @var \Magento\Framework\App\Config\ValueFactory
@@ -41,7 +49,6 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
         $runModelPath = '',
         array $data = []
     ) {
-    
         $this->_runModelPath = $runModelPath;
         $this->_configValueFactory = $configValueFactory;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);

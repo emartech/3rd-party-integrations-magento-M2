@@ -18,7 +18,8 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\ResourceConnection;
 
 /**
- * @codeCoverageIgnore
+ * Class InstallData
+ * @package Emarsys\Emarsys\Setup
  */
 class InstallData implements InstallDataInterface
 {

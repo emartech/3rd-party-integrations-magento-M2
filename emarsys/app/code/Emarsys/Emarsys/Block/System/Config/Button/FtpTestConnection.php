@@ -6,19 +6,16 @@
  */
 namespace Emarsys\Emarsys\Block\System\Config\Button;
 
-class FtpTestConnection extends \Magento\Config\Block\System\Config\Form\Field
+/**
+ * Class FtpTestConnection
+ * @package Emarsys\Emarsys\Block\System\Config\Button
+ */
+class FtpTestConnection extends AbstractButton
 {
     /**
      * Path to block template
      */
     const TEST_CONNECTION_TEMPLATE = 'system/config/button/ftpTestConnection.phtml';
-
-    /**
-     * Test Connection Button Label
-     *
-     * @var string
-     */
-    protected $_testConnectionButtonLabel = 'Test Connections';
 
     /**
      * Set template to itself
@@ -35,40 +32,11 @@ class FtpTestConnection extends \Magento\Config\Block\System\Config\Form\Field
     }
 
     /**
-     * Render button
-     *
-     * @param  \Magento\Framework\Data\Form\Element\AbstractElement $element
+     * @param $websiteId
      * @return string
      */
-    public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    protected function getAjaxActionUrl($websiteId)
     {
-        // Remove scope label
-        $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
-        return parent::render($element);
-    }
-
-    /**
-     * Get the button and scripts contents
-     *
-     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
-     * @return string
-     */
-    protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
-    {
-        $websiteId = $this->getRequest()->getParam('website');
-        if ($websiteId == '') {
-            $websiteId = 1;
-        }
-
-        $originalData = $element->getOriginalData();
-        $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_testConnectionButtonLabel;
-        $this->addData(
-            [
-                'button_label' => __($buttonLabel),
-                'html_id' => $element->getHtmlId(),
-                'ajax_url' => $this->getUrl("emarsys_emarsys/ftpTestConnection/index/website/$websiteId")
-            ]
-        );
-        return $this->_toHtml();
+        return $this->getUrl("emarsys_emarsys/ftpTestConnection/index", ["website" => $websiteId]);
     }
 }

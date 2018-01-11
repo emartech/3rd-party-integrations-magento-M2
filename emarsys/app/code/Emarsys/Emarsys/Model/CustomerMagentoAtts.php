@@ -7,14 +7,15 @@
 
 namespace Emarsys\Emarsys\Model;
 
-
+/**
+ * Class CustomerMagentoAtts
+ * @package Emarsys\Emarsys\Model
+ */
 class CustomerMagentoAtts extends \Magento\Framework\Model\AbstractModel
 {
     public function _construct()
     {
         $this->_init('Emarsys\Emarsys\Model\ResourceModel\CustomerMagentoAtts');
     }
-
-
 }
 

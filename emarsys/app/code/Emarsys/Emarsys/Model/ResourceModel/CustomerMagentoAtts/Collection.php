@@ -7,9 +7,12 @@
 
 namespace Emarsys\Emarsys\Model\ResourceModel\CustomerMagentoAtts;
 
+/**
+ * Class Collection
+ * @package Emarsys\Emarsys\Model\ResourceModel\CustomerMagentoAtts
+ */
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
-
     /**
      * Initializes collection
      *
@@ -19,5 +22,4 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     {
         $this->_init('Emarsys\Emarsys\Model\CustomerMagentoAtts', 'Emarsys\Emarsys\Model\ResourceModel\CustomerMagentoAtts');
     }
-
 }

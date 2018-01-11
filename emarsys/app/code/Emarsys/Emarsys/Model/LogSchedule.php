@@ -1,12 +1,15 @@
 <?php
 /**
  * @category   Emarsys
- * @package    Emarsys_Log
+ * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
-
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class LogSchedule
+ * @package Emarsys\Emarsys\Model
+ */
 class LogSchedule extends \Magento\Framework\Model\AbstractModel
 {
     /**

@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class Uniquefield
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class Uniquefield implements \Magento\Framework\Option\ArrayInterface
 {
     /**

@@ -14,23 +14,22 @@ use Magento\Store\Model\StoreManagerInterface;
 class AjaxUpdate extends \Magento\Framework\App\Action\Action
 {
     /**
-     * @var \Magento\Framework\Json\Helper\Data
+     * @var Data
      */
     protected $jsonHelper;
 
     /**
-     * @var \Emarsys\Emarsys\Model\Logs
+     * @var Logs
      */
     protected $emarsysLogs;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManager;
 
     /**
      * AjaxUpdate constructor.
-     *
      * @param Context $context
      * @param Data $jsonHelper
      * @param Logs $emarsysLogs
@@ -64,7 +63,7 @@ class AjaxUpdate extends \Magento\Framework\App\Action\Action
             $parentBlock = $layout->createBlock('Emarsys\Emarsys\Block\JavascriptTracking')
                                 ->setTemplate('Emarsys_Emarsys::emarsys/javascripttracking.phtml');
 
-            $childBlock = $layout->createBlock('Emarsys\Emarsys\Block\JavascriptTracking','emarsys.recommendations')
+            $childBlock = $layout->createBlock('Emarsys\Emarsys\Block\JavascriptTracking', 'emarsys.recommendations')
                                 ->setTemplate('Emarsys_Emarsys::emarsys/recommendations.phtml');
 
             $parentBlock->setChild('emarsys.recommendations', $childBlock);
@@ -75,7 +74,7 @@ class AjaxUpdate extends \Magento\Framework\App\Action\Action
             $this->emarsysLogs->addErrorLog(
                 $e->getMessage(),
                 $this->storeManager->getStore()->getId(),
-                'getCustomerEmailAddress()'
+                'AjaxUpdate::execute()'
             );
         }
 

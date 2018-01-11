@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Emarsyseventmapping
+ * @package Emarsys\Emarsys\Model
+ */
 class Emarsyseventmapping extends \Magento\Framework\Model\AbstractModel
 {
     /**

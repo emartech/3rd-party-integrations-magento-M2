@@ -1,11 +1,17 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <tab id="emarsys_connect" sortOrder="500">
             <label>Emarsys Connect</label>
         </tab>
-        <section id="emarsys_settings" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1"
-                 showInStore="0">
+        <section id="emarsys_settings" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Connections</label>
             <tab>emarsys_connect</tab>
@@ -45,16 +51,7 @@
                 <field id="emarsys_api_password" translate="label" type="password" sortOrder="22" showInDefault="1"
                        showInWebsite="1" showInStore="0">
                     <label>API Password</label>
-                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\Password</frontend_model>
-                    <backend_model>Emarsys\Emarsys\Model\Config\Backend\Custom</backend_model>
-                    <depends>
-                        <field id="enable">1</field>
-                    </depends>
-                </field>
-                <field id="confirm_password" translate="label" type="password" sortOrder="23" showInDefault="1"
-                       showInWebsite="1" showInStore="0">
-                    <label>Confirm Password</label>
-                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\ConfirmPassword</frontend_model>
+                    <validate>required-entry</validate>
                     <depends>
                         <field id="enable">1</field>
                     </depends>
@@ -190,27 +187,18 @@
                     <label>Enable Opt In</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-            </group>
-            <group id="subscription_newsletter_everypage" type="text" sortOrder="11" showInDefault="1" showInWebsite="1"
-                   showInStore="0">
-                <label>Subscription: Newsletter Box on every page</label>
-                <field id="opt_in_strategy" translate="label comment" sortOrder="10" type="select" showInDefault="1"
+                <field id="opt_in_strategy" translate="label comment" sortOrder="30" type="select" showInDefault="1"
                        showInWebsite="1" showInStore="0">
                     <label>Opt-In Strategy</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\OptInStrategy</source_model>
                 </field>
-                <field id="external_eventid_double_opt_in" translate="label comment" sortOrder="11" type="select"
-                       showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>External Event Id for Double-Opt-In Event</label>
+                <field id="force_optin_confirmation" translate="label" type="select" sortOrder="40" showInDefault="0"
+                       showInWebsite="0" showInStore="0">
+                    <label>Force Optin Confirmation</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="opt_in_strategy">doubleOptIn</field>
                     </depends>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\ExternalEventIdDoubleOptIn</source_model>
-                </field>
-                <field id="external_eventid_after_opt_in_confirmation" translate="label comment" sortOrder="12"
-                       type="select" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>External Event Id After Opt-In confirmation</label>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\ExternalEventIdAfterConfirm</source_model>
                 </field>
             </group>
             <group id="subscription_checkout_process" type="text" sortOrder="12" showInDefault="1" showInWebsite="1"
@@ -221,46 +209,6 @@
                     <label>Newsletter Subscription on Checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment> <![CDATA[Add the following code snippet in the frontend di.xml file in order to display the NewsLetter Subscription Checkbox in checkout page:<br/><br/><i><textarea disabled rows="6" cols="50">&lt;type name="Magento\Checkout\Block\Checkout\LayoutProcessor"&gt; &lt;plugin name="subscription" type="Emarsys\Emarsys\Plugin\Checkout\Model\Checkout\LayoutProcessor"/&gt;&lt;/type&gt;</textarea></i>]]></comment>
-                </field>
-                <field id="opt_in_strategy" translate="label comment" sortOrder="10" type="select" showInDefault="1"
-                       showInWebsite="1" showInStore="0">
-                    <label>Opt-In Strategy</label>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\OptInStrategy</source_model>
-                </field>
-                <field id="external_eventid_double_opt_in" translate="label comment" sortOrder="11" type="select"
-                       showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>External Event Id for Double-Opt-In Event</label>
-                    <depends>
-                        <field id="opt_in_strategy">doubleOptIn</field>
-                    </depends>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\ExternalEventIdDoubleOptIn</source_model>
-                </field>
-                <field id="external_eventid_after_opt_in_confirmation" translate="label comment" sortOrder="12"
-                       type="select" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>External Event Id After Opt-In confirmation</label>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\ExternalEventIdAfterConfirm</source_model>
-                </field>
-            </group>
-            <group id="subscription_customer_homepage" type="text" sortOrder="13" showInDefault="1" showInWebsite="1"
-                   showInStore="0">
-                <label>Subscription: Customer Registration Page</label>
-                <field id="opt_in_strategy" translate="label comment" sortOrder="10" type="select" showInDefault="1"
-                       showInWebsite="1" showInStore="0">
-                    <label>Opt-In Strategy</label>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\OptInStrategy</source_model>
-                </field>
-                <field id="external_eventid_double_opt_in" translate="label comment" sortOrder="11" type="select"
-                       showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>External Event Id for Double-Opt-In Event</label>
-                    <depends>
-                        <field id="opt_in_strategy">doubleOptIn</field>
-                    </depends>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\ExternalEventIdDoubleOptIn</source_model>
-                </field>
-                <field id="external_eventid_after_opt_in_confirmation" translate="label comment" sortOrder="12"
-                       type="select" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>External Event Id After Opt-In confirmation</label>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\ExternalEventIdAfterConfirm</source_model>
                 </field>
             </group>
         </section>
@@ -350,7 +298,44 @@
                     </depends>
                 </field>
             </group>
-
+            <group id="api_settings" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Smart Insight API Settings</label>
+                <field id="enableapi" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="0">
+                    <label>Enable API Export</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="merchant_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="0">
+                    <label>Merchant Id</label>
+                    <depends>
+                        <field id="enableapi">1</field>
+                    </depends>
+                </field>
+                <field id="token" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1"
+                       showInStore="0">
+                    <label>Bearer Token</label>
+                    <depends>
+                        <field id="enableapi">1</field>
+                    </depends>
+                </field>
+                <field id="max_records_per_export" translate="label" type="select" sortOrder="20" showInDefault="1"
+                       showInWebsite="1" showInStore="0">
+                    <label>Maximum Records</label>
+                    <source_model>Emarsys\Emarsys\Model\Config\Source\MaxRecordsPerExport</source_model>
+                    <depends>
+                        <field id="enableapi">1</field>
+                    </depends>
+                </field>
+                <field id="ping" translate="button_label" sortOrder="40" showInDefault="1"
+                       showInWebsite="1" showInStore="0">
+                    <button_label>Test Connection</button_label>
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Button\SmartInsightApiTestConnection</frontend_model>
+                    <depends>
+                        <field id="enableapi">1</field>
+                    </depends>
+                </field>
+            </group>
         </section>
         <section id="emarsys_predict" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
@@ -396,6 +381,35 @@
                     <comment>For hours only minutes will be applicable.</comment>
                     <depends>
                         <field id="enable_nightly_product_feed">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="catalog_api_settings" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Feed Export API Settings</label>
+                <field id="enable_catalog_api" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="0">
+                    <label>Enable API Export</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="catalog_merchant_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="0">
+                    <label>Merchant Id</label>
+                    <depends>
+                        <field id="enable_catalog_api">1</field>
+                    </depends>
+                </field>
+                <field id="catalog_token" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1"
+                       showInStore="0">
+                    <label>Bearer Token</label>
+                    <depends>
+                        <field id="enable_catalog_api">1</field>
+                    </depends>
+                </field>
+                <field id="catalog_ping" translate="button_label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <button_label>Test Connection</button_label>
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Button\CatalogApiTestConnection</frontend_model>
+                    <depends>
+                        <field id="enable_catalog_api">1</field>
                     </depends>
                 </field>
             </group>
@@ -562,6 +576,16 @@
                        showInStore="0">
                     <button_label>Download Logs</button_label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\Logger</frontend_model>
+                </field>
+                <field id="clearlogs" translate="button_label" sortOrder="13" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <button_label>Clear Logs</button_label>
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\LogCleanerButton</frontend_model>
+                </field>
+                <field id="clearcrondetails" translate="button_label" sortOrder="13" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <button_label>Clear Cron Details</button_label>
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\CronDetailsCleanerButton</frontend_model>
                 </field>
             </group>
         </section>

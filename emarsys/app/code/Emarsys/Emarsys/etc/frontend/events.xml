@@ -1,29 +1,36 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-    <event name="newsletter_subscriber_save_after">
-        <observer name="emarsys_newsletter_subscribers" instance="Emarsys\Emarsys\Model\Observer\RealTimeSubscriber" shared="false"/>
-    </event>
+    <!--<event name="newsletter_subscriber_save_after">
+        <observer name="emarsys_newsletter_subscribers" instance="Emarsys\Emarsys\Observer\RealTimeSubscriber" shared="false"/>
+    </event>-->
     <event name="customer_register_success">
-        <observer name="emarsys_customer_register_success" instance="Emarsys\Emarsys\Model\Observer\CustomerRegisterSuccess" />
+        <observer name="emarsys_customer_register_success" instance="Emarsys\Emarsys\Observer\CustomerRegisterSuccess" />
     </event>
     <event name="controller_action_predispatch">
-        <observer name="emarsys_controller_action_predispatch" instance="Emarsys\Emarsys\Model\Observer\ControllerActionPredispatchObserver" />
+        <observer name="emarsys_controller_action_predispatch" instance="Emarsys\Emarsys\Observer\ControllerActionPredispatchObserver" />
     </event>
     <event name="customer_save_commit_after">
-        <observer name="frontend_edit_customer" instance="Emarsys\Emarsys\Model\Observer\RealTimeCustomer"/>
+        <observer name="frontend_edit_customer" instance="Emarsys\Emarsys\Observer\RealTimeCustomer"/>
     </event>
     <!--<event name="customer_address_save_after">-->
     <event name="customer_address_save_commit_after">
-        <observer name="emarsys_customer_address_save_after" instance="Emarsys\Emarsys\Model\Observer\AfterAddressSaveObserver" />
+        <observer name="emarsys_customer_address_save_after" instance="Emarsys\Emarsys\Observer\AfterAddressSaveObserver" />
     </event>
     <event name="sales_order_save_after">
-        <observer name="order_save_after_frontend" instance="Emarsys\Emarsys\Model\Observer\OrderSave"/>
+        <observer name="order_save_after_frontend" instance="Emarsys\Emarsys\Observer\OrderSave"/>
     </event>
     <event name="checkout_onepage_controller_success_action">
-        <observer name="order_save_after_frontend" instance="Emarsys\Emarsys\Model\Observer\OrderSaveFrontend"/>
+        <observer name="order_save_after_frontend" instance="Emarsys\Emarsys\Observer\OrderSaveFrontend"/>
     </event>
     <event name="multishipping_checkout_controller_success_action">
-        <observer name="emarsys_multishipping_order_save_after" instance="Emarsys\Emarsys\Model\Observer\OrderSaveFrontend"/>
+        <observer name="emarsys_multishipping_order_save_after" instance="Emarsys\Emarsys\Observer\OrderSaveFrontend"/>
     </event>
 </config>

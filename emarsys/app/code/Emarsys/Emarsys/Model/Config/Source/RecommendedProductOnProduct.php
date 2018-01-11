@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class RecommendedProductOnProduct
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class RecommendedProductOnProduct
 {
     /**

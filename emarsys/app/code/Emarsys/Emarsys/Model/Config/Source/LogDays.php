@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class LogDays
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class LogDays implements \Magento\Framework\Option\ArrayInterface
 {
     /**

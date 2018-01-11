@@ -7,9 +7,12 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Field
+ * @package Emarsys\Emarsys\Model
+ */
 class Field extends \Magento\Framework\Model\AbstractModel
 {
-
     /**
      * constructor
      */

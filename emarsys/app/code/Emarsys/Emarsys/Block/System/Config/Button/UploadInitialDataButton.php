@@ -6,7 +6,11 @@
  */
 namespace Emarsys\Emarsys\Block\System\Config\Button;
 
-class UploadInitialDataButton extends \Magento\Config\Block\System\Config\Form\Field
+/**
+ * Class UploadInitialDataButton
+ * @package Emarsys\Emarsys\Block\System\Config\Button
+ */
+class UploadInitialDataButton extends AbstractButton
 {
     /**
      * Path to block template
@@ -18,7 +22,7 @@ class UploadInitialDataButton extends \Magento\Config\Block\System\Config\Form\F
      *
      * @var string
      */
-    protected $_testConnectionButtonLabel = 'Upload';
+    protected $_testConnectionButtonLabel = 'Export';
 
     /**
      * Set template to itself
@@ -35,30 +39,14 @@ class UploadInitialDataButton extends \Magento\Config\Block\System\Config\Form\F
     }
 
     /**
-     * Render button
-     *
-     * @param  \Magento\Framework\Data\Form\Element\AbstractElement $element
-     * @return string
-     */
-    public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
-    {
-        // Remove scope label
-        $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
-        return parent::render($element);
-    }
-
-    /**
      * Get the button and scripts contents
-     *
      * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      * @return string
      */
     protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {
         $websiteId = $this->getRequest()->getParam('website');
-        if ($websiteId == '') {
-            $websiteId = '';
-        }
+        $websiteId = $websiteId ? $websiteId : 0;
 
         $originalData = $element->getOriginalData();
         $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_testConnectionButtonLabel;
@@ -66,9 +54,18 @@ class UploadInitialDataButton extends \Magento\Config\Block\System\Config\Form\F
             [
                 'button_label' => __($buttonLabel),
                 'html_id' => $element->getHtmlId(),
-                'ajax_url' => $this->getUrl("emarsys_emarsys/uploadinitialdb/index/website/$websiteId")
+                'ajax_url' => $this->getAjaxActionUrl($websiteId)
             ]
         );
         return $this->_toHtml();
+    }
+
+    /**
+     * @param $websiteId
+     * @return string
+     */
+    protected function getAjaxActionUrl($websiteId)
+    {
+        return $this->getUrl("emarsys_emarsys/uploadinitialdb/index", ["website" => $websiteId]);
     }
 }

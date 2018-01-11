@@ -6,7 +6,13 @@
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Scheduler;
+
 use Magento\Framework\Stdlib\DateTime\Timezone;
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Helper\Data;
+use Magento\Framework\App\Request\Http;
+use Emarsys\Emarsys\Model\LogScheduleFactory;
+
 /**
  * Class Grid
  * @package Emarsys\Emarsys\Block\Adminhtml\Scheduler
@@ -14,78 +20,41 @@ use Magento\Framework\Stdlib\DateTime\Timezone;
 class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
 {
     /**
-     * @var \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection
-     */
-    protected $_collection;
-
-    /**
-     * @var \Magento\Backend\Helper\Data
-     */
-    protected $backendHelper;
-    /**
-     * @var \Magento\Framework\Data\Collection
-     */
-    protected $dataCollection;
-    /**
-     * @var \Magento\Framework\DataObjectFactory
-     */
-    protected $dataObjectFactory;
-    /**
-     * @var \Magento\Cron\Model\ConfigInterface
-     */
-    protected $cronConfig;
-    /**
-     * @var \Magento\Framework\Dataobject
-     */
-    protected $dataObject;
-    /**
-     * @var \Emarsys\Emarsys\Model\SchedulerFactory
-     */
-    protected $schedulerFactory;
-    /**
-     * @var \Emarsys\Emarsys\Helper\Data
-     */
-    protected $schedulerHelper;
-    /**
      * @var Timezone
      */
     protected $timezone;
+
     /**
-     * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Backend\Helper\Data $backendHelper
-     * @param \Emarsys\Emarsys\Helper\Data $schedulerHelper
-     * @param \Magento\Framework\Data\Collection $dataCollection
-     * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
-     * @param \Emarsys\Emarsys\Model\SchedulerFactory $schedulerFactory
-     * @param \Magento\Cron\Model\ConfigInterface $cronConfig
-     * @param \Magento\Framework\Dataobject $dataObject
+     * @var Http
+     */
+    protected $request;
+
+    /**
+     * @var LogScheduleFactory
+     */
+    protected $logScheduleFactory;
+
+    /**
+     * Grid constructor.
+     * @param Context $context
+     * @param Data $backendHelper
+     * @param Timezone $timezone
+     * @param Http $request
+     * @param LogScheduleFactory $logScheduleFactory
      * @param array $data
      */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Backend\Helper\Data $backendHelper,
-        \Emarsys\Emarsys\Helper\Data $schedulerHelper,
-        \Magento\Framework\Data\Collection $dataCollection,
-        \Magento\Framework\DataObjectFactory $dataObjectFactory,
-        \Emarsys\Emarsys\Model\SchedulerFactory $schedulerFactory,
-        \Magento\Cron\Model\ConfigInterface $cronConfig,
-        \Magento\Framework\App\Request\Http $request,
-        \Magento\Framework\Controller\Result\RedirectFactory $redirectFactory,
-        \Magento\Framework\Dataobject $dataObject,
+        Context $context,
+        Data $backendHelper,
         Timezone $timezone,
+        Http $request,
+        LogScheduleFactory $logScheduleFactory,
         $data = []
     ) {
         $this->timezone = $timezone;
-        $this->schedulerHelper = $schedulerHelper;
-        $this->redirectFactory = $redirectFactory;
-        $this->backendHelper = $backendHelper;
-        $this->dataCollection = $dataCollection;
-        $this->dataObjectFactory = $dataObjectFactory;
-        $this->cronConfig = $cronConfig;
-        $this->dataObject = $dataObject;
-        $this->getRequest = $request;
-        $this->schedulerFactory = $schedulerFactory;
-        parent::__construct($context, $backendHelper, $data = []);
+        $this->request = $request;
+        $this->logScheduleFactory = $logScheduleFactory;
+        parent::__construct($context, $backendHelper, $data);
     }
 
     /**
@@ -107,16 +76,24 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     protected function _prepareCollection()
     {
         $filterCode = $this->getRequest()->getParam('filtercode');
-        $storeId = $this->getRequest->getParam('store');
-        $collection = $this->schedulerFactory->create()
-            ->getCollection()
-            ->setOrder('created_at', 'desc')
-            ->addFieldToFilter('store_id', $storeId);
+
+        $storeId = $this->request->getParam('store');
+        if ($storeId) {
+            $collection = $this->logScheduleFactory->create()
+                ->getCollection()
+                ->setOrder('created_at', 'desc')
+                ->addFieldToFilter('store_id', $storeId);
+        } else {
+            $collection = $this->logScheduleFactory->create()
+                ->getCollection()
+                ->setOrder('created_at', 'desc');
+        }
 
         if ($filterCode != '') {
             $collection->addFieldToFilter('job_code', $filterCode);
         }
         $this->setCollection($collection);
+
         return parent::_prepareCollection();
     }
 
@@ -126,7 +103,6 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      */
     protected function _prepareColumns()
     {
-        $viewHelper = $this->schedulerHelper;
         $this->addColumn("job_code", [
             "header" => __("Code"),
             "align" => "left",
@@ -137,17 +113,17 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
                 'customer' => 'Customer',
                 'subscriber' => 'Subscriber',
                 'order' => 'Order',
-                'testconnection' => 'Test Connection',
                 'product' => 'Product',
+                'Customer Mapping' => 'Customer Mapping',
+                'Customer Filed Mapping' => 'Customer Filed Mapping',
+                'Order Mapping' => 'Order Mapping',
+                'Product Mapping' => 'Product Mapping',
+                'Event Mapping' => 'Event Mapping',
                 'initialdbload' => 'Initial Load',
                 'transactional_mail' => 'Transactional Mail',
-                'Event Mapping' =>'Event Mapping',
-                'Order Mapping' =>'Order Mapping',
-                'Customer Mapping' =>'Customer Mapping',
-                'Customer Filed Mapping' =>'Customer Filed Mapping',
-                'Product Mapping' =>'Product Mapping',
-                'Backgroud Time Based Optin Sync' => 'Backgroud Time Based Optin Sync',
+                'Backgroud Time Based Optin Sync' => 'Background Time Based Optin Sync',
                 'Sync contact Export' => 'Sync contact Export',
+                'testconnection' => 'Test Connection',
                 'Exception' => 'Exception'
             ]
         ]);

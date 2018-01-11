@@ -105,13 +105,13 @@
     function bulkExport(entity) {
         var url = '';
         if (entity == 'customer') {
-            url = '<?php echo $this->getUrl("emarsys_emarsys/customerexport/index/store/$storeId") ?>';
+            url = '<?php echo $this->getUrl("emarsys_emarsys/customerexport/index", ["store" => $storeId]) ?>';
         } else if (entity == 'subscriber') {
-            url = '<?php echo $this->getUrl("emarsys_emarsys/subscriberexport/index/store/$storeId") ?>';
+            url = '<?php echo $this->getUrl("emarsys_emarsys/subscriberexport/index", ["store" => $storeId]) ?>';
         } else if (entity == 'order') {
-            url = '<?php echo $this->getUrl("emarsys_emarsys/orderexport/index/store/$storeId") ?>';
+            url = '<?php echo $this->getUrl("emarsys_emarsys/orderexport/index", ["store" => $storeId]) ?>';
         } else if (entity == 'product') {
-            url = '<?php echo $this->getUrl("emarsys_emarsys/productexport/index/store/$storeId") ?>';
+            url = '<?php echo $this->getUrl("emarsys_emarsys/productexport/index", ["store" => $storeId]) ?>';
         }
 
         window.location.assign(url);

@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Orderexport\Edit;
 
+/**
+ * Class Tabs
+ * @package Emarsys\Emarsys\Block\Adminhtml\Orderexport\Edit
+ */
 class Tabs extends \Magento\Backend\Block\Widget\Tabs
 {
     /**

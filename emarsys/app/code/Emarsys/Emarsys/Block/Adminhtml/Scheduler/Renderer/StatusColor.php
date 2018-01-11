@@ -8,32 +8,14 @@
 namespace Emarsys\Emarsys\Block\Adminhtml\Scheduler\Renderer;
 
 use Magento\Framework\DataObject;
+use Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer;
 
-class StatusColor extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
+/**
+ * Class StatusColor
+ * @package Emarsys\Emarsys\Block\Adminhtml\Scheduler\Renderer
+ */
+class StatusColor extends AbstractRenderer
 {
-    /**
-     * @var \Magento\Backend\Model\Session
-     */
-    protected $session;
-
-    /**
-     * @var \Magento\Backend\Helper\Data
-     */
-    protected $backendHelper;
-
-    /**
-     * @param \Magento\Backend\Model\Session $session
-     * @param \Magento\Backend\Helper\Data $backendHelper
-     */
-    public function __construct(
-        \Magento\Backend\Model\Session $session,
-        \Magento\Backend\Helper\Data $backendHelper
-    ) {
-    
-        $this->session = $session;
-        $this->backendHelper = $backendHelper;
-    }
-
     /**
      * @param DataObject $row
      * @return string
@@ -41,14 +23,20 @@ class StatusColor extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abs
     public function render(DataObject $row)
     {
         $value =  $row->getData($this->getColumn()->getIndex());
-        if ($value == 'success') {
-            return '<span style="color:green;">'.ucwords($value).'</span>';
-        } elseif ($value == 'error') {
-            return '<span style="color:red;">' . ucwords($value) . '</span>';
-        } elseif ($value == 'notice') {
-            return '<span style="color:#EB5202;">'.ucwords($value).'</span>';
-        } else {
-            return '<span style="color:green;">'.ucwords($value).'</span>';
+        switch ($value) {
+            case 'success':
+                $color = 'green';
+                break;
+            case 'error':
+                $color = 'red';
+                break;
+            case 'notice':
+                $color = '#EB5202';
+                break;
+            default:
+                $color = 'green';
         }
+
+        return '<span style="color:' . $color . ';">' . ucwords($value) . '</span>';
     }
 }

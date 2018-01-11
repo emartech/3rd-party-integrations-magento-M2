@@ -7,30 +7,35 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Api
+ * @package Emarsys\Emarsys\Model
+ */
 class Api extends \Magento\Framework\HTTP\ZendClient
 {
-    /**
-     * constructor
-     */
     public $_apiUrl;
+
     public $_username;
+
     public $_password;
 
-    //public $config;
-
+    /**
+     * @param $params
+     * @return \Magento\Framework\HTTP\ZendClient
+     */
     public function _construct($params)
     {
-
         $this->_apiUrl = $params['api_url'];
         $this->_username = $params['api_username'];
-        ;
         $this->_password = $params['api_password'];
-        ;
         $this->config['timeout'] = 60;
-        //$this->_debug = Mage::registry(self::DEBUG_KEY);
+
         return parent::__construct($this->_apiUrl);
     }
 
+    /**
+     * @return string
+     */
     protected function _getWSSEHeader()
     {
         $nonce = md5(time());
@@ -46,7 +51,15 @@ class Api extends \Magento\Framework\HTTP\ZendClient
         );
     }
 
-
+    /**
+     * @param $apiCall
+     * @param string $method
+     * @param array $data
+     * @param bool $jsonDecode
+     * @return string
+     * @throws \Exception
+     * @throws \Zend_Http_Client_Exception
+     */
     protected function _request($apiCall, $method = 'GET', $data = [], $jsonDecode = true)
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
@@ -80,7 +93,12 @@ class Api extends \Magento\Framework\HTTP\ZendClient
         return $response;
     }
 
-
+    /**
+     * @param $apiCall
+     * @param array $data
+     * @return string
+     * @throws \Exception
+     */
     public function post($apiCall, $data = [])
     {
         if (is_object($data)) {
@@ -90,6 +108,12 @@ class Api extends \Magento\Framework\HTTP\ZendClient
         return $this->_request($apiCall, \Zend_Http_Client::POST, $data);
     }
 
+    /**
+     * @param $apiCall
+     * @param array $data
+     * @return string
+     * @throws \Exception
+     */
     public function put($apiCall, $data = [])
     {
         if (is_object($data)) {
@@ -99,21 +123,25 @@ class Api extends \Magento\Framework\HTTP\ZendClient
         return $this->_request($apiCall, \Zend_Http_Client::PUT, $data);
     }
 
+    /**
+     * @param $apiCall
+     * @param array $data
+     * @param bool $jsonDecode
+     * @return string
+     * @throws \Exception
+     */
     public function get($apiCall, $data = [], $jsonDecode = true)
     {
         return $this->_request($apiCall, \Zend_Http_Client::GET, $data, $jsonDecode);
     }
 
+    /**
+     * @return string
+     */
     public function ping()
     {
         $result = 1;
-        // try {
         $response = $this->get('settings');
-        // } catch (Zend_Http_Client_Exception $e) {
-        //$result = self::API_ERROR_CONNECTION;
-        //} catch (Exception $e) {
-        //  $result = $e->getMessage();
-        //}
 
         return $response;
     }

@@ -10,9 +10,12 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\View\Result\PageFactory;
 
+/**
+ * Class SaveSchema
+ * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Product
+ */
 class SaveSchema extends \Magento\Backend\App\Action
 {
-
     /**
      * @var PageFactory
      */
@@ -45,7 +48,6 @@ class SaveSchema extends \Magento\Backend\App\Action
         \Emarsys\Emarsys\Model\Logs $emarsysLogs,
         PageFactory $resultPageFactory
     ) {
-    
         parent::__construct($context);
         $this->session = $context->getSession();
         $this->resultPageFactory = $resultPageFactory;
@@ -66,7 +68,7 @@ class SaveSchema extends \Magento\Backend\App\Action
         }
         $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
         try {
-            $productFields = array();
+            $productFields = [];
             $logsArray['job_code'] = 'Product Mapping';
             $logsArray['status'] = 'started';
             $logsArray['messages'] = 'Running Update Schema';
@@ -85,7 +87,7 @@ class SaveSchema extends \Magento\Backend\App\Action
             $logsArray['emarsys_info'] = 'Update Product Mapping';
             $logsArray['action'] = 'Update Product Mapping Successful';
             $logsArray['message_type'] = 'Success';
-            $logsArray['description'] = 'Product Mapping Updated as '.print_r($productFields,true);
+            $logsArray['description'] = 'Product Mapping Updated as ' .print_r($productFields,true);
             $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['log_action'] = 'True';

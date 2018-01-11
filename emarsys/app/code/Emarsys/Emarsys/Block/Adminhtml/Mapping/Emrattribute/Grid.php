@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Emrattribute;
 
+/**
+ * Class Grid
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Emrattribute
+ */
 class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
 {
     /**
@@ -65,6 +69,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     protected $orderFactory;
 
     /**
+     * Grid constructor.
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Backend\Helper\Data $backendHelper
      * @param \Magento\Eav\Model\Entity\Type $entityType
@@ -72,9 +77,8 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      * @param \Magento\Framework\Data\Collection $dataCollection
      * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
      * @param \Emarsys\Emarsys\Model\ResourceModel\Order $resourceModelOrder
+     * @param \Emarsys\Emarsys\Model\OrderFactory $orderFactory
      * @param \Magento\Framework\Module\Manager $moduleManager
-     * @param \Magento\Backend\Model\Session $session
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param array $data
      */
     public function __construct(
@@ -88,9 +92,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         \Emarsys\Emarsys\Model\OrderFactory $orderFactory,
         \Magento\Framework\Module\Manager $moduleManager,
         $data = []
-    )
-    {
-
+    ) {
         $this->session = $context->getBackendSession();
         $this->entityType = $entityType;
         $this->attribute = $attribute;
@@ -101,24 +103,20 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->resourceModelOrder = $resourceModelOrder;
         $this->_storeManager = $context->getStoreManager();
         $this->orderFactory = $orderFactory;
-        parent::__construct($context, $backendHelper, $data = []);
+        parent::__construct($context, $backendHelper, $data);
     }
-
 
     /**
      * @return $this
      */
     protected function _prepareCollection()
     {
-        $customCollection = [];
         $customCollection = $this->orderFactory->create()->getCollection()->setOrder('magento_column_name', 'ASC');
         $this->setCollection($customCollection);
-        //return parent::_prepareCollection();
     }
 
     protected function _prepareColumns()
     {
-
         $this->addColumn(
             'magento_column_name',
             [

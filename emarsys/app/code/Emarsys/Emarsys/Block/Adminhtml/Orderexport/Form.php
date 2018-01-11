@@ -10,11 +10,16 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Orderexport;
 use Magento\Backend\Block\Widget\Form\Container;
 use Emarsys\Emarsys\Controller\Adminhtml\Orderexport;
 
+/**
+ * Class Form
+ * @package Emarsys\Emarsys\Block\Adminhtml\Orderexport
+ */
 class Form extends \Magento\Backend\Block\Widget\Form
 {
     protected $_template = 'bulkexport/bulkexport.phtml';
 
     /**
+     * Form constructor.
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param array $data
      */
@@ -22,7 +27,6 @@ class Form extends \Magento\Backend\Block\Widget\Form
         \Magento\Backend\Block\Widget\Context $context,
         array $data = []
     ) {
-    
         parent::__construct($context, $data);
         $this->setId('orderExportForm');
     }

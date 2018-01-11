@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Block\System\Config\Form;
 
+/**
+ * Class Button
+ * @package Emarsys\Emarsys\Block\System\Config\Form
+ */
 class Button extends \Magento\Config\Block\System\Config\Form\Field
 {
     /**

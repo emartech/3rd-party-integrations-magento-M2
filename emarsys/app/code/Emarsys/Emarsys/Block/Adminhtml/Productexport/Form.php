@@ -10,6 +10,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Productexport;
 use Magento\Backend\Block\Widget\Form\Container;
 use Emarsys\Emarsys\Controller\Adminhtml\Productexport;
 
+/**
+ * Class Form
+ * @package Emarsys\Emarsys\Block\Adminhtml\Productexport
+ */
 class Form extends \Magento\Backend\Block\Widget\Form
 {
     protected $_template = 'bulkexport/bulkexport.phtml';
@@ -22,7 +26,6 @@ class Form extends \Magento\Backend\Block\Widget\Form
         \Magento\Backend\Block\Widget\Context $context,
         array $data = []
     ) {
-    
         parent::__construct($context, $data);
         $this->setId('productExportForm');
     }

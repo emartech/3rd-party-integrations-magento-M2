@@ -93,7 +93,7 @@ class Save extends Action
 
             $logsArray['id'] = $logId;
             $logsArray['emarsys_info'] = 'Saved Order Mapping Successfully';
-            $logsArray['description'] = 'Save Entries as '.print_r($stringArrayData,true);
+            $logsArray['description'] = 'Save Entries as ' .print_r($stringArrayData,true);
             $logsArray['action'] = 'Save Order Schema';
             $logsArray['message_type'] = 'Success';
             $logsArray['status'] = 'Success';

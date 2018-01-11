@@ -75,63 +75,69 @@ class SaveSchema extends Action
     {
         try {
             $session = $this->session->getData();
+            $resultRedirect = $this->resultRedirectFactory->create();
             if (isset($session['store'])) {
                 $storeId = $session['store'];
             } else {
                 $storeId = $this->emarsysHelper->getFirstStoreId();
             }
             $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
+            $errorStatus = true;
+
+            //initial logging started
             $logsArray['job_code'] = 'Order Mapping';
             $logsArray['status'] = 'started';
-            $logsArray['messages'] = 'Running Update Schema';
+            $logsArray['messages'] = 'Running Order Update Schema';
             $logsArray['created_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['run_mode'] = 'Automatic';
             $logsArray['auto_log'] = 'Complete';
             $logsArray['store_id'] = $storeId;
             $logsArray['website_id'] = $websiteId;
+            $logsArray['action'] = 'Update Order Schema';
+            $logsArray['log_action'] = 'Update Order Schema';
             $logId = $this->logsHelper->manualLogs($logsArray);
+            $logsArray['id'] = $logId;
+
             $data = $this->orderResourceModel->getSalesOrderColumnNames();
-            $manData['order'] = 'order';
-            $manData['date'] = 'date';
-            $manData['customer'] = 'customer';
-            $manData['item'] = 'item';
-            $manData['quantity'] = 'quantity';
-            $manData['unit_price'] = 'unit_price';
-            $manData['c_sales_amount'] = 'c_sales_amount';
+
+            $header = $this->emarsysHelper->getSalesOrderCsvDefaultHeader();
+            foreach ($header as $column) {
+                $manData[$column] = $column;
+            }
+
             $this->orderResourceModel->insertIntoMappingTableStaticData($manData, $storeId);
             $this->orderResourceModel->insertIntoMappingTable($data, $storeId);
-            $logsArray['id'] = $logId;
+
+            $errorStatus = false;
             $logsArray['emarsys_info'] = 'Update Schema Successful';
-            $logsArray['description'] = 'Inserted Entries '.print_r($data,true);
-            $logsArray['action'] = 'Update Order Schema';
+            $logsArray['description'] = 'Inserted Entries ' . print_r($data,true);
             $logsArray['message_type'] = 'Success';
-            $logsArray['log_action'] = 'Update Order Schema';
-            $logsArray['messages'] = 'Update Schema Successful';
-            $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
-            $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
             $this->logsHelper->logs($logsArray);
-            $this->logsHelper->manualLogsUpdate($logsArray);
             $this->messageManager->addSuccessMessage('Order Schema Updated Successfully.');
         } catch (\Exception $e) {
             if ($logId) {
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'Update Schema not Successful';
                 $logsArray['description'] = $e->getMessage();
-                $logsArray['action'] = 'Update Order Schema';
                 $logsArray['message_type'] = 'Error';
-                $logsArray['log_action'] = 'Update Order Schema';
-                $logsArray['messages'] = 'Update Schema not Successful';
-                $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
-                $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
                 $this->logsHelper->logs($logsArray);
-                $this->logsHelper->manualLogsUpdate($logsArray);
             }
             $this->messageManager->addErrorMessage(
-                __('There was a problem while updating order schema. Please refer emarsys logs for more information.')
+                __('There was a problem while updating order schema. Please refer emarsys logs for more information.
+                 %1', $e->getMessage())
             );
         }
-        $resultRedirect = $this->resultRedirectFactory->create();
+
+        if ($errorStatus) {
+            $logsArray['messages'] = 'Error While Update Schema';
+            $logsArray['status'] = 'error';
+        } else {
+            $logsArray['messages'] = 'Update Schema Successful';
+            $logsArray['status'] = 'success';
+        }
+        $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
+        $this->logsHelper->manualLogsUpdate($logsArray);
 
         return $resultRedirect->setRefererOrBaseUrl();
     }

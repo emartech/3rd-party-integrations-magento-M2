@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class Emarsyseventmapping
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer
+ */
 class Emarsyseventmapping extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -42,11 +46,16 @@ class Emarsyseventmapping extends \Magento\Backend\Block\Widget\Grid\Column\Rend
     protected $_storeManager;
 
     /**
+     * Emarsyseventmapping constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Emarsys\Emarsys\Model\ResourceModel\Customer\CollectionFactory $collectionFactory
      * @param \Magento\Backend\Helper\Data $backendHelper
-     * @param \Emarsys\Emarsys\Model\ResourceModel\Customer $resourceModelEvent
+     * @param \Emarsys\Emarsys\Model\ResourceModel\Event $resourceModelEvent
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\UrlInterface $urlInterface
+     * @param \Emarsys\Emarsys\Helper\Data $EmarsysHelper
+     * @param \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory $magentoEventCollection
+     * @param \Emarsys\Emarsys\Model\ResourceModel\Emarsysevents\CollectionFactory $EmarsyseventCollection
      */
     public function __construct(
         \Magento\Backend\Model\Session $session,
@@ -59,7 +68,6 @@ class Emarsyseventmapping extends \Magento\Backend\Block\Widget\Grid\Column\Rend
         \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory $magentoEventCollection,
         \Emarsys\Emarsys\Model\ResourceModel\Emarsysevents\CollectionFactory $EmarsyseventCollection
     ) {
-    
         $this->session = $session;
         $this->collectionFactory = $collectionFactory;
         $this->backendHelper = $backendHelper;
@@ -70,7 +78,6 @@ class Emarsyseventmapping extends \Magento\Backend\Block\Widget\Grid\Column\Rend
         $this->_urlInterface = $urlInterface;
         $this->magentoEventCollection = $magentoEventCollection;
     }
-
 
     /**
      * @param DataObject $row
@@ -86,8 +93,8 @@ class Emarsyseventmapping extends \Magento\Backend\Block\Widget\Grid\Column\Rend
         $params = ['mapping_id' => $row->getId(), 'store_id' => $storeId];
         $url = $this->_urlInterface->getUrl('*/*/changeValue');
         $params = ['mapping_id' => $row->getData('id'), 'store_id' => $storeId];
-        $placeHolderUrl = $this->backendHelper->getUrl("adminhtml/suite2email_placeholders/index/", $params);
-        $jsonRequestUrl = $this->backendHelper->getUrl("adminhtml/suite2email_placeholders/jsonrequest/", $params);
+        $placeHolderUrl = $this->backendHelper->getUrl("adminhtml/suite2email_placeholders/index", $params);
+        $jsonRequestUrl = $this->backendHelper->getUrl("adminhtml/suite2email_placeholders/jsonrequest", $params);
         $emarsysEvents = $this->EmarsyseventCollection->create();
         $ronly = '';
         $dbEvents = [];
@@ -106,7 +113,6 @@ class Emarsyseventmapping extends \Magento\Backend\Block\Widget\Grid\Column\Rend
             $id = $row->getId();
             $magento_event_id = $row->getMagentoEventId();
             $gridSessionData[$id]['magento_event_id'] = $magento_event_id;
-            //echo $row->getData("emarsys_event_id")."---->".$emarsysEvent->getId()."--->".$emarsysEvent->getEmarsysEvent()."<br>";
 
             if ($row->getEmasysEventId() == $emarsysEvent->getId()) {
                 $sel .= 'selected = selected';

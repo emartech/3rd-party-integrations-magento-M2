@@ -55,7 +55,6 @@ class EmarsysEvent extends AbstractRenderer
 
     /**
      * EmarsysEvent constructor.
-     *
      * @param Session $session
      * @param BackendHelper $backendHelper
      * @param StoreManagerInterface $storeManager
@@ -90,10 +89,14 @@ class EmarsysEvent extends AbstractRenderer
         $row->getData('id');
         $params = ['mapping_id' => $row->getData('id'), 'store' => $storeId];
         $placeHolderUrl = $this->backendHelper->getUrl("*/*/placeholders", $params);
-        $placeholderJsonRequestUrl = $this->backendHelper->getUrl("*/*/placeholderjson/mapping_id/" .
-            $row->getData('id') . "/store_id/" . $storeId);
-
-        $emarsysEvents = $this->emarsysEventCollection->create()->addFieldToFilter('store_id', ['eq'=>$storeId]);
+        $placeholderJsonRequestUrl = $this->backendHelper->getUrl(
+            "*/*/placeholderjson",
+            [
+                "mapping_id" => $row->getData('id'),
+                "store_id" => $storeId
+            ]
+        );
+        $emarsysEvents = $this->emarsysEventCollection->create()->addFieldToFilter('store_id', ['eq' => $storeId]);
         $ronly = '';
         $buttonClass = '';
 

@@ -1,6 +1,19 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="newsletter_subscriber_save_before">
-        <observer name="emarsys_newsletter_subscribers_issue_fixbefore" instance="Emarsys\Emarsys\Model\Observer\NewsLetterSaveBefore" />
+        <observer name="emarsys_newsletter_subscribers_issue_fixbefore" instance="Emarsys\Emarsys\Observer\NewsLetterSaveBefore" />
+    </event>
+    <event name="newsletter_subscriber_save_after">
+        <observer name="emarsys_newsletter_subscribers" instance="Emarsys\Emarsys\Observer\RealTimeSubscriber" />
+    </event>
+    <event name="customer_save_before">
+        <observer name="customer_email_save_before" instance="Emarsys\Emarsys\Observer\CustomerSaveBefore"/>
     </event>
 </config>

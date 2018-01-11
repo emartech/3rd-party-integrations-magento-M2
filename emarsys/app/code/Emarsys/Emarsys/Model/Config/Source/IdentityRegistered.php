@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class IdentityRegistered
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class IdentityRegistered implements \Magento\Framework\Option\ArrayInterface
 {
     /**

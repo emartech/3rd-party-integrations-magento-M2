@@ -7,14 +7,11 @@
 namespace Emarsys\Emarsys\Model\ResourceModel\Product;
 
 /**
- * Product collection.
- *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * Class Collection
+ * @package Emarsys\Emarsys\Model\ResourceModel\Product
  */
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {
-
-
     /**
      * @param \Magento\Framework\Data\Collection\EntityFactory $entityFactory
      * @param \Psr\Log\LoggerInterface $logger
@@ -32,7 +29,6 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
         \Magento\Framework\Model\ResourceModel\Db\AbstractDb $resource = null
     ) {
-    
         parent::__construct($entityFactory, $logger, $fetchStrategy, $eventManager, $connection, $resource);
     }
 

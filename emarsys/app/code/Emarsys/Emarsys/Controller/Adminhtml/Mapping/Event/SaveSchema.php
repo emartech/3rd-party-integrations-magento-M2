@@ -89,6 +89,7 @@ class SaveSchema extends Action
         $storeId = $this->getRequest()->getParam('store');
         $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
         $resultRedirect = $this->resultRedirectFactory->create();
+        $errorStatus = true;
         try {
             $logsArray['job_code'] = 'Event Mapping';
             $logsArray['status'] = 'started';
@@ -98,37 +99,43 @@ class SaveSchema extends Action
             $logsArray['run_mode'] = 'Automatic';
             $logsArray['auto_log'] = 'Complete';
             $logsArray['store_id'] = $storeId;
-                if ($this->emarsysHelper->isEmarsysEnabled($websiteId) == 'false') {
-                    $logsArray['messages'] = 'Emarsys is not Enabled for this Store';
-                    $logsArray['created_at'] = $this->date->date('Y-m-d H:i:s', time());
-                    $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
-                    $logId = $this->logHelper->manualLogs($logsArray);
-                    $logsArray['id'] = $logId;
-                    $logsArray['emarsys_info'] = 'Update Schema';
-                    $logsArray['description'] ='Update Schema was not Successful';
-                    $logsArray['action'] = 'Schame Updated';
-                    $logsArray['message_type'] = 'Emarsys was not Enabled';
-                    $logsArray['log_action'] = 'True';
-                    $logsArray['website_id'] = $websiteId;
-                    $this->logHelper->logs($logsArray);
-                    $this->messageManager->addErrorMessage('Emarsys is not Enabled for this store');
-
-                    return $resultRedirect->setRefererOrBaseUrl();
-                }
+            $logsArray['website_id'] = $websiteId;
             $logId = $this->logHelper->manualLogs($logsArray);
-            $this->emarsysHelper->importEvents($logId);
-            $this->messageManager->addSuccessMessage('Event schema added/updated successfully');
-        } catch (\Exception $e) {
             $logsArray['id'] = $logId;
+
+            if ($this->emarsysHelper->isEmarsysEnabled($websiteId) == 'true') {
+                $errorStatus = false;
+                $this->emarsysHelper->importEvents($logId);
+                $this->messageManager->addSuccessMessage('Event schema added/updated successfully');
+            } else {
+                $logsArray['messages'] = 'Emarsys is Disabled for this Store';
+                $logsArray['emarsys_info'] = 'Update Schema';
+                $logsArray['description'] ='Update Schema was not Successful';
+                $logsArray['action'] = 'Schame Updated';
+                $logsArray['message_type'] = 'Error';
+                $logsArray['log_action'] = 'True';
+                $this->logHelper->logs($logsArray);
+                $this->messageManager->addErrorMessage('Emarsys is not Enabled for this store');
+            }
+        } catch (\Exception $e) {
             $logsArray['emarsys_info'] = 'Update Schema';
             $logsArray['description'] = $e->getMessage();
             $logsArray['action'] = 'Update Schema not successful';
             $logsArray['message_type'] = 'Error';
             $logsArray['log_action'] = 'True';
-            $logsArray['website_id'] = $websiteId;
             $this->logHelper->logs($logsArray);
             $this->messageManager->addErrorMessage('Error occurred while Updating Schema' . $e->getMessage());
         }
+
+        if ($errorStatus) {
+            $logsArray['messages'] = 'Error occurred while Events Updating Schema';
+            $logsArray['status'] = 'error';
+        } else {
+            $logsArray['messages'] = 'Events Update Schema Successful';
+            $logsArray['status'] = 'success';
+        }
+        $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
+        $this->logHelper->manualLogsUpdate($logsArray);
 
         return $resultRedirect->setRefererOrBaseUrl();
     }

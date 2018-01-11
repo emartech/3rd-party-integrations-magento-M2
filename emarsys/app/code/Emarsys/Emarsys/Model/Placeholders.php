@@ -7,9 +7,12 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Placeholders
+ * @package Emarsys\Emarsys\Model
+ */
 class Placeholders extends \Magento\Framework\Model\AbstractModel
 {
-
     /**
      * constructor
      */

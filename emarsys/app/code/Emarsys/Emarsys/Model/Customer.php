@@ -7,9 +7,12 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Customer
+ * @package Emarsys\Emarsys\Model
+ */
 class Customer extends \Magento\Framework\Model\AbstractModel
 {
-
     /**
      * constructor
      */

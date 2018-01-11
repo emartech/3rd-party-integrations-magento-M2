@@ -7,9 +7,12 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class OrderExportStatus
+ * @package Emarsys\Emarsys\Model
+ */
 class OrderExportStatus extends \Magento\Framework\Model\AbstractModel
 {
-
     /**
      * constructor
      */

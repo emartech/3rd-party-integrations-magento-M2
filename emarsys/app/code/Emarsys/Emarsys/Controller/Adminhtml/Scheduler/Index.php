@@ -45,12 +45,6 @@ class Index extends Action
      */
     public function execute()
     {
-        $store = $this->getRequest()->getParam('store');
-        if (!$store) {
-            $storeId = $this->emarsysHelper->getFirstStoreId();
-            return $this->resultRedirectFactory->create()->setUrl($this->getUrl('*/*', ['store' => $storeId]));
-        }
-
         $resultPage = $this->resultPageFactory->create();
         $this->_setActiveMenu('Emarsys_Emarsys::emarsys_emarsysadminindex10');
         $resultPage->addBreadcrumb(__('Logs'), __('Logs'));

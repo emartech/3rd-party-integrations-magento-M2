@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Customerexport;
 
 use Magento\Backend\Block\Widget\Form\Container;
 
+/**
+ * Class Edit
+ * @package Emarsys\Emarsys\Block\Adminhtml\Customerexport
+ */
 class Edit extends Container
 {
     /**
@@ -19,8 +23,10 @@ class Edit extends Container
     protected $_coreRegistry = null;
 
     /**
+     * Edit constructor.
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Framework\App\Request\Http $request
      * @param array $data
      */
     public function __construct(
@@ -29,7 +35,6 @@ class Edit extends Container
         \Magento\Framework\App\Request\Http $request,
         array $data = []
     ) {
-    
         $this->getRequest = $request;
         $this->storeManager = $context->getStoreManager();
         $this->_coreRegistry = $registry;
@@ -48,7 +53,7 @@ class Edit extends Container
         $this->_controller = 'adminhtml_customerexport';
         $storeId = $this->getRequest->getParam('store');
         if ($storeId != '') {
-            $url = $this->getUrl("emarsys_emarsys/customerexport/customerExport/storeId/$storeId");
+            $url = $this->getUrl("emarsys_emarsys/customerexport/customerExport", ["storeId" => $storeId]);
         } else {
             $url = $this->getUrl("emarsys_emarsys/customerexport/customerExport");
         }

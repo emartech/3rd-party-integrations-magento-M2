@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
+/**
+ * Class CreditmemoExportStatus
+ * @package Emarsys\Emarsys\Model\ResourceModel
+ */
 class CreditmemoExportStatus extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**

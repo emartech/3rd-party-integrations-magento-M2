@@ -45,7 +45,7 @@ class Save extends Action
      * @param DateTime $date
      * @param StoreManagerInterface $storeManager
      * @param Logs $logHelper
-     * @param EmarsyseventmappingFactory $EmarsyseventmappingFactory
+     * @param EmarsyseventmappingFactory $emarsysEventMappingFactory
      * @param PageFactory $resultPageFactory
      */
     public function __construct(
@@ -55,14 +55,14 @@ class Save extends Action
         DateTime $date,
         StoreManagerInterface $storeManager,
         Logs $logHelper,
-        EmarsyseventmappingFactory $EmarsyseventmappingFactory,
+        EmarsyseventmappingFactory $emarsysEventMappingFactory,
         PageFactory $resultPageFactory
     ) {
         parent::__construct($context);
         $this->session = $context->getSession();
         $this->eventResourceModel = $eventResourceModel;
         $this->storeManager = $storeManager;
-        $this->EmarsyseventmappingFactory = $EmarsyseventmappingFactory;
+        $this->emarsysEventMappingFactory = $emarsysEventMappingFactory;
         $this->resultPageFactory = $resultPageFactory;
         $this->date = $date;
         $this->eventFactory = $eventFactory;
@@ -75,10 +75,12 @@ class Save extends Action
      */
     public function execute()
     {
-        $session = $this->session;
         $storeId = $this->session->getStoreId();
         $gridSessionData = $this->session->getMappingGridData();
         $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
+        $resultRedirect = $this->resultRedirectFactory->create();
+        $errorStatus = true;
+        $returnToStore = false;
         $logsArray['job_code'] = 'Event Mapping';
         $logsArray['status'] = 'started';
         $logsArray['messages'] = 'Save Event Mapping';
@@ -87,39 +89,53 @@ class Save extends Action
         $logsArray['run_mode'] = 'Automatic';
         $logsArray['auto_log'] = 'Complete';
         $logsArray['store_id'] = $storeId;
+        $logsArray['website_id'] = $websiteId;
         $logId = $this->logHelper->manualLogs($logsArray);
-        $resultRedirect = $this->resultRedirectFactory->create();
+        $logsArray['id'] = $logId;
+        $logsArray['log_action'] = 'True';
+
         try {
             foreach ($gridSessionData as $key => $value) {
-                $model = $this->EmarsyseventmappingFactory->create();
+                $model = $this->emarsysEventMappingFactory->create();
                 $model->setId($key);
                 $model->setStoreId($storeId);
                 $model->setMagentoEventId($gridSessionData[$key]['magento_event_id']);
                 $model->setEmarsysEventId($gridSessionData[$key]['emarsys_event_id']);
                 $model->save();
             }
-            $logsArray['id'] = $logId;
+            $errorStatus = false;
+            $returnToStore = true;
             $logsArray['emarsys_info'] = 'Save Event Mapping';
             $logsArray['description'] = 'Saved Event Mapping';
             $logsArray['action'] = 'Event Mapping';
             $logsArray['message_type'] = 'Success';
-            $logsArray['log_action'] = 'True';
-            $logsArray['website_id'] = $websiteId;
+
             $this->logHelper->logs($logsArray);
             $this->messageManager->addSuccessMessage("Events mapped successfully");
-
-            return $resultRedirect->setUrl($this->_urlInterface->getUrl('emarsys_emarsys/mapping_event', ["store" => $storeId]));
         } catch (\Exception $e) {
-            $logsArray['id'] = $logId;
             $logsArray['emarsys_info'] = 'Save Event Mapping';
             $logsArray['description'] = $e->getMessage();
             $logsArray['action'] = 'Event Mapping not successful.';
             $logsArray['message_type'] = 'Error';
-            $logsArray['log_action'] = 'True';
-            $logsArray['website_id'] = $websiteId;
             $this->messageManager->addErrorMessage("Event Mapping Failed. Please refer emarsys logs for more information.");
         }
 
-        return $resultRedirect->setRefererOrBaseUrl();
+        if ($errorStatus) {
+            $logsArray['messages'] = 'Error occurred while Events Updating Schema';
+            $logsArray['status'] = 'error';
+        } else {
+            $logsArray['messages'] = 'Events Update Schema Successful';
+            $logsArray['status'] = 'success';
+        }
+        $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
+        $this->logHelper->manualLogsUpdate($logsArray);
+
+        if ($returnToStore) {
+            return $resultRedirect->setUrl(
+                $this->_urlInterface->getUrl('emarsys_emarsys/mapping_event', ["store" => $storeId])
+            );
+        } else {
+            return $resultRedirect->setRefererOrBaseUrl();
+        }
     }
 }

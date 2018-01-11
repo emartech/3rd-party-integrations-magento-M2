@@ -1,4 +1,9 @@
 <?php
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
 namespace Emarsys\Emarsys\Helper;
 
 use Magento\Backend\Block\Template\Context;

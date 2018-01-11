@@ -1,7 +1,7 @@
 <?php
 /**
  * @category   Emarsys
- * @package    Emarsys_Log
+ * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
 namespace Emarsys\Emarsys\Block\Adminhtml;
@@ -18,10 +18,12 @@ class Logs extends \Magento\Backend\Block\Template
      * @var string
      */
     protected $_template = '';
+
     /**
      * @var \Emarsys\Emarsys\Model\LogScheduleFactory
      */
     protected $logScheduleFactory;
+
     /**
      * @var TimeZone
      */
@@ -39,11 +41,9 @@ class Logs extends \Magento\Backend\Block\Template
         TimeZone $timezone,
         $data = []
     ) {
-    
         $this->logScheduleFactory = $logScheduleFactory;
         $this->timezone = $timezone;
-
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**

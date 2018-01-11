@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Cron;
 
+/**
+ * Class Grid
+ * @package Emarsys\Emarsys\Block\Adminhtml\Cron
+ */
 class Grid extends \Magento\Backend\Block\Template
 {
     protected $_template = 'cron/grid.phtml';
@@ -20,7 +24,7 @@ class Grid extends \Magento\Backend\Block\Template
         $data = []
     ) {
     
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**

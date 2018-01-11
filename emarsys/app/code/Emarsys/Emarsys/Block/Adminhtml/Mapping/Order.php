@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
+/**
+ * Class Order
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
+ */
 class Order extends \Magento\Backend\Block\Widget\Container
 {
     /**
@@ -14,6 +18,7 @@ class Order extends \Magento\Backend\Block\Widget\Container
     protected $_template = 'mapping/order/view.phtml';
 
     /**
+     * Order constructor.
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param array $data
      */
@@ -21,8 +26,7 @@ class Order extends \Magento\Backend\Block\Widget\Container
         \Magento\Backend\Block\Widget\Context $context,
         $data = []
     ) {
-    
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**
