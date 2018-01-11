@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class Magentoevent
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer
+ */
 class Magentoevent extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -42,11 +46,14 @@ class Magentoevent extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
     protected $_storeManager;
 
     /**
+     * Magentoevent constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Emarsys\Emarsys\Model\ResourceModel\Customer\CollectionFactory $collectionFactory
      * @param \Magento\Backend\Helper\Data $backendHelper
-     * @param \Emarsys\Emarsys\Model\ResourceModel\Customer $resourceModelEvent
+     * @param \Emarsys\Emarsys\Model\Logs $emarsysLogs
+     * @param \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents $Emarsysmagentoevents
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory $CollectionFactory
      */
     public function __construct(
         \Magento\Backend\Model\Session $session,
@@ -57,7 +64,6 @@ class Magentoevent extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory $CollectionFactory
     ) {
-    
         $this->session = $session;
         $this->collectionFactory = $collectionFactory;
         $this->backendHelper = $backendHelper;
@@ -66,7 +72,6 @@ class Magentoevent extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
         $this->_storeManager = $storeManager;
         $this->CollectionFactory = $CollectionFactory;
     }
-
 
     /**
      * @param DataObject $row
@@ -79,7 +84,7 @@ class Magentoevent extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
             return $collection->getData("magento_event");
         } catch (\Exception $e) {
             $storeId = $this->_storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'render(Magento Events)');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'render(Magento Events)');
         }
     }
 }

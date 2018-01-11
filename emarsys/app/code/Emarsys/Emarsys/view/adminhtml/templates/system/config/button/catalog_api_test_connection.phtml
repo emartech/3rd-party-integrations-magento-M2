@@ -1,0 +1,31 @@
+<?php
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+?>
+<script>
+    require(['prototype'], function () {
+        function catalogApiTestConnection() {
+            params = {
+                'api_enable': document.getElementById('emarsys_predict_catalog_api_settings_enable_catalog_api').value,
+                'merchant_id': document.getElementById('emarsys_predict_catalog_api_settings_catalog_merchant_id').value,
+                'token': document.getElementById('emarsys_predict_catalog_api_settings_catalog_token').value
+            };
+            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                parameters: params,
+                onSuccess: function (response) {
+                    location.reload();
+                }
+            });
+        }
+        window.catalogApiTestConnection = catalogApiTestConnection;
+    });
+</script>
+<div class="pp-buttons-container">
+    <div id="connection_status" class="message-validation hidden"></div>
+    <button id="<?php echo $block->getHtmlId(); ?>" onclick="javascript:catalogApiTestConnection(); return false;">
+        <span><span><span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span></span></span>
+    </button>
+</div>

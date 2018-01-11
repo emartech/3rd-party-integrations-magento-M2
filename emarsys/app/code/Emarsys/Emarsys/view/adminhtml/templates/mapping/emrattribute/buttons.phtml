@@ -3,11 +3,12 @@ $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 $backendHelper = $objectManager->create('\Magento\Backend\Helper\Data');
 $storeId = $this->getStoreId();
 $moduleName = 'emarsys_emarsys';
-$backEmarsysBtn = $backendHelper->getUrl($moduleName . '/' . 'mapping_product' . '/index/store/' . $storeId);
+$backEmarsysBtn = $backendHelper->getUrl($moduleName . '/mapping_product/index', ["store" => $storeId]);
 ?>
 <div>
     <span class="scalable">
-
-<a href="<?php echo $backEmarsysBtn; ?>" class="action-default scalable customerSaveBtn">Back</a>
+        <a href="<?php echo $backEmarsysBtn; ?>" class="action-default scalable customerSaveBtn">
+            <?php echo __('Back') ?>
+        </a>
     </span>
 </div>

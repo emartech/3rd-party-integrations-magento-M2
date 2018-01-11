@@ -4,7 +4,6 @@
  * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
-
 namespace Emarsys\Emarsys\Controller\Adminhtml\Customerexport;
 
 use Magento\Backend\App\Action;
@@ -49,7 +48,7 @@ class Index extends Action
         $store = $this->getRequest()->getParam('store');
         if (!$store) {
             $storeId = $this->emarsysHelper->getFirstStoreId();
-            return $this->resultRedirectFactory->create()->setUrl($this->getUrl('*/*', ['store'=>$storeId]));
+            return $this->resultRedirectFactory->create()->setUrl($this->getUrl('*/*', ['store' => $storeId]));
         }
         $data = $this->adminSession->getFormData(true);
         $page = $this->resultPageFactory->create();

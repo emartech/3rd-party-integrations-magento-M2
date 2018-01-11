@@ -2,6 +2,10 @@
 
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class Backgroundruntime
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class Backgroundruntime implements \Magento\Framework\Option\ArrayInterface
 {
     /**

@@ -1,9 +1,10 @@
-<?php $objectManager   = \Magento\Framework\App\ObjectManager::getInstance(); 
-$backendHelper         = $objectManager->create('\Magento\Backend\Helper\Data');
+<?php
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$backendHelper = $objectManager->create('\Magento\Backend\Helper\Data');
 $resourceModelField = $objectManager->create('\Emarsys\Emarsys\Model\ResourceModel\Field');
 $storeId               = $this->getStoreId();
 $optionsMappingCheck  = $resourceModelField->getEmarsysOptionCount($storeId);
- $optionMappingCount = $resourceModelField->getEmarsysOptionCount($storeId);
+$optionMappingCount = $resourceModelField->getEmarsysOptionCount($storeId);
 $moduleName = 'emarsys_emarsys';
 $controllerNamePleaseSelect = 'mapping_customer';
 $controllerNameField = 'mapping_field';
@@ -11,34 +12,58 @@ $controllerNameProduct = 'mapping_product';
 $controllerNameCustomer = 'mapping_customer';
 $controllerNameOrder = 'mapping_order';
 $controllerNameEvent = 'mapping_event';
-$saveBtn               = "'".$backendHelper->getUrl("*/*/save/store/$storeId/")."'";
-$schemaBtn             = "'".$backendHelper->getUrl("*/*/saveSchema/store/$storeId").",".$optionsMappingCheck."'";
-$recommdedBtn          = "'".$backendHelper->getUrl("*/*/saveRecommended/store/$storeId"). "','" . $optionsMappingCheck."'";
+$saveBtn               = "'" . $backendHelper->getUrl("*/*/save", ["store" => $storeId]) . "'";
+$schemaBtn             = "'" . $backendHelper->getUrl("*/*/saveSchema", ["store" => $storeId]) . "," . $optionsMappingCheck. "'";
+$recommdedBtn          = "'" . $backendHelper->getUrl("*/*/saveRecommended", ["store" => $storeId]) . "','" . $optionsMappingCheck. "'";
 $moduleName            = 'emarsys_emarsys';
-$adminUrlEmarsysField = $backendHelper->getUrl($moduleName. '/' . $controllerNameField . '/index/store/'.$storeId );
-$adminUrlEmarsysProduct = $backendHelper->getUrl($moduleName. '/' . $controllerNameProduct . '/index/store/'.$storeId );
-$adminUrlEmarsysCustomer = $backendHelper->getUrl($moduleName . '/' . $controllerNameCustomer . '/index/store/'.$storeId );
-$adminUrlEmarsysEvent = $backendHelper->getUrl($moduleName . '/' . $controllerNameEvent . '/index/store/'.$storeId );
-$adminUrlEmarsysOrder = $backendHelper->getUrl($moduleName . '/' . $controllerNameOrder . '/index/store/'.$storeId );
-$adminUrlEmarsysPleaseSelect = $backendHelper->getUrl($moduleName . '/' . $controllerNamePleaseSelect . '/index/store/'.$storeId );
+$adminUrlEmarsysField = $backendHelper->getUrl($moduleName. '/' . $controllerNameField . '/index', ["store" => $storeId]);
+$adminUrlEmarsysProduct = $backendHelper->getUrl($moduleName. '/' . $controllerNameProduct . '/index', ["store" => $storeId]);
+$adminUrlEmarsysCustomer = $backendHelper->getUrl($moduleName . '/' . $controllerNameCustomer . '/index', ["store" => $storeId]);
+$adminUrlEmarsysEvent = $backendHelper->getUrl($moduleName . '/' . $controllerNameEvent . '/index', ["store" => $storeId]);
+$adminUrlEmarsysOrder = $backendHelper->getUrl($moduleName . '/' . $controllerNameOrder . '/index', ["store" => $storeId]);
+$adminUrlEmarsysPleaseSelect = $backendHelper->getUrl($moduleName . '/' . $controllerNamePleaseSelect . '/index', ["store" => $storeId]);
 ?>
 <div>
     <span class="selectMapping">
-        <label class="admin__control-support-text emMapping">Select Mapping: </label>
-    <select  class="admin__control-select mapping-select formselect" name="menu" onChange="top.location.href=this.options[this.selectedIndex].value;" value="GO">
-    <option value="<?php echo $adminUrlEmarsysPleaseSelect; ?>">Please Select</option>
-    <option selected="selected" value="<?php echo $adminUrlEmarsysField; ?>">Customer-Field</option>
-    <option value="<?php echo $adminUrlEmarsysProduct; ?>">Product</option>
-    <option value= "<?php echo $adminUrlEmarsysCustomer; ?>">Customer</option>
-    <option value="<?php echo $adminUrlEmarsysOrder; ?>" >Order</option>
-    <option value="<?php echo $adminUrlEmarsysEvent; ?>">Event</option>
-</select>
-        </span>
+        <label class="admin__control-support-text emMapping"><?php echo __('Select Mapping: ') ?></label>
+        <select class="admin__control-select mapping-select formselect"
+                 name="menu"
+                 onChange="top.location.href=this.options[this.selectedIndex].value;"
+                 value="GO">
+            <option value="<?php echo $adminUrlEmarsysPleaseSelect; ?>">
+                <?php echo __('Please Select') ?>
+            </option>
+            <option selected="selected" value="<?php echo $adminUrlEmarsysField; ?>">
+                <?php echo __('Customer-Field') ?>
+            </option>
+            <option value="<?php echo $adminUrlEmarsysProduct; ?>">
+                <?php echo __('Product') ?>
+            </option>
+            <option value= "<?php echo $adminUrlEmarsysCustomer; ?>">
+                <?php echo __('Customer') ?>
+            </option>
+            <option value="<?php echo $adminUrlEmarsysOrder; ?>" >
+                <?php echo __('Order') ?>
+            </option>
+            <option value="<?php echo $adminUrlEmarsysEvent; ?>">
+                <?php echo __('Event') ?>
+            </option>
+        </select>
+    </span>
     <span class="scalable">
-<input type="button" class="action-default scalable" value="Save"  onclick="window.location.href=<?php echo $saveBtn; ?>" />
-<input type="button" class="action-default scalable" value="Update Schema"  onclick="updateSchema(<?php echo $schemaBtn; ?>)" />
-<?php if ($optionsMappingCheck > 0) { ?>
-<input type="button" class="action-default scalable" value="Recommended Mapping"  onclick="checkMapping(<?php echo $recommdedBtn; ?>)" />
-<?php } ?>
- </span>
+        <input type="button"
+               class="action-default scalable"
+               value="Save"
+               onclick="window.location.href=<?php echo $saveBtn; ?>" />
+        <input type="button"
+               class="action-default scalable"
+               value="Update Schema"
+               onclick="updateSchema(<?php echo $schemaBtn; ?>)" />
+        <?php if ($optionsMappingCheck > 0) { ?>
+            <input type="button"
+                   class="action-default scalable"
+                   value="Recommended Mapping"
+                   onclick="checkMapping(<?php echo $recommdedBtn; ?>)" />
+        <?php } ?>
+    </span>
 </div>

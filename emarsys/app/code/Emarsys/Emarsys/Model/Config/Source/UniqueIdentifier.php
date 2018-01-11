@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class UniqueIdentifier
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class UniqueIdentifier implements \Magento\Framework\Option\ArrayInterface
 {
     /**

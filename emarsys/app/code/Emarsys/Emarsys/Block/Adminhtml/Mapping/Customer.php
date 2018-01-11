@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
+/**
+ * Class Customer
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
+ */
 class Customer extends \Magento\Backend\Block\Widget\Container
 {
     /**
@@ -14,6 +18,7 @@ class Customer extends \Magento\Backend\Block\Widget\Container
     protected $_template = 'mapping/customer/view.phtml';
 
     /**
+     * Customer constructor.
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param array $data
      */
@@ -21,8 +26,7 @@ class Customer extends \Magento\Backend\Block\Widget\Container
         \Magento\Backend\Block\Widget\Context $context,
         $data = []
     ) {
-    
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**
@@ -37,7 +41,6 @@ class Customer extends \Magento\Backend\Block\Widget\Container
         );
         return parent::_prepareLayout();
     }
-
 
     /**
      * @return string

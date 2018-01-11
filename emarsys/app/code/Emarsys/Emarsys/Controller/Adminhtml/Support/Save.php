@@ -103,7 +103,7 @@ class Save extends Action
                 $emailTemplateVariables['type'] = $type;
                 $emailTemplateVariables['name'] = $name;
                 $emailTemplateVariables['email'] = $email;
-                $emailTemplateVariables['subject'] = $type.' - '.$subject;
+                $emailTemplateVariables['subject'] = $type. ' - ' . $subject;
                 $emailTemplateVariables['priority'] = $priority;
                 $emailTemplateVariables['message'] = $message;
                 $emailTemplateVariables['store_name'] = $store_name;

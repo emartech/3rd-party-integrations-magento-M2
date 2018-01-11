@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
+/**
+ * Class MappingButtons
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
+ */
 class MappingButtons extends \Magento\Backend\Block\Widget\Container
 {
     /**
@@ -14,7 +18,9 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     protected $_template = 'mapping/customer/view.phtml';
 
     /**
+     * MappingButtons constructor.
      * @param \Magento\Backend\Block\Widget\Context $context
+     * @param \Magento\Email\Model\Template\Config $edit
      * @param array $data
      */
     public function __construct(
@@ -23,7 +29,7 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
         $data = []
     ) {
         $this->edit = $edit;
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     public function getStoreId()

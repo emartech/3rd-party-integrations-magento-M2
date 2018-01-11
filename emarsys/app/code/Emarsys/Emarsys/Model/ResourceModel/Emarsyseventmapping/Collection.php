@@ -8,9 +8,8 @@
 namespace Emarsys\Emarsys\Model\ResourceModel\Emarsyseventmapping;
 
 /**
- * Customer collection.
- *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * Class Collection
+ * @package Emarsys\Emarsys\Model\ResourceModel\Emarsyseventmapping
  */
 class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
 {

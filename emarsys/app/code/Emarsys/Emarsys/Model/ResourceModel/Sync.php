@@ -10,6 +10,10 @@ namespace Emarsys\Emarsys\Model\ResourceModel;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+/**
+ * Class Sync
+ * @package Emarsys\Emarsys\Model\ResourceModel
+ */
 class Sync extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
@@ -136,7 +140,7 @@ class Sync extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
             return $lastsyncDate;
         } catch (Exception $e) {
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getLastSyncDate');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getLastSyncDate');
         }
     }
 
@@ -150,13 +154,13 @@ class Sync extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     public function getDataFromCoreConfig($path, $scope = null, $scopeId = null)
     {
         try {
-            if($scope && $scopeId){
-                return $this->scopeConfigInterface->getValue($path,$scope,$scopeId);
-            }else{
+            if ($scope && $scopeId) {
+                return $this->scopeConfigInterface->getValue($path, $scope, $scopeId);
+            } else {
                 return  $this->scopeConfigInterface->getValue($path);
             }
         } catch (\Exception $e) {
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$scopeId,'getDataFromCoreConfig in Sync.php');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $scopeId, 'getDataFromCoreConfig in Sync.php');
         }
     }
 }

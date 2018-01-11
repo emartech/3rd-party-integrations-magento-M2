@@ -7,9 +7,12 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Queue
+ * @package Emarsys\Emarsys\Model
+ */
 class Queue extends \Magento\Framework\Model\AbstractModel
 {
-
     /**
      * constructor
      */

@@ -1,11 +1,15 @@
 <?php
 /**
  * @category   Emarsys
- * @package    Emarsys_Log
+ * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Logs;
 
+/**
+ * Class Grid
+ * @package Emarsys\Emarsys\Block\Adminhtml\Logs
+ */
 class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
 {
     /**
@@ -57,12 +61,14 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      * @var \Emarsys\Emarsys\Block\Adminhtml\CronData
      */
     protected $cronData;
+
     /**
-     * @var \Emarsys\Log\Model\CategoryFactory
+     * @var \Emarsys\Emarsys\Model\LogsFactory
      */
     protected $logsFactory;
 
     /**
+     * Grid constructor.
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Backend\Helper\Data $backendHelper
      * @param \Magento\Framework\Data\Collection $dataCollection
@@ -70,7 +76,6 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      * @param \Emarsys\Emarsys\Model\LogsFactory $logsFactory
      * @param \Emarsys\Emarsys\Block\Adminhtml\CronData $cronData
      * @param \Magento\Framework\Module\Manager $moduleManager
-     * @param \Magento\Backend\Model\Session $session
      * @param \Magento\Cron\Model\ConfigInterface $cronConfig
      * @param \Magento\Framework\Dataobject $dataObject
      * @param array $data
@@ -87,7 +92,6 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         \Magento\Framework\Dataobject $dataObject,
         $data = []
     ) {
-    
         $this->session = $context->getSession();
         $this->moduleManager = $moduleManager;
         $this->backendHelper = $backendHelper;
@@ -97,7 +101,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->dataObject = $dataObject;
         $this->cronData = $cronData;
         $this->logsFactory = $logsFactory;
-        parent::__construct($context, $backendHelper, $data = []);
+        parent::__construct($context, $backendHelper, $data);
     }
 
     /**
@@ -139,13 +143,6 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
             "index" => "created_at",
             'type' => 'datetime'
         ]);
-
-        // $this->addColumn("action", array(
-        //     "header" => __("Action"),
-        //     "align" => "left",
-        //     'width' => '25',
-        //     "index" => "action"
-        // ));
 
         $this->addColumn("emarsys_info", [
             "header" => __("Emarsys Info"),

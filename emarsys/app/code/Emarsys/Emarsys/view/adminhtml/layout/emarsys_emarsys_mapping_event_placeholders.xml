@@ -1,4 +1,11 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+-->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
@@ -6,13 +13,12 @@
     </head>
     <body>
         <referenceContainer name="page.main.actions">
-            <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\MappingButtons" name="emarsys_event_placeholder_information" template="mapping/placeholders/information.phtml" />
-
-            <block class="Magento\Backend\Block\Store\Switcher" name="emarsys.store.switcher"
-                   template="Emarsys_Emarsys::emarsys/switcher.phtml"/>
+            <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\MappingButtons"
+                   name="emarsys_event_placeholder_information" template="mapping/placeholders/information.phtml" />
         </referenceContainer>
         <referenceContainer name="content">
-            <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\MappingButtons" name="emarsys_event_placeholder_buttons" template="mapping/placeholders/buttons.phtml" />
+            <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\MappingButtons"
+                   name="emarsys_event_placeholder_buttons" template="mapping/placeholders/buttons.phtml" />
             <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\Placeholders"
                    name="emarsys_event_attribute_mapping_placeholders"/>
         </referenceContainer>

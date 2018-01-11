@@ -8,34 +8,26 @@
 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 $helper = $objectManager->create('\Magento\Backend\Helper\Data');
 $storeId = $this->getRequest()->getParam('store');
-$saveUrl = $helper->getUrl('emarsys_emarsys/mapping_emrattribute/save', array('store' => $storeId));
-$deleteUrl = $helper->getUrl('emarsys_emarsys/mapping_emrattribute/delete', array('store' => $storeId));
-$editUrl = $helper->getUrl('emarsys_emarsys/mapping_emrattribute/edit', array('store' => $storeId));
-?>
-<?php //echo $block->getGridHtml(); ?>
-<?php $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$saveUrl = $helper->getUrl('emarsys_emarsys/mapping_emrattribute/save', ['store' => $storeId]);
+$deleteUrl = $helper->getUrl('emarsys_emarsys/mapping_emrattribute/delete', ['store' => $storeId]);
+$editUrl = $helper->getUrl('emarsys_emarsys/mapping_emrattribute/edit', ['store' => $storeId]);
 $storeManager = $objectManager->get('\Magento\Store\Model\StoreManagerInterface');
-$getBaseUrl = $storeManager->getStore()->getBaseUrl();?>
-
-<?php
-$storeManager = $objectManager->get('Magento\Store\Model\StoreManagerInterface');
+$getBaseUrl = $storeManager->getStore()->getBaseUrl();
 $storeId = (int)$this->getRequest()->getParam('store', 0);
 ?>
 
-
-<?php    $result = $block->emarattarData();
+<?php $result = $block->emarattarData();
 if (count($result) > 0) {
     ?>
     <div class="emr_tbl header_label">
         <strong>Code</strong>
         <strong>Label</strong>
-<!--        <strong>Type</strong>-->
     </div>
 
     <?php foreach ($result as $row) {
         $fieldType = $row['field_type'];
         $disabled='';
-        if (strpos($row['code'], 'c_') === false){
+        if (strpos($row['code'], 'c_') === false) {
             $disabled = 'disabled';
         }
         ?>
@@ -75,8 +67,8 @@ if (count($result) > 0) {
 
             <a href="javascript:void(0)"
                onclick="return editEmarAttr('<?php echo $editUrl; ?>','<?php echo $row['id']; ?>');" name="Edit"
-               class="Edit action-default" data-store="<?php //echo $row['store_id'];?>"
-               data-attr="<?php //echo $row['id']?>">Update</a> <a href="javascript:void(0)" name="remove2"
+               class="Edit action-default" data-store=""
+               data-attr="">Update</a> <a href="javascript:void(0)" name="remove2"
                                                                    class="remove2 action-default"
                                                                    onclick="return deleteEmarAttr('<?php echo $deleteUrl; ?>','<?php echo $row['id']; ?>','<?php echo $row['store_id']; ?>');">Delete</a>
 <?php endif;?>
@@ -85,48 +77,43 @@ if (count($result) > 0) {
     }
 } else {
     echo 'no results'; ?>
-
 <?php } ?>
-
-
 <br>
 <br>
 
 <form method="POST" action="<?php echo $saveUrl; ?>" id="emarAttribute" autocomplete="off"/>
-<div class="emr_tbl header_label">
-    <strong>Name</strong><strong>Label</strong>
-</div>
-<div class="field_wrapper">
-    <div class="emr_tbl emr_content">
-        <input type="text" name="field_name[]" value="" class="fieldName"/>
-        <input type="text" name="field_label[]" value="" class="fieldLabel"/>
-        <select style="display:none;" name="attribute_type[]">
-            <option value="Varchar">Varchar</option>
-            <option value="Text">Text</option>
-            <option value="Character">Character</option>
-            <option value="Integer">Integer</option>
-            <option value="String">String</option>
-            <option value="URL">URL</option>
-            <option value="StringValue">StringValue</option>
-            <option value="Boolean">Boolean</option>
-            <option value="Float">Float</option>
-        </select>
+    <div class="emr_tbl header_label">
+        <strong>Name</strong><strong>Label</strong>
     </div>
-</div>
-<a href="javascript:void(0);" class="add_button action-default" title="Add field">Add More Attribute</a>
-</br>
-<input type="hidden" name="storeId" value="<?php echo $storeId; ?>">
-<button type="submit" value="Submit">Submit</button>
+    <div class="field_wrapper">
+        <div class="emr_tbl emr_content">
+            <input type="text" name="field_name[]" value="" class="fieldName"/>
+            <input type="text" name="field_label[]" value="" class="fieldLabel"/>
+            <select style="display:none;" name="attribute_type[]">
+                <option value="Varchar">Varchar</option>
+                <option value="Text">Text</option>
+                <option value="Character">Character</option>
+                <option value="Integer">Integer</option>
+                <option value="String">String</option>
+                <option value="URL">URL</option>
+                <option value="StringValue">StringValue</option>
+                <option value="Boolean">Boolean</option>
+                <option value="Float">Float</option>
+            </select>
+        </div>
+    </div>
+    <a href="javascript:void(0);" class="add_button action-default" title="Add field">Add More Attribute</a>
+    </br>
+    <input type="hidden" name="storeId" value="<?php echo $storeId; ?>">
+    <button type="submit" value="Submit">Submit</button>
 </form>
-
-
 <script>
     require([
         'jquery'
     ], function (jQuery) {
-jQuery('.attributetype').find('.field_label_type').each(function(){
-    jQuery(this).siblings().val(jQuery(this).val());
-});
+        jQuery('.attributetype').find('.field_label_type').each(function(){
+            jQuery(this).siblings().val(jQuery(this).val());
+        });
     });
 </script>
 

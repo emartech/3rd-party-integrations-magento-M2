@@ -5,10 +5,14 @@
  * @copyright  Copyright (c) 2016 Emarsys Solution Pvt.Ltd. (http://www.kensiumsolutions.com/)
  */
 
-namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Customer\Renderer;
+namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Order\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class MagentoAttribute
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Customer\Renderer
+ */
 class MagentoAttribute extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -42,6 +46,7 @@ class MagentoAttribute extends \Magento\Backend\Block\Widget\Grid\Column\Rendere
     protected $_storeManager;
 
     /**
+     * MagentoAttribute constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Emarsys\Emarsys\Model\ResourceModel\Customer\CollectionFactory $collectionFactory
      * @param \Magento\Backend\Helper\Data $backendHelper
@@ -55,14 +60,12 @@ class MagentoAttribute extends \Magento\Backend\Block\Widget\Grid\Column\Rendere
         \Emarsys\Emarsys\Model\ResourceModel\Customer $resourceModelCustomer,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
-    
         $this->session = $session;
         $this->collectionFactory = $collectionFactory;
         $this->backendHelper = $backendHelper;
         $this->resourceModelCustomer = $resourceModelCustomer;
         $this->_storeManager = $storeManager;
     }
-
 
     /**
      * @param DataObject $row

@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class ArchiveData
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class ArchiveData
 {
     /**

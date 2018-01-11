@@ -9,16 +9,10 @@
     function getLoggerData() {
         window.location.href = "<?php echo $block->getAjaxUrl() ?>";
     }
-    ;
 </script>
-
 <div class="pp-buttons-container">
     <div id="connection_status" class="message-validation hidden"></div>
-    <!--<a  href="/var/www/html/attributecode.php"  download="sample.php"  id="<?php // echo $block->getHtmlId(); ?>">
-
-        <span><span><span><?php // echo $block->escapeHtml($block->getButtonLabel()) ?></span></span></span></a>-->
     <button id="<?php echo $block->getHtmlId(); ?>" onclick="javascript:getLoggerData(); return false;">
         <span><span><span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span></span></span>
     </button>
-
 </div>

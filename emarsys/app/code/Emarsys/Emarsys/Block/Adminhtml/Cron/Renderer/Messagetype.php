@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Cron\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class Messagetype
+ * @package Emarsys\Emarsys\Block\Adminhtml\Cron\Renderer
+ */
 class Messagetype extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -22,6 +26,7 @@ class Messagetype extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abs
     protected $backendHelper;
 
     /**
+     * Messagetype constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Magento\Backend\Helper\Data $backendHelper
      */
@@ -29,14 +34,16 @@ class Messagetype extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abs
         \Magento\Backend\Model\Session $session,
         \Magento\Backend\Helper\Data $backendHelper
     ) {
-    
         $this->session = $session;
         $this->backendHelper = $backendHelper;
     }
 
+    /**
+     * @param DataObject $row
+     */
     public function render(DataObject $row)
     {
         $logconfigurl =$this->backendHelper->getUrl('adminhtml/system_config/edit/section/emarsyslog');
-         printf("<a href='".$logconfigurl."' style='text-decoration:none'><div style='color:red'>Edit</div></a>");
+         printf("<a href='" . $logconfigurl. "' style='text-decoration:none'><div style='color:red'>Edit</div></a>");
     }
 }

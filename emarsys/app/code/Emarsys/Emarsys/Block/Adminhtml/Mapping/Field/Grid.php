@@ -65,7 +65,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->entityType = $entityType;
         $this->attribute = $attribute;
         $this->backendHelper = $backendHelper;
-        parent::__construct($context, $backendHelper, $data = []);
+        parent::__construct($context, $backendHelper, $data);
     }
 
     /**

@@ -76,7 +76,7 @@ class Placeholders extends Action
         $TemplateName = '';
         $this->_setActiveMenu('Emarsys_Emarsys::emarsys_emarsysadminindex7');
         $mappingId = $this->getRequest()->getParam("mapping_id");
-        $storeId = $this->getRequest()->getParam("store_id");
+        $storeId = $this->getRequest()->getParam("store");
         $eventMapping = $this->emarsysEventmappingCollection->create()->addFieldToFilter("id", $mappingId)->getFirstItem();
 
         if ($eventMapping->getId()) {

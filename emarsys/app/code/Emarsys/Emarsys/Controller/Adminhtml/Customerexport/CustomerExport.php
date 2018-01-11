@@ -7,10 +7,17 @@
 namespace Emarsys\Emarsys\Controller\Adminhtml\Customerexport;
 
 use Magento\Backend\App\Action;
-use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Stdlib\DateTime\DateTime;
-use Sabre\DAV\Client;
-use Emarsys\Emarsys\Helper\Country as EmarsysCountryHelper;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelperData;
+use Magento\Backend\App\Action\Context;
+use Magento\Store\Model\StoreManagerInterface;
+use Emarsys\Emarsys\Model\ResourceModel\Customer;
+use Magento\Framework\Stdlib\DateTime\Timezone;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Framework\App\Request\Http;
+use Emarsys\Emarsys\Model\EmarsysCronDetails;
+use Emarsys\Emarsys\Helper\Cron as EmarsysCronHelper;
+use Emarsys\Emarsys\Model\Logs;
 
 /**
  * Class CustomerExport
@@ -18,69 +25,90 @@ use Emarsys\Emarsys\Helper\Country as EmarsysCountryHelper;
  */
 class CustomerExport extends Action
 {
+    const MAX_CUSTOMER_RECORDS = 10000;
+
     /**
-     * @var \Magento\Framework\App\Response\Http\FileFactory
+     * @var StoreManagerInterface
      */
-    protected $customer;
+    protected $storeManager;
+
     /**
-     * @var \Emarsys\Emarsys\Model\ResourceModel\Customer
+     * @var Customer
      */
     protected $customerResourceModel;
+
+    /**
+     * @var DateTime
+     */
+    protected $date;
+
+    /**
+     * @var Http
+     */
+    protected $request;
+
+    /**
+     * @var Timezone
+     */
+    protected $timezone;
+
+    /**
+     * @var TimezoneInterface
+     */
+    protected $timezoneInterface;
+
+    /**
+     * @var EmarsysHelperData
+     */
+    protected $emarsysDataHelper;
+
     /**
      * @var
      */
     protected $messageManager;
 
     /**
-     *
-     * @var \Magento\Framework\Stdlib\DateTime\Timezone
+     * @var Logs
      */
-    protected $timezone;
+    protected $emarsysLogs;
 
     /**
-     *
-     * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
-     */
-    protected $timezoneInterface;
-
-    /**
-     * @var EmarsysCountryHelper
-     */
-    protected $emarsysCountryHelper;
-
-    /**
-     *
-     * @param \Magento\Backend\App\Action\Context $context
-     * @param \Magento\Customer\Model\CustomerFactory $customer
+     * CustomerExport constructor.
+     * @param Context $context
      * @param DateTime $date
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Emarsys\Emarsys\Helper\Logs $logsHelper
-     * @param \Emarsys\Emarsys\Model\ResourceModel\Customer $customerResourceModel
-     * @param \Magento\Framework\Stdlib\DateTime\Timezone $timezone
-     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezoneInterface
-     * @param \Magento\Framework\App\Request\Http $request
+     * @param StoreManagerInterface $storeManager
+     * @param Customer $customerResourceModel
+     * @param Timezone $timezone
+     * @param TimezoneInterface $timezoneInterface
+     * @param Http $request
+     * @param EmarsysHelperData $emarsysHelper
+     * @param EmarsysCronDetails $emarsysCronDetails
+     * @param EmarsysCronHelper $cronHelper
+     * @param Logs $emarsysLogs
      */
     public function __construct(
-        \Magento\Backend\App\Action\Context $context,
-        \Magento\Customer\Model\CustomerFactory $customer,
+        Context $context,
         DateTime $date,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Emarsys\Emarsys\Helper\Logs $logsHelper,
-        \Emarsys\Emarsys\Model\ResourceModel\Customer $customerResourceModel,
-        \Magento\Framework\Stdlib\DateTime\Timezone $timezone,
-        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezoneInterface,
-        \Magento\Framework\App\Request\Http $request,
-        EmarsysCountryHelper $emarsysCountryHelper
+        StoreManagerInterface $storeManager,
+        Customer $customerResourceModel,
+        Timezone $timezone,
+        TimezoneInterface $timezoneInterface,
+        Http $request,
+        EmarsysHelperData $emarsysHelper,
+        EmarsysCronDetails $emarsysCronDetails,
+        EmarsysCronHelper $cronHelper,
+        Logs $emarsysLogs
     ) {
-        $this->customer = $customer;
         $this->storeManager = $storeManager;
         $this->customerResourceModel = $customerResourceModel;
-        $this->logsHelper = $logsHelper;
         $this->date = $date;
         $this->request = $request;
         $this->timezone = $timezone;
         $this->timezoneInterface = $timezoneInterface;
-        $this->emarsysCountryHelper = $emarsysCountryHelper;
+        $this->emarsysDataHelper = $emarsysHelper;
+        $this->emarsysCronDetails = $emarsysCronDetails;
+        $this->cronHelper = $cronHelper;
+        $this->emarsysLogs = $emarsysLogs;
         parent::__construct($context);
     }
 
@@ -89,274 +117,105 @@ class CustomerExport extends Action
      */
     public function execute()
     {
-        set_time_limit(0);
-        $data = $this->request->getParams();
-        $scope = 'websites';
-        $scopeId = $data['storeId'];
-        $resultRedirect = $this->resultRedirectFactory->create();
+        try {
+            $data = $this->request->getParams();
+            $storeId = $data['storeId'];
+            $store = $this->storeManager->getStore($storeId);
+            $websiteId = $store->getWebsiteId();
+            $data['website'] = $websiteId;
+            $resultRedirect = $this->resultRedirectFactory->create();
+            $returnUrl = $this->getUrl("emarsys_emarsys/customerexport/index", ["store" => $storeId]);
 
-        if (isset($data['fromDate']) && $data['fromDate'] != '') {
-            $toTimezone = $this->timezone->getDefaultTimezone();
-            $fromDate = $this->timezone->date($data['fromDate'])
-                ->setTimezone(new \DateTimeZone($toTimezone))
-                ->format('Y-m-d H:i:s');
-            $magentoTime = $this->date->date('Y-m-d H:i:s');
-            $currentTime = new \DateTime($magentoTime);
-            $currentTime->format('Y-m-d H:i:s');
-            $datetime2 = new \DateTime($fromDate);
-            $interval = $currentTime->diff($datetime2);
-            if ($interval->y > 2 || ($interval->y == 2 && $interval->m >= 1) || ($interval->y == 2 && $interval->d >= 1)) {
-                $this->messageManager->addError("The timeframe cannot be more than 2 years");
-                $url = $this->getUrl("emarsys_emarsys/customerexport/index/store/$scopeId");
-                return $resultRedirect->setPath($url);
-            }
-        }
+            //check emarsys enable for website
+            if ($this->emarsysDataHelper->getEmarsysConnectionSetting($websiteId)) {
 
-        $store = $this->storeManager->getStore($scopeId);
-        $websiteId = $store->getWebsiteId();
-        $storeCode = $store->getCode();
+                //calculate time difference
+                if (isset($data['fromDate']) && $data['fromDate'] != '') {
+                    $toTimezone = $this->timezone->getDefaultTimezone();
+                    $fromDate = $this->timezone->date($data['fromDate'])
+                        ->setTimezone(new \DateTimeZone($toTimezone))
+                        ->format('Y-m-d H:i:s');
+                    $magentoTime = $this->date->date('Y-m-d H:i:s');
 
-        $logsArray['job_code'] = 'customer';
-        $logsArray['status'] = 'started';
-        $logsArray['messages'] = 'bulk customer export started';
-        $logsArray['created_at'] = $this->date->date('Y-m-d H:i:s', time());
-        $logsArray['run_mode'] = 'Manual';
-        $logsArray['auto_log'] = 'Complete';
-        $logsArray['store_id'] = $scopeId;
-        $logsArray['website_id'] = $websiteId;
-        $logId = $this->logsHelper->manualLogs($logsArray);
+                    $currentTime = new \DateTime($magentoTime);
+                    $currentTime->format('Y-m-d H:i:s');
 
-        $isEmarsysEnabledForStore = $this->customerResourceModel->getDataFromCoreConfig(
-            'emarsys_settings/emarsys_setting/enable',
-            $scope,
-            $websiteId
-        );
+                    $datetime2 = new \DateTime($fromDate);
+                    $interval = $currentTime->diff($datetime2);
 
-        if (!$isEmarsysEnabledForStore) {
-            $logsArray['id'] = $logId;
-            $logsArray['emarsys_info'] = __('Emarsys is disabled');
-            $logsArray['description'] = __('Emarsys is disabled for the store %1', $this->storeManager->getStore($scopeId)->getName());
-            $logsArray['action'] = 'synced to emarsys';
-            $logsArray['message_type'] = 'Error';
-            $logsArray['log_action'] = 'sync';
-            $this->logsHelper->logs($logsArray);
-            $logsArray['status'] = 'error';
-            $logsArray['messages'] = __('Customer export Failed');
-            $this->messageManager->addErrorMessage(__('Emarsys is disabled for the store %1', $this->storeManager->getStore($scopeId)->getName()));
-            $this->logsHelper->manualLogsUpdate($logsArray);
+                    //timeframe more than 2 years not supported
+                    if ($interval->y > 2 || ($interval->y == 2 && $interval->m >= 1) || ($interval->y == 2 && $interval->d >= 1)) {
+                        $this->messageManager->addErrorMessage(__("The timeframe cannot be more than 2 years"));
+                        return $resultRedirect->setPath($returnUrl);
+                    }
 
-            $url = $this->getUrl("emarsys_emarsys/customerexport/index/store/$scopeId");
-            return $resultRedirect->setPath($url);
-        }
-
-        $webDavUrl = $this->customerResourceModel->getDataFromCoreConfig(
-            'emarsys_settings/webdav_setting/webdav_url',
-            $scope,
-            $websiteId
-        );
-        $webDavUser = $this->customerResourceModel->getDataFromCoreConfig(
-            'emarsys_settings/webdav_setting/webdav_user',
-            $scope,
-            $websiteId
-        );
-        $webDavPass = $this->customerResourceModel->getDataFromCoreConfig(
-            'emarsys_settings/webdav_setting/webdav_password',
-            $scope,
-            $websiteId
-        );
-
-        if ($webDavUrl != '' && $webDavUser != '' && $webDavPass != '') {
-            $errorStatus = 0;
-        } else {
-            $errorStatus = 1;
-        }
-
-        $settings = array(
-            'baseUri' => $webDavUrl,
-            'userName' => $webDavUser,
-            'password' => $webDavPass,
-            'proxy' => '',
-        );
-
-        if ($errorStatus != 1) {
-            $client = new Client($settings);
-            $response = $client->request('GET');
-            if ($response['statusCode'] == '200' || $response['statusCode'] == '403') {
-                if (isset($scopeId)) {
-                    $websiteId = $this->storeManager->getStore($scopeId)->getWebsiteId();
-                    $data['website'] = $websiteId;
-                    if (isset($data['fromDate']) && $data['fromDate'] != '' && isset($data['toDate']) && $data['toDate'] != '') {
+                    if (isset($data['toDate']) && $data['toDate'] != '') {
                         $data['fromDate'] = $this->date->date('Y-m-d H:i:s', strtotime($data['fromDate']));
                         $data['toDate'] = $this->date->date('Y-m-d H:i:s', strtotime($data['toDate']));
                     }
                 }
-                $mappedAttributes = $this->customerResourceModel->getMappedCustomerAttribute($scopeId);
-                $headers = array();
-                if (isset($mappedAttributes) && count($mappedAttributes) != '') {
-                    $headerIndex = array();
-                    $indexCount = 0;
-                    foreach ($mappedAttributes as $att) {
-                        if ($att['emarsys_contact_field'] == NULL)
-                            continue;
-                        $emarsysField = $this->customerResourceModel->getEmarsysFieldNameContact($att, $scopeId);
-                        $headers["$att[magento_custom_attribute_id]"] = $emarsysField['name'];
-                        $headerIndex[$indexCount] = $att['magento_custom_attribute_id'];;
-                        $indexCount++;
-                    }
-                }
 
-                if (count($headers) > 0) {
-                    $headers['magento_customer_id'] = 'Magento Customer ID';
-                    $headerIndex[$indexCount] = 'magento_customer_id';
-                    $headers['magento_customer_unique_id'] = 'Magento Customer Unique ID';
-                    $indexCount = $indexCount + 1;
-                    $headerIndex[$indexCount] = 'magento_customer_unique_id';
-                    /*$headers['opt_in'] = 'Opt-In';
-                    disabled customer email column to remove duplicacy
-                    $indexCount = $indexCount + 1;
-                    $headerIndex[$indexCount] = 'opt_in';*/
-                    if(!in_array('Email',$headers)) {
-                            $headers['customer_email'] = 'Customer Email';
-                            $indexCount = $indexCount + 1;
-                            $headerIndex[$indexCount] = 'customer_email';
-                    }
-                    $localFilePath = BP . "/var";
-                    $outputFile = "customers_" . $this->date->date('YmdHis', time()) . "_" . $storeCode . ".csv";
-                    $filePath = $localFilePath . "/" . $outputFile;
-                    $handle = fopen($filePath, 'w');
-                    fputcsv($handle, $headers);
-                    $customerCollection = $this->customerResourceModel->getCustomerCollection($data, $scopeId);
-                    $customerValues = array();
+                //get customer collection
+                $customerCollection = $this->customerResourceModel->getCustomerCollection($data, $storeId);
+                if (!empty($customerCollection)) {
+                    $cronJobScheduled = false;
+                    $cronJobName = '';
 
-                    foreach ($customerCollection as $customerData) {
-                        $customerLoad = $this->customer->create()->load($customerData['entity_id']);
-                        $primaryBilling = $customerLoad->getPrimaryBillingAddress();
-                        $primaryShipping = $customerLoad->getPrimaryshippingAddress();
-                        $mappedCountries = $this->emarsysCountryHelper->getMapping($scopeId);
-                        foreach ($headers as $key => $value) {
-                            $attributeCode = $this->customerResourceModel->getMagentoAttributeCode($key, $scopeId); //using the custom magento id from the emarsys_magento_customer_attributes table
-                            //code for the custom defined attributes in the array starts
-
-                            if ($value == "Magento Customer ID") {
-                                $index = array_search($key, $headerIndex);
-                                $customerValues[$index] = $customerLoad->getId();
-                            } elseif ($value == "Magento Customer Unique ID") {
-                                $index = array_search($key, $headerIndex);
-                                $customerValues[$index] = $customerLoad->getEmail() . "#" . $customerLoad->getWebsiteId() . "#" . $customerLoad->getData('store_id');
-                            } elseif ($value == "Customer Email") {
-                                $index = array_search($key, $headerIndex);
-                                $customerValues[$index] = $customerLoad->getEmail();
-                            } elseif ($attributeCode['entity_type_id'] == 1) {
-                                //code for the custom defined attributes ends here
-                                $index = array_search($key, $headerIndex);
-                                $customerValues[$index] = $customerLoad->getData($attributeCode['attribute_code']);
-                            } elseif ($attributeCode['entity_type_id'] == 2) {
-                                $isShippingAttr = (strpos($attributeCode['attribute_code_custom'], 'default_shipping_') !== false) ? true : false;
-                                $isBillingAttr = (strpos($attributeCode['attribute_code_custom'], 'default_billing_') !== false) ? true : false;
-                                $index = array_search($key, $headerIndex);
-                                $attrVal = '';
-                                if ($isShippingAttr) {
-                                    if (isset($customerData['default_shipping']) && $customerData['default_shipping'] != NULL && $customerData['default_shipping'] != 0) {
-                                        if ($primaryShipping) {
-                                            $attrVal = $primaryShipping->getData($attributeCode['attribute_code']);
-                                            if ($attributeCode['attribute_code'] == 'country_id') {
-                                                $attrVal = (isset($mappedCountries[$attrVal]) ? $mappedCountries[$attrVal] : '');
-                                            } elseif ($attributeCode['attribute_code'] == 'street') {
-                                                $attrVal = str_replace("\n", ',', $attrVal);
-                                            }
-                                        }
-                                    }
-                                } elseif ($isBillingAttr) {
-                                    if (isset($customerData['default_billing']) && $customerData['default_billing'] != NULL && $customerData['default_billing'] != NULL) {
-                                        if ($primaryBilling) {
-                                            $attrVal = $primaryBilling->getData($attributeCode['attribute_code']);
-                                            if ($attributeCode['attribute_code'] == 'country_id') {
-                                                $attrVal = (isset($mappedCountries[$attrVal]) ? $mappedCountries[$attrVal] : '');
-                                            } elseif ($attributeCode['attribute_code'] == 'street') {
-                                                $attrVal = str_replace("\n", ',', $attrVal);
-                                            }
-                                        }
-                                    }
-                                }
-                                $customerValues[$index] = $attrVal;
-                            }
+                    if (count($customerCollection) <= self::MAX_CUSTOMER_RECORDS) {
+                        //export customers through API
+                        $isCronjobScheduled = $this->cronHelper->checkCronjobScheduled(EmarsysCronHelper::CRON_JOB_CUSTOMER_BULK_EXPORT_API, $storeId);
+                        if (!$isCronjobScheduled) {
+                            //no cron job scheduled yet, schedule a new cron job
+                            $cron = $this->cronHelper->scheduleCronjob(EmarsysCronHelper::CRON_JOB_CUSTOMER_BULK_EXPORT_API, $storeId);
+                            $cronJobScheduled = true;
+                            $cronJobName = EmarsysCronHelper::CRON_JOB_CUSTOMER_BULK_EXPORT_API;
                         }
-                        fputcsv($handle, $customerValues);
-                        $customerValues = array();
-                    }
-                    $file = $outputFile;
-                    $fileOpen = fopen($filePath, "r");
-                    $response = $client->request('PUT', $file, $fileOpen);
-                    unlink($filePath);
-                    $errorCount = 0;
-                    if ($response['statusCode'] == '201') {
-                        $logsArray['id'] = $logId;
-                        $logsArray['emarsys_info'] = 'File uploaded to server successfully';
-                        $logsArray['description'] = $response['headers']['location']['0'];
-                        $logsArray['action'] = 'synced to emarsys';
-                        $logsArray['message_type'] = 'Success';
-                        $logsArray['log_action'] = 'sync';
-                        $this->logsHelper->logs($logsArray);
-                        $errorCount = 0;
-                        $this->messageManager->addSuccess("File uploaded to server successfully !!!");
                     } else {
-                        $logsArray['id'] = $logId;
-                        $logsArray['emarsys_info'] = 'Failed to upload file on server';
-                        $logsArray['description'] = strip_tags($response['body']);
-                        $logsArray['action'] = 'synced to emarsys';
-                        $logsArray['message_type'] = 'Error';
-                        $logsArray['log_action'] = 'sync';
-                        $this->logsHelper->logs($logsArray);
-                        $errorCount = 1;
-                        $this->messageManager->addError("Failed to upload file on server !!!");
+                        //export customers through WebDav
+                        $isCronjobScheduled = $this->cronHelper->checkCronjobScheduled(EmarsysCronHelper::CRON_JOB_CUSTOMER_BULK_EXPORT_WEBDAV, $storeId);
+                        if (!$isCronjobScheduled) {
+                            $cron = $this->cronHelper->scheduleCronjob(EmarsysCronHelper::CRON_JOB_CUSTOMER_BULK_EXPORT_WEBDAV, $storeId);
+                            $cronJobScheduled = true;
+                            $cronJobName = EmarsysCronHelper::CRON_JOB_CUSTOMER_BULK_EXPORT_WEBDAV;
+                        }
+                    }
+
+                    if ($cronJobScheduled) {
+                        //format and encode data in json to be saved in the table
+                        $params = $this->cronHelper->getFormattedParams($data);
+
+                        //save details in cron details table
+                        $this->emarsysCronDetails->addEmarsysCronDetails($cron->getScheduleId(), $params);
+
+                        $this->messageManager->addSuccessMessage(
+                            __(
+                                'A cron named "%1" have been scheduled for customers export for the store %2.',
+                                $cronJobName,
+                                $store->getName()
+                            ));
+                    } else {
+                        //cron job already scheduled
+                        $this->messageManager->addErrorMessage(__('A cron is already scheduled to export customers for the store %1 ', $store->getName()));
                     }
                 } else {
-                    $logsArray['id'] = $logId;
-                    $logsArray['emarsys_info'] = 'Attributes are not mapped';
-                    $logsArray['description'] = 'Failed to upload file on server. Attributes are not mapped';
-                    $logsArray['action'] = 'synced to emarsys';
-                    $logsArray['message_type'] = 'Error';
-                    $logsArray['log_action'] = 'sync';
-                    $this->logsHelper->logs($logsArray);
-                    $errorCount = 1;
-                    $this->messageManager->addError("Attributes are not mapped for this store view !!!");
+                    //no customer found for the store
+                    $this->messageManager->addErrorMessage(__('No Customers Found for the Store %1.', $store->getName()));
                 }
             } else {
-                $logsArray['id'] = $logId;
-                $logsArray['emarsys_info'] = 'Failed to Login with WebDav Server.';
-                $logsArray['description'] = 'Failed to Login with WebDav Server. Please check your settings and try again';
-                $logsArray['action'] = 'synced to emarsys';
-                $logsArray['message_type'] = 'Error';
-                $logsArray['log_action'] = 'sync';
-                $this->logsHelper->logs($logsArray);
-                $errorCount = 1;
-                $this->messageManager->addError("Failed to Login with WebDav Server. Please check your settings and try again !!!");
+                //emarsys is disabled for this website
+                $this->messageManager->addErrorMessage(__('Emarsys is disabled for the website %1', $websiteId));
             }
-        } else {
-            $logsArray['id'] = $logId;
-            $logsArray['emarsys_info'] = 'Invalid credentials';
-            $logsArray['description'] = 'Invalid credential. Please check your settings and try again';
-            $logsArray['action'] = 'synced to emarsys';
-            $logsArray['message_type'] = 'Error';
-            $logsArray['log_action'] = 'sync';
-            $this->logsHelper->logs($logsArray);
-            $errorCount = 1;
-
-            $this->messageManager->addError("Invalid credential. Please check your settings and try again !!!");
+        } catch (\Exception $e) {
+            //add exception to logs
+            $this->emarsysLogs->addErrorLog(
+                $e->getMessage(),
+                $this->storeManager->getStore()->getId(),
+                'CustomerExport::execute()'
+            );
+            //report error
+            $this->messageManager->addErrorMessage(__('There was a problem while customer export. %1', $e->getMessage()));
         }
 
-        $logsArray['id'] = $logId;
-        $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
-        $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
-        if ($errorCount == 1) {
-            $logsArray['status'] = 'error';
-            $logsArray['messages'] = 'Customer export have an error. Please check';
-        } else {
-            $logsArray['status'] = 'success';
-            $logsArray['messages'] = 'Customer export completed';
-        }
-        $this->logsHelper->manualLogsUpdate($logsArray);
-        $url = $this->getUrl("emarsys_emarsys/customerexport/index/store/$scopeId");
-        return $resultRedirect->setPath($url);
+        return $resultRedirect->setPath($returnUrl);
     }
 }

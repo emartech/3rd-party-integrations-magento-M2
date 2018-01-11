@@ -1,13 +1,14 @@
 <?php
 /**
  * @category   Emarsys
- * @package    Emarsys_Log
+ * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
 namespace Emarsys\Emarsys\Model;
 
 /**
- * Log Config model
+ * Class LogConfig
+ * @package Emarsys\Emarsys\Model
  */
 class LogConfig extends \Magento\Framework\DataObject
 {
@@ -15,37 +16,34 @@ class LogConfig extends \Magento\Framework\DataObject
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $_storeManager;
+
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     protected $_scopeConfig;
+
     /**
      * @var \Magento\Framework\App\Config\ValueInterface
      */
     protected $_backendModel;
+
     /**
      * @var \Magento\Framework\DB\Transaction
      */
     protected $_transaction;
+
     /**
      * @var \Magento\Framework\App\Config\ValueFactory
      */
     protected $_configValueFactory;
-    /**
-     * @var int $_storeId
-     */
-    protected $_storeId;
-    /**
-     * @var string $_storeCode
-     */
-    protected $_storeCode;
 
     /**
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager ,
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig ,
-     * @param \Magento\Framework\App\Config\ValueInterface $backendModel ,
-     * @param \Magento\Framework\DB\Transaction $transaction ,
-     * @param \Magento\Framework\App\Config\ValueFactory $configValueFactory ,
+     * LogConfig constructor.
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Framework\App\Config\ValueInterface $backendModel
+     * @param \Magento\Framework\DB\Transaction $transaction
+     * @param \Magento\Framework\App\Config\ValueFactory $configValueFactory
      * @param array $data
      */
     public function __construct(
@@ -56,24 +54,23 @@ class LogConfig extends \Magento\Framework\DataObject
         \Magento\Framework\App\Config\ValueFactory $configValueFactory,
         $data = []
     ) {
-    
-        parent::__construct($data = []);
+        parent::__construct($data);
         $this->_storeManager = $storeManager;
         $this->_scopeConfig = $scopeConfig;
         $this->_backendModel = $backendModel;
         $this->_transaction = $transaction;
         $this->_configValueFactory = $configValueFactory;
-        $this->_storeId = (int)$this->_storeManager->getStore()->getId();
-        $this->_storeCode = $this->_storeManager->getStore()->getCode();
     }
 
     /**
      * Function for getting Config value of current store
-     * @param string $path ,
+     * @param $path
+     * @return mixed
      */
     public function getCurrentStoreConfigValue($path)
     {
-        return $this->_scopeConfig->getValue($path, 'store', $this->_storeCode);
+        $storeId = $this->_storeManager->getStore()->getId();
+        return $this->_scopeConfig->getValue($path, 'store', $storeId);
     }
 
     /**
@@ -83,11 +80,14 @@ class LogConfig extends \Magento\Framework\DataObject
      */
     public function setCurrentStoreConfigValue($path, $value)
     {
+        $store = $this->_storeManager->getStore();
+        $storeId = $store->getId();
+        $storeCode = $store->getCode();
         $data = [
             'path' => $path,
             'scope' => 'stores',
-            'scope_id' => $this->_storeId,
-            'scope_code' => $this->_storeCode,
+            'scope_id' => $storeId,
+            'scope_code' => $storeCode,
             'value' => $value,
         ];
 

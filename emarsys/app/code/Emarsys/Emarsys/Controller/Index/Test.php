@@ -31,7 +31,7 @@ class Test extends \Magento\Framework\App\Action\Action
         }
         $emarsysLocalIds = $this->eventHelper->getLocalEmarsysEvents();
         $result = array_diff($emarsysApiIds, $emarsysLocalIds);
-        if (count($result)) {
+        if (!empty($result)) {
             $this->eventHelper->saveEmarsysEventSchemaNotification();
         }
     }

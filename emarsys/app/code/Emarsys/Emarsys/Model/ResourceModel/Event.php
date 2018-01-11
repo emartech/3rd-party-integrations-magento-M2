@@ -8,9 +8,8 @@
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
 /**
- * Customer resource model
- *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * Class Event
+ * @package Emarsys\Emarsys\Model\ResourceModel
  */
 class Event extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {

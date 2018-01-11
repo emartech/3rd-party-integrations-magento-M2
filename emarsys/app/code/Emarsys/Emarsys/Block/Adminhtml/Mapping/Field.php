@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
+/**
+ * Class Field
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
+ */
 class Field extends \Magento\Backend\Block\Widget\Container
 {
     /**
@@ -14,6 +18,7 @@ class Field extends \Magento\Backend\Block\Widget\Container
     protected $_template = 'mapping/field/view.phtml';
 
     /**
+     * Field constructor.
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param array $data
      */
@@ -21,8 +26,7 @@ class Field extends \Magento\Backend\Block\Widget\Container
         \Magento\Backend\Block\Widget\Context $context,
         $data = []
     ) {
-    
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**

@@ -1,17 +1,24 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+-->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
         <css src="Emarsys_Emarsys::css/mapping.css" />
     </head>
-<body>
-    <referenceContainer name="page.main.actions">
-          <block class="Magento\Backend\Block\Store\Switcher" name="emarsys.store.switcher"
-                  template="Emarsys_Emarsys::emarsys/switcher.phtml"/>
-      </referenceContainer>
+    <body>
+        <referenceContainer name="page.main.actions">
+            <block class="Magento\Backend\Block\Store\Switcher" name="emarsys.store.switcher"
+                   template="Emarsys_Emarsys::emarsys/switcher.phtml"/>
+        </referenceContainer>
         <referenceContainer name="content">
-          <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\MappingButtons" name="emarsys_product_attribute_buttons" template="mapping/product/buttons.phtml" />
-          <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\Product" name="product_mapping" template="Emarsys_Emarsys::mapping/product/view.phtml"/>
+            <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\MappingButtons" name="emarsys_product_attribute_buttons" template="mapping/product/buttons.phtml" />
+            <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\Product" name="product_mapping" template="Emarsys_Emarsys::mapping/product/view.phtml"/>
         </referenceContainer>
     </body>
 </page>

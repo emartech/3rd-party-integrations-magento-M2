@@ -7,9 +7,20 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Support\Edit\Tab;
 
+/**
+ * Class Form
+ * @package Emarsys\Emarsys\Block\Adminhtml\Support\Edit\Tab
+ */
 class Form extends \Magento\Backend\Block\Widget\Form\Generic
 {
-
+    /**
+     * Form constructor.
+     * @param \Magento\Backend\Block\Widget\Context $context
+     * @param \Magento\Backend\Model\Auth\Session $session
+     * @param \Magento\Framework\Data\FormFactory $formFactory
+     * @param \Magento\Framework\Registry $registry
+     * @param array $data
+     */
     public function __construct(
         \Magento\Backend\Block\Widget\Context $context,
         \Magento\Backend\Model\Auth\Session $session,
@@ -36,22 +47,22 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
         $form = $this->_formFactory->create();
 
         $this->setForm($form);
-        $fieldset = $form->addFieldset("support_form", ["legend"=>'<h4 class="" style="background-color: #41362f;color:#fff;line-height: 20px;padding:10px">Support Information</h4>']);
+        $fieldset = $form->addFieldset("support_form", ["legend" => '<h4 class="" style="background-color: #41362f;color:#fff;line-height: 20px;padding:10px">Support Information</h4>']);
         $fieldset->addField("type", "select", [
             'label'     => 'Support Type',
             'name'      => 'type',
             'required'  => true,
-            'onchange'  => 'support(\''.$url.'\',this.value)',
+            'onchange'  => 'support(\'' . $url. '\', this.value)',
             'values'    => [
-                ['value' => '' ,'label' => 'Please Select'],
-                ['value' => 'Sales Support','label' => 'Sales Support'],
-                ['value' => 'Customization Service','label' => 'Customization Service'],
-                ['value' => 'Feedback and Complaint','label' => 'Feedback and Complaint'],
-                ['value' => 'Technical Support','label' => 'Technical Support'],
-                ['value' => 'Urgent Issue','label' => 'Urgent Issue'],
-                ['value' => 'Installation Service','label' => 'Installation Service'],
-                ['value' => 'Request Upgrade','label' => 'Request Upgrade'],
-                ['value' => 'Other','label' => 'Other']
+                ['value' => '' , 'label' => 'Please Select'],
+                ['value' => 'Sales Support', 'label' => 'Sales Support'],
+                ['value' => 'Customization Service', 'label' => 'Customization Service'],
+                ['value' => 'Feedback and Complaint', 'label' => 'Feedback and Complaint'],
+                ['value' => 'Technical Support', 'label' => 'Technical Support'],
+                ['value' => 'Urgent Issue', 'label' => 'Urgent Issue'],
+                ['value' => 'Installation Service', 'label' => 'Installation Service'],
+                ['value' => 'Request Upgrade', 'label' => 'Request Upgrade'],
+                ['value' => 'Other', 'label' => 'Other']
             ],
         ]);
         $fieldset->addField("show_email", "label", [
@@ -104,8 +115,6 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
                 'name' => 'message',
                 'label' => 'Message',
                 'title' => 'Message',
-//                'config'    => Mage::getSingleton('cms/wysiwyg_config')->getConfig(),
-//                'wysiwyg'   => true,
             'required' => true
         ]);
 
@@ -128,7 +137,7 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
             $urlLoader = $objectManager->create('Magento\Store\Model\StoreManagerInterface');
             $baseUrl = $urlLoader->getStore()->getBaseUrl();
-            $support_data['file'] = $baseUrl . 'support/'.$support_data['file'];
+            $support_data['file'] = $baseUrl . 'support/' . $support_data['file'];
         }
 
         $form->setValues($user->getData());

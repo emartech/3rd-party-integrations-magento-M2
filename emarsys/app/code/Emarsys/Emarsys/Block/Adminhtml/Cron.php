@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml;
 
+/**
+ * Class Cron
+ * @package Emarsys\Emarsys\Block\Adminhtml
+ */
 class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
 {
     /**
@@ -55,13 +59,13 @@ class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
     protected $cronData;
 
     /**
+     * Cron constructor.
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Backend\Helper\Data $backendHelper
      * @param \Magento\Framework\Data\Collection $dataCollection
      * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
      * @param CronData $cronData
      * @param \Magento\Framework\Module\Manager $moduleManager
-     * @param \Magento\Backend\Model\Session $session
      * @param \Magento\Cron\Model\ConfigInterface $cronConfig
      * @param \Magento\Framework\Dataobject $dataObject
      * @param array $data
@@ -73,13 +77,11 @@ class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
         \Magento\Framework\DataObjectFactory $dataObjectFactory,
         \Emarsys\Emarsys\Block\Adminhtml\CronData $cronData,
         \Magento\Framework\Module\Manager $moduleManager,
-        //   \Magento\Backend\Model\Session $session,
         \Magento\Cron\Model\ConfigInterface $cronConfig,
         \Magento\Framework\Dataobject $dataObject,
         $data = []
     ) {
-    
-        $this->session = \Magento\Backend\Block\Template\Context::getSession(); //$context->$context;  //$session;
+        $this->session = $context->getSession();
         $this->moduleManager = $moduleManager;
         $this->backendHelper = $backendHelper;
         $this->dataCollection = $dataCollection;
@@ -87,7 +89,7 @@ class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->cronConfig = $cronConfig;
         $this->dataObject = $dataObject;
         $this->cronData  = $cronData;
-        parent::__construct($context, $backendHelper, $data = []);
+        parent::__construct($context, $backendHelper, $data);
     }
 
     /**

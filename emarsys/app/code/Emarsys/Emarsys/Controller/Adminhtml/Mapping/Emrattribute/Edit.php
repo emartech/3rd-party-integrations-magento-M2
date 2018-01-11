@@ -92,11 +92,11 @@ class Edit extends \Magento\Framework\App\Action\Action
             $productAttribute = $this->Emrattribute->load($attributeId);
             $productId = $productAttribute->getId();
             if ($productId) {
-                if (strpos($code , 'c_') === false){
-                    $code = 'c_'.$code;
+                if (strpos($code, 'c_') === false) {
+                    $code = 'c_' . $code;
                 }
-                if (strpos($label , 'c_') === false){
-                    $label = 'c_'.$label;
+                if (strpos($label, 'c_') === false) {
+                    $label = 'c_' . $label;
                 }
                 $productAttribute->setCode($code);
                 $productAttribute->setLabel($label);

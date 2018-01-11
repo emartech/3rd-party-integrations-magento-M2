@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Product\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class EmarsysProduct
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Product\Renderer
+ */
 class EmarsysProduct extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -32,6 +36,7 @@ class EmarsysProduct extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\
     protected $syncResourceModel;
 
     /**
+     * EmarsysProduct constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Emarsys\Emarsys\Model\ResourceModel\Product\CollectionFactory $collectionFactory
      * @param \Emarsys\Emarsys\Model\ResourceModel\Sync $syncResourceModel
@@ -43,13 +48,11 @@ class EmarsysProduct extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\
         \Emarsys\Emarsys\Model\ResourceModel\Sync $syncResourceModel,
         \Magento\Backend\Helper\Data $backendHelper
     ) {
-    
         $this->session = $session;
         $this->collectionFactory = $collectionFactory;
         $this->syncResourceModel = $syncResourceModel;
         $this->backendHelper = $backendHelper;
     }
-
 
     /**
      * @param DataObject $row
@@ -104,6 +107,7 @@ class EmarsysProduct extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\
             }
         }
         $html .= '</select>';
+
         return $html;
     }
 }

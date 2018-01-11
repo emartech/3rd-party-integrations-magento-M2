@@ -8,10 +8,10 @@ namespace Emarsys\Emarsys\Controller\Adminhtml\Webdav;
 
 use Emarsys\Emarsys\Helper\Data;
 use Magento\Framework\Stdlib\DateTime\DateTime;
-use Sabre\DAV\Client;
 use Magento\Backend\App\Action\Context;
 use Emarsys\Emarsys\Helper\Logs;
 use Magento\Config\Model\ResourceModel\Config;
+use Emarsys\Emarsys\Model\WebDav\WebDavExport;
 use Magento\Backend\App\Action;
 
 /**
@@ -36,24 +36,32 @@ class Index extends Action
     protected $logsHelper;
 
     /**
+     * @var WebDavExport
+     */
+    protected $webDavExport;
+
+    /**
      * Index constructor.
      * @param Data $emarsysHelper
      * @param Context $context
      * @param DateTime $date
      * @param Logs $logsHelper
      * @param Config $config
+     * @param WebDavExport $webDavExport
      */
     public function __construct(
         Data $emarsysHelper,
         Context $context,
         DateTime $date,
         Logs $logsHelper,
-        Config $config
+        Config $config,
+        WebDavExport $webDavExport
     ) {
         $this->emarsysHelper = $emarsysHelper;
         $this->logsHelper = $logsHelper;
         $this->date = $date;
         $this->config = $config;
+        $this->webDavExport = $webDavExport;
         parent::__construct($context);
     }
 
@@ -87,19 +95,15 @@ class Index extends Action
         }
 
         if ($errorStatus != 1) {
-            $settings = [
-                'baseUri' => $webDavUrl,
-                'userName' => $webDavUser,
-                'password' => $webDavPass,
-                'proxy' => '',
-            ];
-            $client = new Client($settings);
-            $response = $client->request('GET');
-            if ($response['statusCode'] == '200' || $response['statusCode'] == '403') {
+            //check webdav connection with credentials
+            $checkWebDavConnection = $this->webDavExport->testWebDavConnection(
+                $webDavUrl,
+                $webDavUser,
+                $webDavPass
+            );
+            if ($checkWebDavConnection['status']) {
                 //test connection is successful.
                 $scopeType = 'websites';
-                $defaultScopeType = 'default';
-                $defaultScopeId = '0';
                 $scopeId = $website;
                 if ($website == '') {
                     $scopeType = 'default';
@@ -107,10 +111,6 @@ class Index extends Action
                 }
                 //save webdav_url information in respected configuration.
                 $this->config->saveConfig('emarsys_settings/webdav_setting/webdav_url', $webDavUrl, $scopeType, $scopeId);
-                if ($website == 1) {
-                    $this->config->saveConfig('emarsys_settings/webdav_setting/webdav_url', $webDavUrl, $defaultScopeType, $defaultScopeId);
-                }
-
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'WebDav test connection';
                 $logsArray['description'] = "Inserted URL";
@@ -121,10 +121,6 @@ class Index extends Action
 
                 //save webdav_user information in respected configuration.
                 $this->config->saveConfig('emarsys_settings/webdav_setting/webdav_user', $webDavUser, $scopeType, $scopeId);
-                if ($website == 1) {
-                    $this->config->saveConfig('emarsys_settings/webdav_setting/webdav_user', $webDavUser, $defaultScopeType, $defaultScopeId);
-                }
-
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'WebDav test connection';
                 $logsArray['description'] = "Inserted username";
@@ -135,10 +131,6 @@ class Index extends Action
 
                 //save webdav_password information in respected configuration.
                 $this->config->saveConfig('emarsys_settings/webdav_setting/webdav_password', $webDavPass, $scopeType, $scopeId);
-                if ($website == 1) {
-                    $this->config->saveConfig('emarsys_settings/webdav_setting/webdav_password', $webDavPass, $defaultScopeType, $defaultScopeId);
-                }
-
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'WebDav test connection';
                 $logsArray['description'] = "Inserted password";
@@ -161,7 +153,7 @@ class Index extends Action
                 $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
                 $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
                 $logsArray['status'] = 'error';
-                $logsArray['messages'] = 'WebDav test connection failed';
+                $logsArray['messages'] = 'WebDav test connection failed' . $checkWebDavConnection['response_body'];
                 $this->logsHelper->manualLogsUpdate($logsArray);
             }
         } else {

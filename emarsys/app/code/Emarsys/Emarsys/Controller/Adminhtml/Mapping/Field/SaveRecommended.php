@@ -139,7 +139,7 @@ class SaveRecommended extends Action
                 $logId = $this->logHelper->manualLogs($logsArray);
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'Recommended Mapping';
-                $logsArray['description'] = 'Saved Recommended Mapping as '.print_r($recommendedData,true);
+                $logsArray['description'] = 'Saved Recommended Mapping as ' .print_r($recommendedData,true);
                 $logsArray['action'] = 'Saved Recommended Mapping Successful';
                 $logsArray['message_type'] = 'Success';
                 $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());

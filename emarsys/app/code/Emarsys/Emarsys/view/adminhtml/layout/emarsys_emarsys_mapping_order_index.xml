@@ -1,14 +1,21 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+-->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
         <css src="Emarsys_Emarsys::css/mapping.css" />
     </head>
     <body>
-      <referenceContainer name="page.main.actions">
-          <block class="Magento\Backend\Block\Store\Switcher" name="emarsys.store.switcher"
-                  template="Emarsys_Emarsys::emarsys/switcher.phtml"/>
-      </referenceContainer>
+        <referenceContainer name="page.main.actions">
+            <block class="Magento\Backend\Block\Store\Switcher" name="emarsys.store.switcher"
+                   template="Emarsys_Emarsys::emarsys/switcher.phtml"/>
+        </referenceContainer>
         <referenceContainer name="content">
             <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\MappingButtons" name="emarsys_order_attribute_buttons" template="mapping/order/buttons.phtml" />
             <block class="Emarsys\Emarsys\Block\Adminhtml\Mapping\Order" name="emarsys_order_mapping"/>

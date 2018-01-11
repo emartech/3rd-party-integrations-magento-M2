@@ -1,13 +1,17 @@
 <?php
 /**
  * @category   Emarsys
- * @package    Emarsys_Log
+ * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Logs\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class Messagetype
+ * @package Emarsys\Emarsys\Block\Adminhtml\Logs\Renderer
+ */
 class Messagetype extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -21,6 +25,7 @@ class Messagetype extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abs
     protected $backendHelper;
 
     /**
+     * Messagetype constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Magento\Backend\Helper\Data $backendHelper
      */
@@ -28,11 +33,9 @@ class Messagetype extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abs
         \Magento\Backend\Model\Session $session,
         \Magento\Backend\Helper\Data $backendHelper
     ) {
-    
         $this->session = $session;
         $this->backendHelper = $backendHelper;
     }
-
 
     /**
      * @param DataObject $row
@@ -41,9 +44,7 @@ class Messagetype extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abs
     public function render(DataObject $row)
     {
         $rowData = $row->getData();
-        $url = 'logs/logs/detail/id/' . $rowData['id'];
-
-        $url = $this->backendHelper->getUrl($url); //admintml indicates the admin module, rest is the url
+        $url = $this->backendHelper->getUrl('logs/logs/detail', ['id' => $rowData['id']]); //adminhtml indicates the admin module, rest is the url
         if ($rowData['message_type'] == 'Success') {
             $usermsg = "<span style='color:green'>Success</span>";
         } else {

@@ -1,9 +1,21 @@
 <?php
-
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Template
+ * @package Emarsys\Emarsys\Model
+ */
 class Template extends \Magento\Email\Model\Template
 {
+    /**
+     * @param string $placeholder
+     * @return string
+     */
     public function getProcessedVariable($placeholder = '')
     {
         $variables = $this->_getVars();
@@ -41,9 +53,13 @@ class Template extends \Magento\Email\Model\Template
         if ($isDesignApplied) {
             $this->cancelDesignConfig();
         }
+
         return $result;
     }
 
+    /**
+     * @return bool
+     */
     public function checkOrder()
     {
         $variables = $this->_getVars();
@@ -55,6 +71,10 @@ class Template extends \Magento\Email\Model\Template
         }
     }
 
+    /**
+     * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function getEmailStoreId()
     {
         if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
@@ -71,6 +91,7 @@ class Template extends \Magento\Email\Model\Template
         } elseif (isset($variables['order'])) {
             $storeId = $variables['order']->getStoreId();
         }
+
         return $storeId;
     }
 }

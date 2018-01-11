@@ -274,4 +274,16 @@ class Api extends \Magento\Framework\DataObject
         #$this->_logger->addDebug(print_r($returnData, true));
         return $returnData;
     }
+
+    /**
+     * @param $arrCustomerData
+     * @return mixed|string
+     * @throws \Exception
+     */
+    public function createContactInEmarsys($arrCustomerData)
+    {
+        $response = $this->sendRequest('PUT', 'contact/?create_if_not_exists=1', $arrCustomerData);
+
+        return $response;
+    }
 }

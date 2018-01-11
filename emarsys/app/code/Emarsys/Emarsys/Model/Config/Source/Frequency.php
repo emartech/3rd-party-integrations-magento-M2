@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class Frequency
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class Frequency implements \Magento\Framework\Option\ArrayInterface
 {
     /**

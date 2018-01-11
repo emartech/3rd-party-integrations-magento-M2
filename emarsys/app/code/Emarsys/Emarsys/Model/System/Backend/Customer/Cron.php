@@ -55,7 +55,6 @@ class Cron extends \Magento\Framework\App\Config\Value
         $runModelPath = '',
         array $data = []
     ) {
-    
         $this->_runModelPath = $runModelPath;
         $this->_scopeConfig = $config;
         $this->_configValueFactory = $configValueFactory;
@@ -79,8 +78,6 @@ class Cron extends \Magento\Framework\App\Config\Value
         $frequencyMonthly = \Magento\Cron\Model\Config\Source\Frequency::CRON_MONTHLY;
         $timehour = (int)$time[0];
         $timeminute = (int)$time[1];
-
-        $cronDayOfWeek = date('N');
 
         if ($time[0] > 0) {
             $cronExprArray = [

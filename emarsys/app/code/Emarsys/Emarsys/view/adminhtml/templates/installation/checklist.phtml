@@ -1,3 +1,10 @@
+<?php
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+?>
 <style type="text/css">
     .column_condition {
         color: gray;
@@ -12,20 +19,21 @@
     }
 </style>
 <div class="content-header-support">
-    <h3 class="icon-head head-adminhtml-support"><span class='acu-icon'></span><span class='acu-title'>Emarsys Installation Checklist</span>
+    <h3 class="icon-head head-adminhtml-support">
+        <span class='acu-icon'></span>
+        <span class='acu-title'>Emarsys Installation Checklist</span>
     </h3>
 </div>
 <?php
 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-
 $storeManagerInterfaceObj = $objectManager->create('\Magento\Store\Model\StoreManagerInterface');
 $requestObj = $requestInterface = $objectManager->get('Magento\Framework\App\RequestInterface');
 $storeId = $requestObj->getParam('store');
 $websiteId = $storeManagerInterfaceObj->getStore($storeId)->getWebsiteId();
 $data = $objectManager->create('Emarsys\Emarsys\Helper\Data')->getRequirementsInfo($storeId);
-$excludeInFirstSection = array("Smart Insight", "Realtime Synchronization", "Emarsys Connection Setting");
+$excludeInFirstSection = ["Smart Insight", "Realtime Synchronization", "Emarsys Connection Setting"];
 $emarsysCustomerFields = $objectManager->create('Emarsys\Emarsys\Helper\Customer')->getEmarsysCustomerSchema($storeId);
-$emarsysCustomerFieldNames = array();
+$emarsysCustomerFieldNames = [];
 if ($emarsysCustomerFields['data']) {
     $emarsysCustomerDataFields = $emarsysCustomerFields['data'];
     foreach ($emarsysCustomerDataFields as $CustomerField) {
@@ -35,7 +43,6 @@ if ($emarsysCustomerFields['data']) {
 ?>
 <div class="box-left">
     <div id="support_system_requirements_container" class="entry-edit">
-
         <div class="example-responsive-block">
             <h4 class="" style="background-color: #41362f;color:#fff;line-height: 20px;padding:10px"
             "><?php echo 'System Requirements'; ?></h4>
@@ -80,7 +87,6 @@ if ($emarsysCustomerFields['data']) {
             <h4 class="" style="background-color: #41362f;color:#fff;line-height: 20px;padding:10px"
             "><?php echo 'Extension Settings'; ?></h4>
         </div>
-
         <div class="fieldset sys-req">
             <div class="hor-scroll" style="margin-left: 10px;">
                 <table class="form-list" cellspacing="0" cellpadding="0">
@@ -110,18 +116,13 @@ if ($emarsysCustomerFields['data']) {
 </div>
 <div class="box-left" style="margin-top: 18px;">
     <div id="support_system_requirements_container" class="entry-edit">
-
         <div class="example-responsive-block">
             <h4 class="" style="background-color: #41362f;color:#fff;line-height: 20px;padding:10px"
             "><?php echo 'Mandatory Emarsys Customer Fields'; ?></h4>
         </div>
-
         <div class="fieldset sys-req">
             <div class="hor-scroll" style="margin-left: 10px;">
-
-
                 <table class="form-list" cellspacing="0" cellpadding="0">
-
                     <tr>
                         <td class="label" style="width:200px;">
                             <strong><?php echo 'Contact field'; ?></strong>
@@ -130,10 +131,10 @@ if ($emarsysCustomerFields['data']) {
                             <strong><?php echo 'Created In Emarsys'; ?></strong>
                         </td>
                     </tr>
-                    <?php //echo "<pre>";
-                    $mandatoryFileds = array('Magento Customer ID', 'Magento Subscriber ID', 'Magento Customer Unique ID');
-                    $customermandatoryFileds = array();
-                    $filedsToCreate = array();
+                    <?php
+                    $mandatoryFileds = ['Magento Customer ID', 'Magento Subscriber ID', 'Magento Customer Unique ID'];
+                    $customermandatoryFileds = [];
+                    $filedsToCreate = [];
                     if ($emarsysCustomerFieldNames) {
                         foreach ($mandatoryFileds as $customerField) {
                             if (in_array($customerField, $emarsysCustomerFieldNames)) {
@@ -163,7 +164,14 @@ if ($emarsysCustomerFields['data']) {
                     if ($filedsToCreate):?>
                         <?php
                         $filedsToCreate = implode(',', $filedsToCreate);
-                        $CreateUrl = $this->getUrl('*/mapping_customer/createfields', array('customerfields' => $filedsToCreate,'store'=>$storeId,'website'=>$websiteId));;
+                        $CreateUrl = $this->getUrl(
+                            '*/mapping_customer/createfields',
+                            [
+                                'customerfields' => $filedsToCreate,
+                                'store' => $storeId,
+                                'website' => $websiteId
+                            ]
+                        );
                         ?>
                         <tr>
                             <td class="label" colspan="2">&nbsp;</td>
@@ -186,5 +194,4 @@ if ($emarsysCustomerFields['data']) {
     </div>
 </div>
 <div style="clear:both"></div>
-
 <div style="clear:both"></div>

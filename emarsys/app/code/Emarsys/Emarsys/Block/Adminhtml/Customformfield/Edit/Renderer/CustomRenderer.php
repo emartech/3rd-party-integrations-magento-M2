@@ -1,8 +1,15 @@
 <?php
 namespace Emarsys\Emarsys\Block\Adminhtml\Customformfield\Edit\Renderer;
 
+/**
+ * Class CustomRenderer
+ * @package Emarsys\Emarsys\Block\Adminhtml\Customformfield\Edit\Renderer
+ */
 class CustomRenderer extends \Magento\Framework\Data\Form\Element\AbstractElement
 {
+    /**
+     * @return string
+     */
     public function getElementHtml()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
@@ -16,7 +23,6 @@ class CustomRenderer extends \Magento\Framework\Data\Form\Element\AbstractElemen
         $html = "";
         $storeId = $session->getStore();
         $rootCategoryId = 1;
-        //$rootCategoryId = $storeManager->getStore($storeId)->getRootCategoryId();
         list($catTree, $selectedCats) = $this->getTreeCategories($rootCategoryId);
         $html = "
         <div class=\"emarsys-search\">
@@ -33,6 +39,11 @@ class CustomRenderer extends \Magento\Framework\Data\Form\Element\AbstractElemen
         return $html;
     }
 
+    /**
+     * @param $parentId
+     * @param int $level
+     * @return array
+     */
     public function getTreeCategories($parentId, $level = 1)
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();

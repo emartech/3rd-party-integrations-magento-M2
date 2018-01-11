@@ -22,10 +22,15 @@ use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Reflection\DataObjectProcessor;
 use Magento\Framework\View\Result\PageFactory;
-use Emarsys\Emarsys\Model\Observer\RealTimeCustomer;
+use Magento\Store\Model\StoreManagerInterface;
+use Emarsys\Emarsys\Model\ResourceModel\Customer;
+use Emarsys\Emarsys\Model\Api\Contact;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Model\Logs;
 
 /**
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * Class FormPost
+ * @package Emarsys\Emarsys\Controller\CustomerAddress
  */
 class FormPost extends \Magento\Customer\Controller\Address
 {
@@ -40,8 +45,32 @@ class FormPost extends \Magento\Customer\Controller\Address
     protected $helperData;
 
     /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
+     * @var Customer
+     */
+    protected $customerResourceModel;
+
+    /**
+     * @var Contact
+     */
+    protected $contactModel;
+
+    /**
+     * @var EmarsysHelper
+     */
+    protected $dataHelper;
+
+    /**
+     * @var Logs
+     */
+    protected $emarsysLogs;
+
+    /**
      * FormPost constructor.
-     *
      * @param Context $context
      * @param Session $customerSession
      * @param FormKeyValidator $formKeyValidator
@@ -54,8 +83,12 @@ class FormPost extends \Magento\Customer\Controller\Address
      * @param ForwardFactory $resultForwardFactory
      * @param PageFactory $resultPageFactory
      * @param RegionFactory $regionFactory
-     * @param RealTimeCustomer $realTimeCustomerModel
      * @param HelperData $helperData
+     * @param StoreManagerInterface $storeManagerInterface
+     * @param Customer $customerResourceModel
+     * @param Contact $contactModel
+     * @param EmarsysHelper $dataHelper
+     * @param Logs $emarsysLogs
      */
     public function __construct(
         Context $context,
@@ -70,12 +103,20 @@ class FormPost extends \Magento\Customer\Controller\Address
         ForwardFactory $resultForwardFactory,
         PageFactory $resultPageFactory,
         RegionFactory $regionFactory,
-        RealTimeCustomer $realTimeCustomerModel,
-        HelperData $helperData
+        HelperData $helperData,
+        StoreManagerInterface $storeManagerInterface,
+        Customer $customerResourceModel,
+        Contact $contactModel,
+        EmarsysHelper $dataHelper,
+        Logs $emarsysLogs
     ) {
-        $this->realTimeCustomerModel = $realTimeCustomerModel;
         $this->regionFactory = $regionFactory;
         $this->helperData = $helperData;
+        $this->storeManager = $storeManagerInterface;
+        $this->customerResourceModel = $customerResourceModel;
+        $this->contactModel = $contactModel;
+        $this->dataHelper = $dataHelper;
+        $this->emarsysLogs = $emarsysLogs;
         parent::__construct(
             $context,
             $customerSession,
@@ -89,6 +130,54 @@ class FormPost extends \Magento\Customer\Controller\Address
             $resultForwardFactory,
             $resultPageFactory
         );
+    }
+
+    /**
+     * Process address form save
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
+    public function execute()
+    {
+        $redirectUrl = null;
+        if (!$this->_formKeyValidator->validate($this->getRequest())) {
+            return $this->resultRedirectFactory->create()->setPath('*/*/');
+        }
+
+        if (!$this->getRequest()->isPost()) {
+            $this->_getSession()->setAddressFormData($this->getRequest()->getPostValue());
+            return $this->resultRedirectFactory->create()->setUrl(
+                $this->_redirect->error($this->_buildUrl('*/*/edit'))
+            );
+        }
+
+        try {
+            $address = $this->_extractAddress();
+            $this->_addressRepository->save($address);
+            $emarsysCustomerId = $this->_getSession()->getCustomerId();
+
+            $this->syncContactData($emarsysCustomerId);
+
+            $this->messageManager->addSuccessMessage(__('You saved the address.'));
+            $url = $this->_buildUrl('*/*/index', ['_secure' => true]);
+            return $this->resultRedirectFactory->create()->setUrl($this->_redirect->success($url));
+        } catch (InputException $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            foreach ($e->getErrors() as $error) {
+                $this->messageManager->addErrorMessage($error->getMessage());
+            }
+        } catch (\Exception $e) {
+            $redirectUrl = $this->_buildUrl('*/*/index');
+            $this->messageManager->addExceptionMessage($e, __('We can\'t save the address.'));
+        }
+
+        $url = $redirectUrl;
+        if (!$redirectUrl) {
+            $this->_getSession()->setAddressFormData($this->getRequest()->getPostValue());
+            $url = $this->_buildUrl('*/*/edit', ['id' => $this->getRequest()->getParam('id')]);
+        }
+
+        return $this->resultRedirectFactory->create()->setUrl($this->_redirect->error($url));
     }
 
     /**
@@ -177,50 +266,29 @@ class FormPost extends \Magento\Customer\Controller\Address
     }
 
     /**
-     * Process address form save
-     *
-     * @return \Magento\Framework\Controller\Result\Redirect
+     * @param $customerId
      */
-    public function execute()
+    public function syncContactData($customerId)
     {
-        $redirectUrl = null;
-        if (!$this->_formKeyValidator->validate($this->getRequest())) {
-            return $this->resultRedirectFactory->create()->setPath('*/*/');
-        }
-
-        if (!$this->getRequest()->isPost()) {
-            $this->_getSession()->setAddressFormData($this->getRequest()->getPostValue());
-            return $this->resultRedirectFactory->create()->setUrl(
-                $this->_redirect->error($this->_buildUrl('*/*/edit'))
-            );
-        }
-
         try {
-            $address = $this->_extractAddress();
-            $this->_addressRepository->save($address);
-            $emarsysCustomerId = $this->_getSession()->getCustomerId();
-
-            $this->realTimeCustomerModel->syncContactData($emarsysCustomerId);
-
-            $this->messageManager->addSuccessMessage(__('You saved the address.'));
-            $url = $this->_buildUrl('*/*/index', ['_secure' => true]);
-            return $this->resultRedirectFactory->create()->setUrl($this->_redirect->success($url));
-        } catch (InputException $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
-            foreach ($e->getErrors() as $error) {
-                $this->messageManager->addErrorMessage($error->getMessage());
+            $storeId = $this->storeManager->getStore()->getStoreId();
+            $websiteId = $this->storeManager->getStore()->getWebsiteId();
+            $realtimeStatus = $this->customerResourceModel->getDataFromCoreConfig(
+                'contacts_synchronization/emarsys_emarsys/realtime_sync',
+                \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE,
+                $websiteId
+            );
+            if ($realtimeStatus == 1) {
+                $this->contactModel->syncContact($customerId, $websiteId, $storeId);
+            } else {
+                $this->dataHelper->syncFail($customerId, $websiteId, $storeId, 0, 1);
             }
         } catch (\Exception $e) {
-            $redirectUrl = $this->_buildUrl('*/*/index');
-            $this->messageManager->addExceptionMessage($e, __('We can\'t save the address.'));
+            $this->emarsysLogs->addErrorLog(
+                $e->getMessage(),
+                $this->storeManager->getStore()->getId(),
+                'FormPost::syncContactData()'
+            );
         }
-
-        $url = $redirectUrl;
-        if (!$redirectUrl) {
-            $this->_getSession()->setAddressFormData($this->getRequest()->getPostValue());
-            $url = $this->_buildUrl('*/*/edit', ['id' => $this->getRequest()->getParam('id')]);
-        }
-
-        return $this->resultRedirectFactory->create()->setUrl($this->_redirect->error($url));
     }
 }

@@ -74,7 +74,7 @@ class Event extends AbstractHelper
             return $jsonDecode;
         } catch (\Exception $e) {
             $storeId = $this->storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getEventSchema');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getEventSchema');
             return false;
         }
     }
@@ -90,7 +90,7 @@ class Event extends AbstractHelper
             return $jsonDecode;
         } catch (\Exception $e) {
             $storeId = $this->storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getEventTemplateSchema');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getEventTemplateSchema');
             return false;
         }
     }
@@ -108,7 +108,7 @@ class Event extends AbstractHelper
             $adminNotiColl->save();
         } catch (\Exception $e) {
             $storeId = $this->storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'saveEmarsysEventSchemaNotification');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'saveEmarsysEventSchemaNotification');
             return false;
         }
     }
@@ -130,7 +130,7 @@ class Event extends AbstractHelper
             return $emarsysLocalIds;
         } catch (\Exception $e) {
             $storeId = $this->storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getLocalEmarsysEvents');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getLocalEmarsysEvents');
             return false;
         }
     }
@@ -148,7 +148,7 @@ class Event extends AbstractHelper
             }
         } catch (\Exception $e) {
             $storeId = $this->storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getEmar');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getEmar');
             return false;
         }
     }

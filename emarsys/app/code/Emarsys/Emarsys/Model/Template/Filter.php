@@ -7,6 +7,10 @@ namespace Emarsys\Emarsys\Model\Template;
 
 use Symfony\Component\Config\Definition\Exception\Exception;
 
+/**
+ * Class Filter
+ * @package Emarsys\Emarsys\Model\Template
+ */
 class Filter extends \Magento\Email\Model\Template\Filter
 {
     /**
@@ -44,7 +48,21 @@ class Filter extends \Magento\Email\Model\Template\Filter
         \Magento\Framework\Pricing\Helper\Data $priceHelper,
         \Emarsys\Emarsys\Model\Logs $emarsysLogs
     ) {
-        parent::__construct($string, $logger, $escaper, $assetRepo, $scopeConfig, $coreVariableFactory, $storeManager, $layout, $layoutFactory, $appState, $urlModel, $emogrifier, $configVariables);
+        parent::__construct(
+            $string,
+            $logger,
+            $escaper,
+            $assetRepo,
+            $scopeConfig,
+            $coreVariableFactory,
+            $storeManager,
+            $layout,
+            $layoutFactory,
+            $appState,
+            $urlModel,
+            $emogrifier,
+            $configVariables
+        );
         $this->_modifiers['currency'] = [$this, 'modifierCurrency'];
         $this->priceHelper = $priceHelper;
         $this->emarsysLogs = $emarsysLogs;
@@ -58,11 +76,15 @@ class Filter extends \Magento\Email\Model\Template\Filter
     public function modifierCurrency($value, $type = 'html')
     {
         try {
-
             return $this->priceHelper->currency($value);
         } catch (\Exception $e) {
-            $this->emarsysLogs->addErrorLog($e->getMessage(), $this->_storeManager->getStore()->getId(), 'modifierCurrency');
+            $this->emarsysLogs->addErrorLog(
+                $e->getMessage(),
+                $this->_storeManager->getStore()->getId(),
+                'Filter::modifierCurrency()'
+            );
         }
+
         return $value;
     }
 }

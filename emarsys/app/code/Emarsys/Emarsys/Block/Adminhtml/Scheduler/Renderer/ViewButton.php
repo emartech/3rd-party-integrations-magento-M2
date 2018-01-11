@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Scheduler\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class ViewButton
+ * @package Emarsys\Emarsys\Block\Adminhtml\Scheduler\Renderer
+ */
 class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -22,6 +26,7 @@ class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abst
     protected $backendHelper;
 
     /**
+     * ViewButton constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Magento\Backend\Helper\Data $backendHelper
      */
@@ -29,7 +34,6 @@ class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abst
         \Magento\Backend\Model\Session $session,
         \Magento\Backend\Helper\Data $backendHelper
     ) {
-    
         $this->session = $session;
         $this->backendHelper = $backendHelper;
     }
@@ -40,8 +44,14 @@ class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abst
      */
     public function render(DataObject $row)
     {
-        $url = 'logs/grid/index/job_code/'.$row['job_code'].'/schedule_id/'.$row['id'].'/store/'.$row['store_id'];
-        $url = $this->backendHelper->getUrl($url);
+        $url = $this->backendHelper->getUrl(
+            'logs/grid/index',
+            [
+                'job_code' => $row['job_code'],
+                'schedule_id' => $row['id'],
+                'store' => $row['store_id'],
+            ]
+        );
         printf("<a href='%s'><div style='color:#EB5202 ;text-decoration: underline;text-decoration-color:#EB5202;'>View</div></a>", $url);
     }
 }

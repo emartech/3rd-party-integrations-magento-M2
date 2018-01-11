@@ -1,74 +1,129 @@
 <?php
-
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
 namespace Emarsys\Emarsys\Model;
 
+use Magento\Store\Model\ScopeInterface;
+
+/**
+ * Class Subscriber
+ * @package Emarsys\Emarsys\Model
+ */
 class Subscriber extends \Magento\Newsletter\Model\Subscriber
 {
-
+    /**
+     * Subscribes by email
+     *
+     * @param string $email
+     * @throws \Exception
+     * @return int
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     public function subscribe($email)
     {
-        $this->loadByEmail($email);
-        $handle = '';
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $emarsysHelper = $objectManager->get('\Emarsys\Emarsys\Helper\Data');
-        if($emarsysHelper->isEmarsysEnabled()=='false'){
-            parent::subscribe($email);
+        $websiteId = $this->_storeManager->getStore()->getWebsiteId();
+        if ($emarsysHelper->isEmarsysEnabled($websiteId) == 'false') {
+            return parent::subscribe($email);
+        } else {
+           return $this->subscribeByEmarsys($email);
         }
-        $request = $objectManager->get('\Magento\Framework\App\Request\Http');
-        $handle = $request->getFullActionName();
+    }
+
+    /**
+     * @param $email
+     * @return int|void
+     * @throws \Exception
+     */
+    public function subscribeByEmarsys($email)
+    {
+        $websiteId = $this->_storeManager->getStore()->getWebsiteId();
+        $this->loadByEmail($email);
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $emarsysHelper = $objectManager->get('\Emarsys\Emarsys\Helper\Data');
+
         if (!$this->getId()) {
             $this->setSubscriberConfirmCode($this->randomSequence());
         }
+
         $isConfirmNeed = $this->_scopeConfig->getValue(
             self::XML_PATH_CONFIRMATION_FLAG,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            ScopeInterface::SCOPE_STORE
         ) == 1 ? true : false;
 
-        if ($this->_scopeConfig->getValue('opt_in/optin_enable/enable_optin', \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES)) {
-            if ($handle == 'checkout_success_page') {
-                $optInType = $this->_scopeConfig->getValue('opt_in/subscription_checkout_process/opt_in_strategy');  // return single / double opt-in
-                if ($optInType == 'singleOptIn') {
-                    $isConfirmNeed = false;
-                } elseif ($optInType == 'doubleOptIn') {
-                    $isConfirmNeed = true;
-                }
-            } elseif ($handle == 'customer_account_createpost') {
-                $optInType = $this->_scopeConfig->getValue('opt_in/subscription_customer_homepage/opt_in_strategy');  // return single / double opt-in
-                if ($optInType == 'singleOptIn') {
-                    $isConfirmNeed = false;
-                } elseif ($optInType == 'doubleOptIn') {
-                    $isConfirmNeed = true;
-                }
-            } else { //$handle =='newsletter_subscriber_new'
-                $optInType = $this->_scopeConfig->getValue('opt_in/subscription_newsletter_everypage/opt_in_strategy');  // return single / double opt-in
-                if ($optInType == 'singleOptIn') {
-                    $isConfirmNeed = false;
-                } elseif ($optInType == 'doubleOptIn') {
-                    $isConfirmNeed = true;
-                }
+        if ($optEnable = $this->_scopeConfig->getValue('opt_in/optin_enable/enable_optin', ScopeInterface::SCOPE_WEBSITES, $websiteId)) {
+            //return single / double opt-in
+            $optInType = $this->_scopeConfig->getValue('opt_in/optin_enable/opt_in_strategy', ScopeInterface::SCOPE_WEBSITES, $websiteId);
+            if ($optInType == 'singleOptIn') {
+                $isConfirmNeed = false;
+            } elseif ($optInType == 'doubleOptIn') {
+                $isConfirmNeed = true;
             }
         }
         $isOwnSubscribes = false;
 
+        //It will return boolean value, If customer is logged in and email Id is the same.
         $isSubscribeOwnEmail = $this->_customerSession->isLoggedIn()
             && $this->_customerSession->getCustomerDataObject()->getEmail() == $email;
 
+        $optinForcedConfirmation = $emarsysHelper->isOptinForcedConfirmationEnabled($websiteId);
+        $isOwnSubscribes = $isSubscribeOwnEmail;
+
         if (!$this->getId() || $this->getStatus() == self::STATUS_UNSUBSCRIBED
-            || $this->getStatus() == self::STATUS_NOT_ACTIVE
-        ) {
-            if ($isConfirmNeed === true) {
-                // if user subscribes own login email - confirmation is not needed
-                $isOwnSubscribes = $isSubscribeOwnEmail;
-                if ($isOwnSubscribes == true) {
-                    $this->setStatus(self::STATUS_SUBSCRIBED);
-                } else {
-                    $this->setStatus(self::STATUS_NOT_ACTIVE);
-                }
+            || $this->getStatus() == self::STATUS_NOT_ACTIVE) {
+            if ($isConfirmNeed === true && $optinForcedConfirmation == true) {
+                $this->setStatus(self::STATUS_NOT_ACTIVE);
+            } elseif ($isConfirmNeed === true && $optinForcedConfirmation == false) {
+                $this->setStatus(self::STATUS_NOT_ACTIVE);
             } else {
                 $this->setStatus(self::STATUS_SUBSCRIBED);
             }
-            $this->setSubscriberEmail($email);
+        } elseif ($this->getId() && $this->getStatus() == self::STATUS_SUBSCRIBED) {
+            // Who have subID and status subscribed trying for 2nd time or more
+            if ($isConfirmNeed === true && $optinForcedConfirmation == true) {
+                $this->setStatus(self::STATUS_NOT_ACTIVE);
+            } elseif ($isConfirmNeed === true && $optinForcedConfirmation == false) {
+                $this->setStatus(self::STATUS_SUBSCRIBED);
+            } else {
+                $this->setStatus(self::STATUS_SUBSCRIBED);
+            }
+        } elseif ($this->getId() && ($this->getStatus() == self::STATUS_UNSUBSCRIBED) ||
+            $this->getStatus() == self::STATUS_NOT_ACTIVE) {
+            // Who have subID and status UnSubscribed or not active trying for 2nd time or more
+            if ($isConfirmNeed === true && $optinForcedConfirmation == true) { //Double optin
+                $this->setStatus(self::STATUS_NOT_ACTIVE);
+            } elseif ($isConfirmNeed === true && $optinForcedConfirmation == false) { //Double optin
+                $this->setStatus(self::STATUS_NOT_ACTIVE);
+            } else {
+                $this->setStatus(self::STATUS_SUBSCRIBED);
+            }
+        } elseif ($this->getId() && $isOwnSubscribes) {
+            //loged in customer with subscription
+            if ($isConfirmNeed === true && $optinForcedConfirmation == true) { //Double optin
+                $this->setStatus(self::STATUS_NOT_ACTIVE);
+            } elseif ($isConfirmNeed === true && $optinForcedConfirmation == false) { //Double optin
+                $this->setStatus(self::STATUS_SUBSCRIBED);
+            } else {
+                $this->setStatus(self::STATUS_SUBSCRIBED);
+            }
         }
+        if ($isOwnSubscribes) {
+            //loged in customer with subscription
+            if ($isConfirmNeed === true && $optinForcedConfirmation == true) { //Double optin
+                $this->setStatus(self::STATUS_NOT_ACTIVE);
+            } elseif ($isConfirmNeed === true && $optinForcedConfirmation == false) { //Double optin
+                $this->setStatus(self::STATUS_SUBSCRIBED);
+            } else {
+                $this->setStatus(self::STATUS_SUBSCRIBED);
+            }
+        }
+        $this->setSubscriberEmail($email);
 
         if ($isSubscribeOwnEmail) {
             try {
@@ -88,14 +143,14 @@ class Subscriber extends \Magento\Newsletter\Model\Subscriber
 
         try {
             $this->save();
-            if ($isConfirmNeed === true
-                && $isOwnSubscribes === false
-            ) {
-                $this->sendConfirmationRequestEmail();
-            } else {
-                $this->sendConfirmationSuccessEmail();
-            }
+	    if($this->getStatus() == self::STATUS_NOT_ACTIVE) {
+		$this->sendConfirmationRequestEmail();
+	    } elseif ($this->getStatus() == self::STATUS_SUBSCRIBED) {
+		$this->sendConfirmationSuccessEmail();
+	    }
+
             return $this->getStatus();
+
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }

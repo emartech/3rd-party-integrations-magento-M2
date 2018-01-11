@@ -157,7 +157,7 @@ class JavascriptTracking extends \Magento\Framework\View\Element\Template
                 $categoryName = '';
                 $categoryPath = $category->getPath();
                 $categoryPathIds = explode('/', $categoryPath);
-                $childCats = array();
+                $childCats = [];
                 if (count($categoryPathIds) > 2) {
                     $pathIndex = 0;
                     foreach ($categoryPathIds as $categoryPathId) {
@@ -225,7 +225,7 @@ class JavascriptTracking extends \Magento\Framework\View\Element\Template
     public function getPageHandleStatus()
     {
         $websiteId = $this->getWebsiteId();
-        $scope = 'websites';
+        $scope = ScopeInterface::SCOPE_WEBSITES;
         $handle = $this->getPageHandle();
         $pageResult = [];
 
@@ -293,7 +293,7 @@ class JavascriptTracking extends \Magento\Framework\View\Element\Template
     {
         return $this->getUrl(
             'emarsys/index/ajaxupdate',
-            ['_secure'=> true]
+            ['_secure' => true]
         );
     }
 
@@ -440,7 +440,7 @@ class JavascriptTracking extends \Magento\Framework\View\Element\Template
             $allItems = $this->getAllCartItems();
             $useBaseCurrency = $this->emarsysHelper->isUseBaseCurrency();
 
-            if($allItems != "") {
+            if ($allItems != "") {
                 $jsData = [];
                 foreach ($allItems as $item) {
                     if ($item->getParentItemId()) {

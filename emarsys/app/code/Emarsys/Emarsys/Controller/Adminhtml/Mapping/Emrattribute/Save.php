@@ -11,6 +11,10 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\View\Result\PageFactory;
 
+/**
+ * Class Save
+ * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Emrattribute
+ */
 class Save extends \Magento\Framework\App\Action\Action
 {
     /**
@@ -84,10 +88,17 @@ class Save extends \Magento\Framework\App\Action\Action
                 $field_name = 'c_' . $requestParams['field_name'][$loop];
                 $field_label = 'c_' . $requestParams['field_label'][$loop];
                 $attributeCollection = $this->EmrattributeCollectionFactory->create();
-                $duplicateCode = $attributeCollection->addFieldToFilter('code',array('eq'=> $field_name))->addFieldToFilter('store_id',array('eq'=>$storeId))->getFirstItem()->getCode();
-                $duplicateLabel = $attributeCollection->addFieldToFilter('label',array('eq'=> $field_label))->addFieldToFilter('store_id',array('eq'=>$storeId))->getFirstItem()->getLabel();
-                if($duplicateCode || $duplicateLabel){
-                $this->messageManager->addErrorMessage('Attribute with Code ' . $duplicateCode . ' and Label ' . $duplicateLabel .' has not been Created due to duplication');
+                $duplicateCode = $attributeCollection->addFieldToFilter('code', ['eq' => $field_name])
+                    ->addFieldToFilter('store_id', ['eq' => $storeId])
+                    ->getFirstItem()
+                    ->getCode();
+                $duplicateLabel = $attributeCollection->addFieldToFilter('label', ['eq' => $field_label])
+                    ->addFieldToFilter('store_id', ['eq' => $storeId])
+                    ->getFirstItem()
+                    ->getLabel();
+
+                if ($duplicateCode || $duplicateLabel) {
+                    $this->messageManager->addErrorMessage('Attribute with Code ' . $duplicateCode . ' and Label ' . $duplicateLabel . ' has not been Created due to duplication');
                     continue;
                 }
                 $attribute_type = $requestParams['attribute_type'][$loop];
@@ -103,10 +114,11 @@ class Save extends \Magento\Framework\App\Action\Action
                 $model->setStoreId($storeId);
                 $model->save();
             }
-
         }
+
         $resultRedirect = $this->resultRedirectFactory->create();
-        $resultRedirect->setPath('emarsys_emarsys/mapping_emrattribute', array('store' => $storeId));
+        $resultRedirect->setPath('emarsys_emarsys/mapping_emrattribute', ['store' => $storeId]);
+        
         return $resultRedirect;
     }
 

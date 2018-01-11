@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class OrderStatuses
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class OrderStatuses
 {
     /**
@@ -26,7 +30,6 @@ class OrderStatuses
         \Emarsys\Emarsys\Model\Logs $emarsysLogs,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
-    
         $this->_resource = $resource;
         $this->storeManager = $storeManager;
         $this->emarsysLogs = $emarsysLogs;
@@ -44,7 +47,7 @@ class OrderStatuses
             $orderStatusesCollection = $connection->fetchAll($sql);
         } catch (\Exception $e) {
             $storeId = $this->storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'toOptionArray(orderStatus)');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'toOptionArray(orderStatus)');
         }
         $orderStatusesArray = [];
         foreach ($orderStatusesCollection as $order) {

@@ -7,8 +7,14 @@
 namespace Emarsys\Emarsys\Block\System\Config\Form;
 
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Config\Block\System\Config\Form\Field;
 
-class InitialLoadDb extends \Magento\Config\Block\System\Config\Form\Field
+/**
+ * Class InitialLoadDb
+ * @package Emarsys\Emarsys\Block\System\Config\Form
+ */
+class InitialLoadDb extends Field
 {
     /**
      * @var
@@ -44,7 +50,7 @@ class InitialLoadDb extends \Magento\Config\Block\System\Config\Form\Field
         $checkTrue = '';
         $checkEmpty = '';
         $checkAttribute = '';
-        $scope = 'websites';
+        $scope = ScopeInterface::SCOPE_WEBSITES;
         $websiteId = $this->getRequest->getParam('website');
 
         $fieldValueInDb = $this->customerResourceModel->getDataFromCoreConfig('contacts_synchronization/initial_db_load/initial_db_load', $scope, $websiteId);

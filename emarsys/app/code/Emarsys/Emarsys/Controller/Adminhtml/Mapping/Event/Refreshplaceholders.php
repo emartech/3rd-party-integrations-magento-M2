@@ -48,7 +48,7 @@ class Refreshplaceholders extends Action
             $storeId = $this->emarsysHelper->getFirstStoreId();
             $returnUrl = $this->getUrl(
                 '*/*/refreshplaceholders',
-                array('mapping_id' => $placeholderData['mapping_id'], 'store'=> $storeId)
+                ['mapping_id' => $placeholderData['mapping_id'], 'store' => $storeId]
             );
             return $this->resultRedirectFactory->create()->setUrl($returnUrl);
         }

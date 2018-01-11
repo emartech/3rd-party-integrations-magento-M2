@@ -111,11 +111,18 @@ class SaveSchema extends Action
             $logsArray['website_id'] = $websiteId;
             $logsArray['store_id'] = $storeId;
             $logId = $this->logHelper->manualLogs($logsArray);
-            $customerAttData = $this->attribute->getCollection()->addFieldToSelect('frontend_label')->addFieldToSelect('attribute_code')->addFieldToSelect('entity_type_id')->addFieldToFilter('entity_type_id', array('in'=>'1,2'))->getData();
-            $this->customerResourceModel->insertCustomerMageAtts($customerAttData,$storeId);
+
+            $customerAttData = $this->attribute->getCollection()
+                ->addFieldToSelect('frontend_label')
+                ->addFieldToSelect('attribute_code')
+                ->addFieldToSelect('entity_type_id')
+                ->addFieldToFilter('entity_type_id', ['in' => '1, 2'])
+                ->getData();
+            $this->customerResourceModel->insertCustomerMageAtts($customerAttData, $storeId);
+
             $logsArray['id'] = $logId;
             $logsArray['emarsys_info'] = 'Update Schema';
-            $logsArray['description'] = 'Updated Schema as '.print_r($customerAttData,true);
+            $logsArray['description'] = 'Updated Schema as ' . print_r($customerAttData, true);
             $logsArray['action'] = 'Update Schema Successful';
             $logsArray['message_type'] = 'Success';
             $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
@@ -126,6 +133,7 @@ class SaveSchema extends Action
             $this->logHelper->logs($logsArray);
             $this->logHelper->manualLogs($logsArray);
             $schemaData = $this->emarsysCustomerHelper->getEmarsysCustomerSchema($storeId);
+
             if ($schemaData['data'] != '') {
                 $this->customerResourceModel->updateCustomerSchema($schemaData, $storeId);
                 $this->messageManager->addSuccessMessage('Customer schema added/updated successfully');
@@ -133,7 +141,7 @@ class SaveSchema extends Action
                 $this->messageManager->addErrorMessage($schemaData['replyText']);
             }
         } catch (\Exception $e) {
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'SaveSchema(Customer)');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'SaveSchema(Customer)');
         }
 
         return $resultRedirect->setRefererOrBaseUrl();

@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class RecommendedProductOnSearchPage
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class RecommendedProductOnSearchPage
 {
     /**

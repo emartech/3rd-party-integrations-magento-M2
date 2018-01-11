@@ -107,7 +107,7 @@ class SaveRecommended extends \Magento\Backend\App\Action
         }
         $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
         try {
-            $recommendedArray = array();
+            $recommendedArray = [];
             $logsArray['job_code'] = 'Product Mapping';
             $logsArray['status'] = 'started';
             $logsArray['messages'] = 'Running Update Schema';
@@ -135,7 +135,11 @@ class SaveRecommended extends \Magento\Backend\App\Action
             ];
 
             foreach ($recommendedData as $key => $value) {
-                $mappedAttributeCode = $this->productAttributeCollection->create()->addFieldToFilter('magento_attr_code',array('eq'=>$key))->addFieldToFilter('store_id',array('eq'=>$storeId))->getFirstItem()->getEmarsysAttrCode();
+                $mappedAttributeCode = $this->productAttributeCollection->create()
+                    ->addFieldToFilter('magento_attr_code', ['eq' => $key])
+                    ->addFieldToFilter('store_id', ['eq' => $storeId])
+                    ->getFirstItem()
+                    ->getEmarsysAttrCode();
                 if ($key == '' || $mappedAttributeCode) {
                     continue;
                 }

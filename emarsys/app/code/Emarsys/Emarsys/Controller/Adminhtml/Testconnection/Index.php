@@ -87,8 +87,6 @@ class Index extends Action
 
         if ($username != "" && $password != '') {
             $scopeType = 'websites';
-            $defaultScopeType = 'default';
-            $defaultScopeId = '0';
             $scopeId = $website;
             if ($website == '') {
                 $scopeType = 'default';
@@ -108,9 +106,6 @@ class Index extends Action
                 try {
                     //save information in respected configuration.
                     $this->config->saveConfig('emarsys_settings/emarsys_setting/enable', 1, $scopeType, $scopeId);
-                    if ($website == 1) {
-                        $this->config->saveConfig('emarsys_settings/emarsys_setting/enable', 1, $defaultScopeType, $defaultScopeId);
-                    }
 
                     $logsArray['id'] = $logId;
                     $logsArray['emarsys_info'] = 'Test connection';
@@ -122,9 +117,6 @@ class Index extends Action
 
                     //save api_endpoint information in respected configuration.
                     $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_api_endpoint', $endpoint, $scopeType, $scopeId);
-                    if ($website == 1) {
-                        $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_api_endpoint', $endpoint, $defaultScopeType, $defaultScopeId);
-                    }
 
                     $logsArray['id'] = $logId;
                     $logsArray['emarsys_info'] = 'Test connection';
@@ -137,9 +129,7 @@ class Index extends Action
                     if ($endpoint == 'custom') {
                         //save custom_url information in respected configuration.
                         $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_custom_url', $url, $scopeType, $scopeId);
-                        if ($website == 1) {
-                            $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_custom_url', $url, $defaultScopeType, $defaultScopeId);
-                        }
+
                         $logsArray['id'] = $logId;
                         $logsArray['emarsys_info'] = 'Test connection';
                         $logsArray['description'] = "Inserted custom url";
@@ -151,9 +141,7 @@ class Index extends Action
 
                     //save api username information in respected configuration.
                     $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_api_username', $username, $scopeType, $scopeId);
-                    if ($website == 1) {
-                        $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_api_username', $username, $defaultScopeType, $defaultScopeId);
-                    }
+
                     $logsArray['id'] = $logId;
                     $logsArray['emarsys_info'] = 'Test connection';
                     $logsArray['description'] = "Inserted username";
@@ -164,9 +152,7 @@ class Index extends Action
 
                     //save api password information in respected configuration.
                     $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_api_password', $password, $scopeType, $scopeId);
-                    if ($website == 1) {
-                        $this->config->saveConfig('emarsys_settings/emarsys_setting/emarsys_api_password', $password, $defaultScopeType, $defaultScopeId);
-                    }
+
                     $logsArray['id'] = $logId;
                     $logsArray['emarsys_info'] = 'Test connection';
                     $logsArray['description'] = "Inserted Password";
@@ -218,7 +204,7 @@ class Index extends Action
      * @param $x
      * @return bool
      */
-    public function is_json($x)
+    private function is_json($x)
     {
         if (!is_string($x) || !trim($x)) {
             return false;

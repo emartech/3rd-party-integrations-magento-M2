@@ -6,7 +6,11 @@
  */
 namespace Emarsys\Emarsys\Block\System\Config\Form;
 
-class Logger extends \Magento\Config\Block\System\Config\Form\Field
+/**
+ * Class Logger
+ * @package Emarsys\Emarsys\Block\System\Config\Form
+ */
+class Logger extends Button
 {
     /**
      * Path to block template
@@ -21,33 +25,6 @@ class Logger extends \Magento\Config\Block\System\Config\Form\Field
     protected $_testConnectionButtonLabel = 'Download Log';
 
     /**
-     * Set template to itself
-     *
-     * @return $this
-     */
-    protected function _prepareLayout()
-    {
-        parent::_prepareLayout();
-        if (!$this->getTemplate()) {
-            $this->setTemplate(static::TEST_CONNECTION_TEMPLATE);
-        }
-        return $this;
-    }
-
-    /**
-     * Render button
-     *
-     * @param  \Magento\Framework\Data\Form\Element\AbstractElement $element
-     * @return string
-     */
-    public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
-    {
-        // Remove scope label
-        $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
-        return parent::render($element);
-    }
-
-    /**
      * Get the button and scripts contents
      *
      * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
@@ -60,7 +37,7 @@ class Logger extends \Magento\Config\Block\System\Config\Form\Field
             $websiteId = 1;
         }
         $originalData = $element->getOriginalData();
-        $ajaxUrl = $this->_urlBuilder->getUrl("emarsys_emarsys/log/emarsysLogger/website/$websiteId");
+        $ajaxUrl = $this->_urlBuilder->getUrl("emarsys_emarsys/log/emarsysLogger", ["website" => $websiteId]);
         $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_testConnectionButtonLabel;
         $this->addData(
             [
@@ -69,6 +46,7 @@ class Logger extends \Magento\Config\Block\System\Config\Form\Field
                 'ajax_url' => $ajaxUrl,
             ]
         );
+
         return $this->_toHtml();
     }
 }

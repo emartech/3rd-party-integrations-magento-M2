@@ -7,7 +7,7 @@
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
-use Emarsys\Emarsys\Model\ContactFieldOption as EmarsysModelContactFieldOption;
+use Emarsys\Emarsys\Model\ContactFieldOption as ModelContactFieldOption;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
@@ -24,21 +24,22 @@ class Field extends AbstractDb
     protected $storeRepository;
 
     /**
-     * @var EmarsysModelContactFieldOption
+     * @var ContactFieldOption
      */
     protected $contactFieldOption;
 
     /**
      * Field constructor.
+     *
      * @param Context $context
      * @param StoreRepositoryInterface $storeRepository
-     * @param EmarsysModelContactFieldOption $contactFieldOption
+     * @param ModelContactFieldOption $contactFieldOption
      * @param null $connectionName
      */
     public function __construct(
         Context $context,
         StoreRepositoryInterface $storeRepository,
-        EmarsysModelContactFieldOption $contactFieldOption,
+        ModelContactFieldOption $contactFieldOption,
         $connectionName = null
     ) {
         $this->storeRepository = $storeRepository;

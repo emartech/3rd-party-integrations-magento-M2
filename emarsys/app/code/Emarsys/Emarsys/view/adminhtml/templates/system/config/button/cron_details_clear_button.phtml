@@ -1,0 +1,21 @@
+<?php
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+?>
+<script>
+    function getCronDetailsCleanData() {
+        var status = confirm("All log details will be cleared. Do you want to continue?");
+        if (status == true) {
+            window.location.href = "<?php echo $block->getAjaxUrl() ?>";
+        }
+    }
+</script>
+<div class="pp-buttons-container">
+    <div id="connection_status" class="message-validation hidden"></div>
+    <button id="<?php echo $block->getHtmlId(); ?>" onclick="javascript:getCronDetailsCleanData(); return false;">
+        <span><span><span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span></span></span>
+    </button>
+</div>

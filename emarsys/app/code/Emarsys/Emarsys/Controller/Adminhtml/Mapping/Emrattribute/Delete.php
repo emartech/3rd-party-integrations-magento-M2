@@ -11,6 +11,10 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\View\Result\PageFactory;
 
+/**
+ * Class Delete
+ * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Emrattribute
+ */
 class Delete extends \Magento\Framework\App\Action\Action
 {
 

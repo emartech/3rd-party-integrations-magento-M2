@@ -1,7 +1,7 @@
 <?php
 /**
  * @category   Emarsys
- * @package    Emarsys_Log
+ * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
 
@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Log\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class ViewButton
+ * @package Emarsys\Emarsys\Block\Adminhtml\Log\Renderer
+ */
 class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -22,6 +26,7 @@ class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abst
     protected $backendHelper;
 
     /**
+     * ViewButton constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Magento\Backend\Helper\Data $backendHelper
      */
@@ -29,7 +34,6 @@ class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abst
         \Magento\Backend\Model\Session $session,
         \Magento\Backend\Helper\Data $backendHelper
     ) {
-    
         $this->session = $session;
         $this->backendHelper = $backendHelper;
     }
@@ -41,13 +45,12 @@ class ViewButton extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abst
     public function render(DataObject $row)
     {
         $rowData = $row->getData();
-        $url = 'log/logdetails/logdetails/id/' . $rowData['id'];
-        $url = $this->backendHelper->getUrl($url);
+        $url = $this->backendHelper->getUrl('log/logdetails/logdetails', ['id' => $rowData['id']]);
         if ($rowData['message_type'] == 'Success') {
             $usermsg = "<span style='color:green'>Success</span>";
         } else {
             $usermsg = "<span style='color:red'>Failed</span>";
         }
-         printf("<a href='" . $url . "' style='text-decoration:none'>" . $usermsg. "</a>");
+        printf("<a href='" . $url . "' style='text-decoration:none'>" . $usermsg. "</a>");
     }
 }

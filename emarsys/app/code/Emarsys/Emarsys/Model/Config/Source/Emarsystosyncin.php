@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class Emarsystosyncin
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class Emarsystosyncin implements \Magento\Framework\Option\ArrayInterface
 {
     /**

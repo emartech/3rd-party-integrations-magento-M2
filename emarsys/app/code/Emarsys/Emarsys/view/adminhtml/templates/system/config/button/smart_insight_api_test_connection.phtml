@@ -1,0 +1,32 @@
+<?php
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+?>
+<script>
+    require(['prototype'], function () {
+        function smartInsightApiTestConnection() {
+            params = {
+                'api_enable': document.getElementById('smart_insight_api_settings_enableapi').value,
+                'merchant_id': document.getElementById('smart_insight_api_settings_merchant_id').value,
+                'token': document.getElementById('smart_insight_api_settings_token').value,
+                'max_record': document.getElementById('smart_insight_api_settings_max_records_per_export').value
+            };
+            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                parameters: params,
+                onSuccess: function (response) {
+                    location.reload();
+                }
+            });
+        }
+        window.smartInsightApiTestConnection = smartInsightApiTestConnection;
+    });
+</script>
+<div class="pp-buttons-container">
+    <div id="connection_status" class="message-validation hidden"></div>
+    <button id="<?php echo $block->getHtmlId(); ?>" onclick="javascript:smartInsightApiTestConnection(); return false;">
+        <span><span><span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span></span></span>
+    </button>
+</div>

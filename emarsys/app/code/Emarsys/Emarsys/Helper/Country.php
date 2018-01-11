@@ -30,7 +30,7 @@ class Country extends AbstractHelper
         'Korea, North'      => 'KP',
         'Myanmar'           => 'MM',
         'The Netherlands'   => 'NL',
-        'St. Kitts and Nevis'=> 'KN',
+        'St. Kitts and Nevis' => 'KN',
         'St. Lucia'         => 'LC',
         'St. Vincent and The Grenadines' => 'VC',
         'United States of America' => 'US',

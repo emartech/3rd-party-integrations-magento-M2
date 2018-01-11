@@ -10,6 +10,10 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Emarsys\Emarsys\Model\Logs as EmarsysModelLogs;
 
+/**
+ * Class Customer
+ * @package Emarsys\Emarsys\Helper
+ */
 class Customer extends AbstractHelper
 {
     /**

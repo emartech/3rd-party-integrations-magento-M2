@@ -1,7 +1,7 @@
 <?php
 /**
  * @category   Emarsys
- * @package    Emarsys_Log
+ * @package    Emarsys_Emarsys
  * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
  */
 
@@ -10,12 +10,10 @@ namespace Emarsys\Emarsys\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
-use Emarsys\Emarsys\Model\CronScheduleFactory;
+use Emarsys\Emarsys\Model\LogScheduleFactory;
 use Emarsys\Emarsys\Model\LogsFactory;
-use Emarsys\Emarsys\Model\Logs as EmarsysModelLogs;
 use Magento\Framework\Translate\Inline\StateInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Registry;
@@ -27,19 +25,34 @@ use Magento\Framework\Registry;
 class Logs extends AbstractHelper
 {
     /**
-     * @var CronScheduleFactory
+     * @var LogScheduleFactory
      */
-    protected $cronScheduleFactory;
+    protected $logScheduleFactory;
 
     /**
-     * @var null
+     * @var DateTime
      */
-    protected $cronSchedule = null;
+    protected $date;
 
     /**
-     * @var LogsFactory
+     * @var Registry
      */
-    protected $logsFactory;
+    protected $registry;
+
+    /**
+     * @var TransportBuilder
+     */
+    protected $_transportBuilder;
+
+    /**
+     * @var StateInterface
+     */
+    protected $inlineTranslation;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
 
     /**
      * @var ScopeConfigInterface
@@ -47,45 +60,44 @@ class Logs extends AbstractHelper
     protected $scopeConfigInterface;
 
     /**
-     * @var
+     * @var LogsFactory
      */
-    protected $logsModel;
+    protected $logsFactory;
+
+    /**
+     * @var null
+     */
+    protected $cronSchedule = null;
 
     /**
      * Logs constructor.
      * @param Context $context
      * @param StoreManagerInterface $storeManager
-     * @param CronScheduleFactory $cronScheduleFactory
+     * @param LogScheduleFactory $logScheduleFactory
      * @param LogsFactory $logsFactory
-     * @param EmarsysModelLogs $logsModel
      * @param DateTime $date
      * @param StateInterface $inlineTranslation
      * @param TransportBuilder $transportBuilder
      * @param Registry $registry
-     * @param ObjectManagerInterface $objectManagerInterface
      */
     public function __construct(
         Context $context,
         StoreManagerInterface $storeManager,
-        CronScheduleFactory $cronScheduleFactory,
+        LogScheduleFactory $logScheduleFactory,
         LogsFactory $logsFactory,
-        EmarsysModelLogs $logsModel,
         DateTime $date,
         StateInterface $inlineTranslation,
         TransportBuilder $transportBuilder,
-        Registry $registry,
-        ObjectManagerInterface $objectManagerInterface
+        Registry $registry
     ) {
-        $this->cronScheduleFactory = $cronScheduleFactory;
-        $this->logsFactory = $logsFactory;
+        $this->logScheduleFactory = $logScheduleFactory;
         $this->date = $date;
         $this->registry = $registry;
         $this->_transportBuilder = $transportBuilder;
         $this->inlineTranslation = $inlineTranslation;
         $this->storeManager = $storeManager;
         $this->scopeConfigInterface = $context->getScopeConfig();
-        $this->_objectManager = $objectManagerInterface;
-        $this->logsModel = $logsModel;
+        $this->logsFactory = $logsFactory;
         parent::__construct($context);
     }
 
@@ -96,7 +108,7 @@ class Logs extends AbstractHelper
     public function manualLogs($logsArray = [], $exportCron = 0)
     {
         if (!$this->cronSchedule || $exportCron) {
-            $this->cronSchedule = $this->cronScheduleFactory->create();
+            $this->cronSchedule = $this->logScheduleFactory->create();
         }
         try {
             if (isset($logsArray['job_code'])) {
@@ -153,12 +165,12 @@ class Logs extends AbstractHelper
      */
     public function manualLogsUpdate($logsArray = [])
     {
-        $collection = $this->cronScheduleFactory->create()->getCollection();
+        $collection = $this->logScheduleFactory->create()->getCollection();
         $collection->addFieldToFilter('id', $logsArray['id']);
         $result = $collection->getFirstItem();
 
         if (null !== $result->getId()) {
-            $collection = $this->cronScheduleFactory->create()->load($logsArray['id']);
+            $collection = $this->logScheduleFactory->create()->load($logsArray['id']);
             try {
                 if (isset($logsArray['status'])) {
                     $collection->setStatus($logsArray['status']);
@@ -198,7 +210,7 @@ class Logs extends AbstractHelper
         $currentDate = $this->date->date('Y-m-d H:i:s', time());
         $schedulerId = $logsArray['id'];
 
-        $logsModel = $this->_objectManager->create('\Emarsys\Emarsys\Model\Logs');
+        $logsModel = $this->logsFactory->create();
         $logsModel->setLogExecId($schedulerId)
             ->setCreatedAt($currentDate)
             ->setEmarsysInfo($logsArray['emarsys_info'])
@@ -224,7 +236,7 @@ class Logs extends AbstractHelper
         }
         if ($sendLogReport && $logsArray['message_type'] == 'Error') {
             if ($sendLogReport) {
-                $title = ucfirst($logsArray['job_code'])." : Store - ".$logsArray['store_id'];
+                $title = ucfirst($logsArray['job_code']) . " : Store - " . $logsArray['store_id'];
                 $description = $logsArray['description'];
                 $this->errorLogEmail($title, $description);
             }

@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Support\Edit;
 
+/**
+ * Class Tabs
+ * @package Emarsys\Emarsys\Block\Adminhtml\Support\Edit
+ */
 class Tabs extends \Magento\Backend\Block\Widget\Tabs
 {
     /**
@@ -25,9 +29,6 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
      */
     protected function _beforeToHtml()
     {
-        /*$this->addTab("form_section", array(
-            "content" => $this->getLayout()->createBlock('Emarsys\Emarsys\Adminhtml\Support\Edit\Tab\Form')->toHtml(),
-        ));*/
         $this->addTab(
             'form_section',
             [
@@ -35,6 +36,7 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
                 'active' => true
             ]
         );
+
         return parent::_beforeToHtml();
     }
 

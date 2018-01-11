@@ -37,6 +37,9 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory as SubscriberCollectionFactory;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Newsletter\Model\SubscriberFactory;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Filesystem\Io\File as FilesystemIoFile;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * Class Data
@@ -97,23 +100,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     //Opt In Settings
     const XPATH_OPTIN_ENABLED = 'opt_in/optin_enable/enable_optin';
 
-    const XPATH_OPTIN_EVERYPAGE_STRATEGY = 'opt_in/subscription_newsletter_everypage/opt_in_strategy';
+    const XPATH_OPTIN_EVERYPAGE_STRATEGY = 'opt_in/optin_enable/opt_in_strategy';
 
-    const XPATH_OPTIN_EVERYPAGE_STRATEGY_SINGLE = 'opt_in/subscription_newsletter_everypage/external_eventid_after_opt_in_confirmation';
-
-    const XPATH_OPTIN_EVERYPAGE_STRATEGY_DOUBLE = 'opt_in/subscription_newsletter_everypage/external_eventid_double_opt_in';
-
-    const XPATH_OPTIN_CHECKOUT_STRATEGY = 'opt_in/subscription_checkout_process/opt_in_strategy';
-
-    const XPATH_OPTIN_CHECKOUT_STRATEGY_SINGLE = 'opt_in/subscription_checkout_process/external_eventid_after_opt_in_confirmation';
-
-    const XPATH_OPTIN_CHECKOUT_STRATEGY_DOUBLE = 'opt_in/subscription_checkout_process/external_eventid_double_opt_in';
-
-    const XPATH_OPTIN_HOMEPAGE_STRATEGY = 'opt_in/subscription_customer_homepage/opt_in_strategy';
-
-    const XPATH_OPTIN_HOMEPAGE_STRATEGY_SINGLE = 'opt_in/subscription_customer_homepage/external_eventid_after_opt_in_confirmation';
-
-    const XPATH_OPTIN_HOMEPAGE_STRATEGY_DOUBLE = 'opt_in/subscription_customer_homepage/external_eventid_double_opt_in';
+    const XPATH_OPTIN_FORCED_CONFIRMATION = 'opt_in/optin_enable/force_optin_confirmation';
 
     //Smart Insight
     const XPATH_SMARTINSIGHT_ENABLED = 'smart_insight/smart_insight/smartinsight_enabled';
@@ -124,12 +113,35 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XPATH_SMARTINSIGHT_EXPORTUSING_EMAILIDENTIFIER = 'smart_insight/smart_insight/exportusing_emailidentifier';
 
+    //Smart Insight API Settings
+    const XPATH_EMARSYS_SIEXPORT_API_ENABLED = 'smart_insight/api_settings/enableapi';
+
+    const XPATH_EMARSYS_SIEXPORT_MERCHANT_ID = 'smart_insight/api_settings/merchant_id';
+
+    const XPATH_EMARSYS_SIEXPORT_TOKEN = 'smart_insight/api_settings/token';
+
+    const XPATH_EMARSYS_SIEXPORT_MAX_RECORDS = 'smart_insight/api_settings/max_records_per_export';
+
+    const XPATH_EMARSYS_SIEXPORT_MAX_RECORDS_OPT = 'smart_insight/api_settings/max_records_per_export_option';
+
+    const XPATH_EMARSYS_SIEXPORT_API_URL = 'smart_insight/api_settings/smartinsight_api_url';
+
+    const XPATH_EMARSYS_SIEXPORT_API_URL_KEY = 'smart_insight/api_settings/smartinsight_order_api_url_key';
+
+    const XPATH_EMARSYS_CATALOG_EXPORT_API_URL_KEY = 'smart_insight/api_settings/smartinsight_product_api_url_key';
+
     //Product Catalog
     const XPATH_PREDICT_ENABLE_NIGHTLY_PRODUCT_FEED = 'emarsys_predict/feed_export/enable_nightly_product_feed';
 
     const XPATH_PREDICT_INCLUDE_BUNDLE_PRODUCT = 'emarsys_predict/feed_export/include_bundle_product';
 
     const XPATH_PREDICT_EXCLUDED_CATEGORIES = 'emarsys_predict/feed_export/excludedcategories';
+
+    const XPATH_PREDICT_API_ENABLED = 'emarsys_predict/catalog_api_settings/enable_catalog_api';
+
+    const XPATH_PREDICT_MERCHANT_ID = 'emarsys_predict/catalog_api_settings/catalog_merchant_id';
+
+    const XPATH_PREDICT_TOKEN = 'emarsys_predict/catalog_api_settings/catalog_token';
 
     //WebExtend
     const XPATH_CMS_INDEX_INDEX = 'web_extend/recommended_product_pages/recommended_home_page';
@@ -322,6 +334,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     private $_secret;
 
     /**
+     * @var DirectoryList
+     */
+    protected $directoryList;
+
+    /**
+     * @var FilesystemIoFile
+     */
+    protected $filesystemIoFile;
+
+    /**
      * Data constructor.
      *
      * @param Context $context
@@ -381,7 +403,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         ModuleListInterface $moduleListInterface,
         SubscriberCollectionFactory $newsLetterCollectionFactory,
         Subscriber $subscriber,
-        SubscriberFactory $subscriberFactory
+        SubscriberFactory $subscriberFactory,
+        DirectoryList $directoryList,
+        FilesystemIoFile $filesystemIoFile
     ) {
         $this->context = $context;
         $this->emarsysLogs = $emarsysLogs;
@@ -413,6 +437,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->subscriber = $subscriber;
         $this->newsLetterCollectionFactory = $newsLetterCollectionFactory;
         $this->subscriberFactory = $subscriberFactory;
+        $this->directoryList = $directoryList;
+        $this->filesystemIoFile = $filesystemIoFile;
 
         parent::__construct($context);
     }
@@ -484,6 +510,91 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Smart Insight Merchant Id
+     * @return bool
+     */
+    public function isSIAPIExportEnabled()
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XPATH_EMARSYS_SIEXPORT_API_ENABLED,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Smart Insight Merchant Id
+     * @return mixed
+     */
+    public function getSIExportMerchantId()
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_EMARSYS_SIEXPORT_MERCHANT_ID,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Smart Insight API token
+     * @return mixed
+     */
+    public function getSIExportToken()
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_EMARSYS_SIEXPORT_TOKEN,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Smart Insight API url
+     * @return mixed
+     */
+    public function getEmarsysApiUrl()
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_EMARSYS_SIEXPORT_API_URL,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Smart Insight Order API url key
+     * @return mixed
+     */
+    public function getOrderApiUrlKey()
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_EMARSYS_SIEXPORT_API_URL_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Smart Insight Product API url key
+     * @return mixed
+     */
+    public function getProductApiUrlKey()
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_EMARSYS_CATALOG_EXPORT_API_URL_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * @param $websiteId
+     * @return mixed
+     */
+    public function isCatalogExportEnabled($websiteId)
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_PREDICT_ENABLE_NIGHTLY_PRODUCT_FEED,
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
      * @param type $username
      * @param type $password
      * @param type $endpoint
@@ -528,7 +639,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getEmarsysAPIDetails($storeId)
     {
         $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
-        $scope = 'websites';
+        $scope = ScopeInterface::SCOPE_WEBSITES;
         $username = $this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_API_USER, $scope, $websiteId);
         $password = $this->_secret = $this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_API_PASS, $scope, $websiteId);
         $endpoint = $this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_API_ENDPOINT, $scope, $websiteId);
@@ -609,8 +720,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         ]);
         $output = curl_exec($ch);
 
-        if(curl_error($ch))
-        {
+        if (curl_error($ch)) {
             $this->emarsysLogs->addErrorLog(
                 curl_error($ch),
                 $this->storeManager->getStore()->getId(),
@@ -650,7 +760,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Checking readonly magento events
-     *
      * @param int $id
      * @return bool
      */
@@ -671,7 +780,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $logsArray['id'] = $logId;
         $logsArray['emarsys_info'] = 'Update Schema';
 
-        try{
+        try {
             $storeId = "";
 
             if ($this->session->getStoreId()) {
@@ -770,7 +879,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
 
             return $result;
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             $logsArray['description'] = $e->getMessage();
             $logsArray['action'] = 'Mail Sent';
             $logsArray['message_type'] = 'Error';
@@ -928,7 +1037,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $version = '';
 
-        if($this->productMetadataInterface->getVersion()){
+        if ($this->productMetadataInterface->getVersion()) {
             $version = $this->productMetadataInterface->getVersion();
         }
 
@@ -948,7 +1057,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         $websiteId = $this->storeManager->getStore($storeID)->getWebsiteId();
         $aggregatePortStatus = $this->openPortStatus($storeID);
-        $smartInsight = $this->getCheckSmartInsight($websiteId);
+        $smartInsightStatus = $this->getCheckSmartInsight($websiteId);
+        $smartInsight = $smartInsightStatus ? 'Enable' : 'Disable';
+        $emarsysStatus = $this->getEmarsysConnectionSetting($websiteId);
+        $emarsysModuleStatus = $emarsysStatus ? 'Enable' : 'Disable';
 
         $clientPhpData = $this->getPhpSettings();
 
@@ -1071,7 +1183,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     'value' => 'Enable'
                 ],
                 'current' => [
-                    'value' => $this->getEmarsysConnectionSetting($websiteId),
+                    'value' => $emarsysModuleStatus,
                     'status' => true
                 ]
             ],
@@ -1100,7 +1212,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function openPortStatus($storeID)
     {
         $websiteId = $this->storeManager->getStore($storeID)->getWebsiteId();
-        $scope = 'websites';
+        $scope = ScopeInterface::SCOPE_WEBSITES;
 
         if ($scope && $websiteId) {
             $host = $this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_FTP_HOSTNAME, $scope, $websiteId);
@@ -1205,7 +1317,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         if (is_numeric($value)) {
             $emailTemplateModelColl = $this->templateFactory->create()->getCollection()
-                                        ->addFieldToFilter('template_id', $value);
+                ->addFieldToFilter('template_id', $value);
             $emailText = $emailTemplateModelColl->getData()[0]['template_text'];
         } else {
             $template = $this->emailTemplate->initTemplate('id');
@@ -1374,7 +1486,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $insertNewFromTemplate = array_diff($templatePlaceholderArray, $emarsysEventMappingCollFromDbArray);
 
         foreach ($insertNewFromTemplate as $key => $_insertNewFromTemplate) {
-            if($_insertNewFromTemplate) {
+            if ($_insertNewFromTemplate) {
                 $placeholderModel = $this->emarsysEventPlaceholderMappingFactory->create();
                 $placeholderModel->setEventMappingId($mappingId);
                 $placeholderModel->setMagentoPlaceholderName($_insertNewFromTemplate);
@@ -1693,15 +1805,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getCheckSmartInsight($websiteId)
     {
-        $smartInsight = 'Disable';
+        $smartInsight = false;
 
         if ($websiteId) {
-            if($this->scopeConfigInterface->getValue(self::XPATH_SMARTINSIGHT_ENABLED, \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES, $websiteId)) {
-                $smartInsight = 'Enable';
+            if ($this->scopeConfigInterface->getValue(self::XPATH_SMARTINSIGHT_ENABLED, \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES, $websiteId)) {
+                $smartInsight = true;
             }
         } else {
             if ($this->scopeConfigInterface->getValue(self::XPATH_SMARTINSIGHT_ENABLED)) {
-                $smartInsight = 'Enable';
+                $smartInsight = true;
             };
         }
 
@@ -1717,7 +1829,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $realTimeSync = 'Disable';
 
         if ($websiteId) {
-            if($this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_REALTIME_SYNC, \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE, $websiteId)) {
+            if ($this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_REALTIME_SYNC, \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE, $websiteId)) {
                 $realTimeSync = 'Enable';
             }
         } else {
@@ -1735,19 +1847,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getEmarsysConnectionSetting($websiteId)
     {
-        $emarsys = 'Disable';
+        $result = false;
 
-        if($websiteId) {
-            if($this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_ENABLED, \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES, $websiteId)){
-                $emarsys = 'Enable';
+        if ($websiteId) {
+            if ($this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_ENABLED, \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES, $websiteId)) {
+                $result = true;
             }
         } else {
-            if($this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_ENABLED)){
-                $emarsys = 'Enable';
+            if ($this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_ENABLED)) {
+                $result = true;
             }
         }
 
-        return $emarsys;
+        return $result;
     }
 
     /**
@@ -1782,7 +1894,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getEmarsysEventMappingId($magentoEventId, $storeId = null)
     {
-        if(is_null($storeId)) {
+        if (is_null($storeId)) {
             $storeId = $this->storeManager->getStore()->getId();
         }
 
@@ -1815,7 +1927,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getEmarsysEventApiId($magentoEventId, $storeId = null)
     {
-        if(is_null($storeId)) {
+        if (is_null($storeId)) {
             $storeId = $this->storeManager->getStore()->getId();
         }
         $emarsysEventApiId = "";
@@ -1977,47 +2089,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $emarsysEventApiID
-     * @param $handle
-     * @param $configPath
-     * @return mixed
-     */
-    public function getEmarsysNewsLetterEventId($emarsysEventApiID, $handle, $configPath)
-    {
-        if (in_array($configPath, ['newsletter/subscription/confirm_email_template', 'newsletter/subscription/success_email_template'])) {
-            if ($handle == 'checkout_onepage_success') {
-                //return single / double opt-in
-                $optInType = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_CHECKOUT_STRATEGY);
-
-                if ($optInType == 'singleOptIn') {
-                    $emarsysEventApiID = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_CHECKOUT_STRATEGY_SINGLE);
-                } elseif ($optInType == 'doubleOptIn') {
-                    $emarsysEventApiID = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_CHECKOUT_STRATEGY_DOUBLE);
-                }
-            } elseif ($handle == 'customer_account_createpost') {
-                //return single / double opt-in
-                $optInType = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_HOMEPAGE_STRATEGY);
-
-                if ($optInType == 'singleOptIn') {
-                    $emarsysEventApiID = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_HOMEPAGE_STRATEGY_SINGLE);
-                } elseif ($optInType == 'doubleOptIn') {
-                    $emarsysEventApiID = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_HOMEPAGE_STRATEGY_DOUBLE);
-                }
-            } else {
-                //return single / double opt-in
-                $optInType = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_EVERYPAGE_STRATEGY);
-
-                if ($optInType == 'singleOptIn') {
-                    $emarsysEventApiID = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_EVERYPAGE_STRATEGY_SINGLE);
-                } elseif ($optInType == 'doubleOptIn') {
-                    $emarsysEventApiID = $this->scopeConfigInterface->getValue(self::XPATH_OPTIN_EVERYPAGE_STRATEGY_DOUBLE);
-                }
-            }
-        }
-        return $emarsysEventApiID;
-    }
-
-    /**
      * @param string $dateTime
      * @return \DateTime|string
      */
@@ -2034,7 +2105,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Checks whether emarsys is enabled or not.
-     *
      * @param null $websiteId
      * @return string
      */
@@ -2110,11 +2180,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 );
                 $keyValue = $subscriber->getSubscriberId();
             }
-            $payload = array(
+            $payload = [
                 'key_id' => $keyId,
                 'key_value' => $keyValue,
                 'field_id' => $fieldId
-            );
+            ];
             $this->getEmarsysAPIDetails($subscriber->getStoreId());
             $this->getClient();
             $response = $this->modelApi->get('contact/last_change', $payload);
@@ -2198,7 +2268,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
             $fieldId = $this->customerResourceModel->getEmarsysFieldId('Opt-In', $storeId);
             $subscribersCollection = $this->newsLetterCollectionFactory->create()
-                ->addFieldToFilter('subscriber_id', array('in' => $subscriberIdsArray));
+                ->addFieldToFilter('subscriber_id', ['in' => $subscriberIdsArray]);
             $magLastModifiedStatus = [];
             $configkeyId = $this->scopeConfigInterface->getValue(
                 self::XPATH_EMARSYS_UNIQUE_FIELD,
@@ -2319,7 +2389,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
                     $apiCall = sprintf('export/%s/data/offset=%s&limit=%s', $exportId, $offset, $limit);
                     $mesage = "Request "  . $apiCall;
-                    $response = $this->modelApi->get($apiCall, array(), false);
+                    $response = $this->modelApi->get($apiCall, [], false);
                     $mesage .= "Response "  . $response;
 
                     $this->logHelper->childLogs($logId, $mesage, current($websiteIds));
@@ -2391,28 +2461,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $value
-     * @return string
-     */
-    public function decorateTimeFrameCallBack($value)
-    {
-        if ($value) {
-            return $this->decorateTime($value, false, null);
-        }
-    }
-
-    /**
-     * @param $value
-     * @return string
-     */
-    public function decorateTime($value)
-    {
-        $formattedDateTime = $this->timezone->date($value)->format('M d, Y h:i:s A');
-
-        return $formattedDateTime;
-    }
-
-    /**
      * Get Emarsys Latest Version Information
      *
      * @return mixed
@@ -2481,5 +2529,99 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         return $result;
     }
-}
 
+    /**
+     * @return array
+     */
+    public function getSalesOrderCsvDefaultHeader()
+    {
+        return ['order', 'timestamp', 'customer', 'item', 'price', 'quantity', 'f_c_sales_amount'];
+    }
+
+    /**
+     * @param $folderName
+     * @return bool
+     */
+    public function checkAndCreateFolder($folderName)
+    {
+        if ($this->filesystemIoFile->checkAndCreateFolder($folderName)) {
+            if ($this->filesystemIoFile->chmod($folderName, 0777, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $folderName
+     * @return string
+     */
+    public function getEmarsysMediaDirectoryPath($folderName)
+    {
+        return $this->directoryList->getPath(DirectoryList::MEDIA) . '/emarsys/' . $folderName;
+    }
+
+    /**
+     * @param $scope
+     * @param $websiteId
+     * @return array|bool
+     */
+    public function collectWebDavCredentials($scope, $websiteId)
+    {
+        //webDav credentials from admin configurations
+        $webDavUrl = $this->customerResourceModel->getDataFromCoreConfig(self::XPATH_WEBDAV_URL, $scope, $websiteId);
+        $webDavUser = $this->customerResourceModel->getDataFromCoreConfig(self::XPATH_WEBDAV_USER, $scope, $websiteId);
+        $webDavPass = $this->customerResourceModel->getDataFromCoreConfig(self::XPATH_WEBDAV_PASSWORD, $scope, $websiteId);
+
+        if ($webDavUrl != '' && $webDavUser != '' && $webDavPass != '') {
+            return [
+                'baseUri' => $webDavUrl,
+                'userName' => $webDavUser,
+                'password' => $webDavPass,
+                'proxy' => '',
+            ];
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $entity
+     * @param $storeCode
+     * @return string
+     */
+    public function getCustomerCsvFileName($entity, $storeCode)
+    {
+        if ($entity == \Magento\Customer\Model\Customer::ENTITY) {
+            $entityCode = 'customers_';
+        } else {
+            $entityCode = 'subscribers_';
+        }
+
+        return $entityCode . $this->date->date('YmdHis', time()) . "_" . $storeCode . ".csv";
+    }
+
+    /**
+     * @param $outputFile
+     * @return string
+     */
+    public function getContactCsvGenerationPath($outputFile)
+    {
+        $path = BP . '/var/' . $outputFile;
+
+        return $path;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOptinForcedConfirmationEnabled($websiteId)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XPATH_OPTIN_FORCED_CONFIRMATION,
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+}

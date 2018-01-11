@@ -9,6 +9,10 @@ namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Field\Renderer;
 
 use Magento\Framework\DataObject;
 
+/**
+ * Class Option
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Field\Renderer
+ */
 class Option extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer
 {
     /**
@@ -42,6 +46,7 @@ class Option extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
     protected $_storeManager;
 
     /**
+     * Option constructor.
      * @param \Magento\Backend\Model\Session $session
      * @param \Emarsys\Emarsys\Model\ResourceModel\Customer\CollectionFactory $collectionFactory
      * @param \Magento\Backend\Helper\Data $backendHelper
@@ -55,14 +60,12 @@ class Option extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
         \Emarsys\Emarsys\Model\ResourceModel\Customer $resourceModelCustomer,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
-    
         $this->session = $session;
         $this->collectionFactory = $collectionFactory;
         $this->backendHelper = $backendHelper;
         $this->resourceModelCustomer = $resourceModelCustomer;
         $this->_storeManager = $storeManager;
     }
-
 
     /**
      * @param DataObject $row

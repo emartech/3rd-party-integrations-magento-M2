@@ -15,6 +15,10 @@ use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
+/**
+ * Class Collection
+ * @package Emarsys\Emarsys\Model\ResourceModel\Order
+ */
 class Collection extends AbstractCollection
 {
     /**

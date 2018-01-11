@@ -1,4 +1,11 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * @category   Emarsys
+ * @package    Emarsys_Emarsys
+ * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
@@ -27,6 +34,7 @@
         <opt_in>
             <optin_enable>
                 <enable_optin>0</enable_optin>
+                <force_optin_confirmation>0</force_optin_confirmation>
             </optin_enable>
             <subscription_checkout_process>
                 <newsletter_sub_checkout_yes_no>0</newsletter_sub_checkout_yes_no>
@@ -48,6 +56,12 @@
                 <smartinsightfrequency>Daily</smartinsightfrequency>
                 <orderexportforstatus>complete,processing,closed</orderexportforstatus>
             </smart_insight>
+            <api_settings>
+                <max_records_per_export_option>100,500,1000,3000,5000,10000</max_records_per_export_option>
+                <smartinsight_api_url>https://admin.scarabresearch.com/hapi/merchant/</smartinsight_api_url>
+                <smartinsight_order_api_url_key>/sales-data/api</smartinsight_order_api_url_key>
+                <smartinsight_product_api_url_key>/catalog/api</smartinsight_product_api_url_key>
+            </api_settings>
         </smart_insight>
         <emarsys_predict>
             <feed_export>
@@ -81,7 +95,7 @@
         </logs>
         <about_emarsys>
             <emarsys_release>
-                <release_url>https://github.com/emartech/3rd-party-integrations-magento-M2/releases/tag/1.0.5</release_url>
+                <release_url>https://github.com/emartech/3rd-party-integrations-magento-M2/releases/</release_url>
             </emarsys_release>
         </about_emarsys>
     </default>

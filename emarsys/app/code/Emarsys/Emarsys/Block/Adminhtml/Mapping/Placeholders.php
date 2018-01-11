@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
+/**
+ * Class Placeholders
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
+ */
 class Placeholders extends \Magento\Backend\Block\Widget\Container
 {
     /**
@@ -21,8 +25,7 @@ class Placeholders extends \Magento\Backend\Block\Widget\Container
         \Magento\Backend\Block\Widget\Context $context,
         $data = []
     ) {
-    
-        parent::__construct($context, $data = []);
+        parent::__construct($context, $data);
     }
 
     /**

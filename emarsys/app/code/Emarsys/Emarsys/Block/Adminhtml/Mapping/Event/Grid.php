@@ -8,6 +8,10 @@
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Event;
 
+/**
+ * Class Grid
+ * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Event
+ */
 class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
 {
     /**
@@ -61,6 +65,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     protected $_storeManager;
 
     /**
+     * Grid constructor.
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Backend\Helper\Data $backendHelper
      * @param \Magento\Eav\Model\Entity\Type $entityType
@@ -68,9 +73,10 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      * @param \Magento\Framework\Data\Collection $dataCollection
      * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
      * @param \Emarsys\Emarsys\Model\ResourceModel\Event $resourceModelEvent
+     * @param \Emarsys\Emarsys\Model\EmarsyseventmappingFactory $EmarsyseventmappingFactory
+     * @param \Emarsys\Emarsys\Helper\Data $EmarsysHelper
      * @param \Magento\Framework\Module\Manager $moduleManager
-     * @param \Magento\Backend\Model\Session $session
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\App\ResourceConnection $resourceConnection
      * @param array $data
      */
     public function __construct(
@@ -87,7 +93,6 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         \Magento\Framework\App\ResourceConnection $resourceConnection,
         $data = []
     ) {
-    
         $this->session = $context->getBackendSession();
         $this->entityType = $entityType;
         $this->attribute = $attribute;
@@ -100,9 +105,8 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->_storeManager = $context->getStoreManager();
         $this->EmarsysHelper = $EmarsysHelper;
         $this->resourceConnection = $resourceConnection;
-        parent::__construct($context, $backendHelper, $data = []);
+        parent::__construct($context, $backendHelper, $data);
     }
-
 
     /**
      * @return $this
@@ -130,16 +134,14 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     protected function _construct()
     {
         parent::_construct();
-        //$this->session->setData('mapping_grid_data', '');
         $storeId = $this->getRequest()->getParam('store');
         if (!isset($storeId)) {
             $storeId = $this->EmarsysHelper->getFirstStoreId();
         }
         $this->session->setData('store', $storeId);
-        $this->session->setMappingGridData('');//echo"<pre>";//print_r($this->session->getMappingGridData());exit;
+        $this->session->setMappingGridData('');
         $collection = $this->EmarsyseventmappingFactory->create()->getCollection()->addFieldToFilter("store_id", $storeId);
         $mappingGridArray = [];
-        //print_r($collection->getData());;exit;
         foreach ($collection as $col) {
             $mappingGridArray[$col->getData("id")]['magento_event_id'] = $col->getData('magento_event_id');
             $mappingGridArray[$col->getData("id")]['emarsys_event_id'] = $col->getData('emarsys_event_id');
@@ -161,13 +163,8 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
 
         $this->addColumn(
             'emarsys_event',
-            ['header' => __('Magento Event'),
-                'index' => 'magento_event'
-                // 'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer\Magentoevent',
-                // 'filter' => false
-            ]
+            ['header' => __('Magento Event'), 'index' => 'magento_event']
         );
-
 
         $recommended = $this->getRequest()->getParam('recommended');
 
@@ -186,7 +183,6 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
             ]);
         }
 
-
         return parent::_prepareColumns();
     }
 
@@ -195,31 +191,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      */
     public function getMainButtonsHtml()
     {
-        $html = parent::getMainButtonsHtml();
-        $storeId = $this->getRequest()->getParam('store');
-        if (!isset($storeId)) {
-            $storeId = 1;
-        }
-        //$this->setFilterVisibility(false);
-        $addSelect = '';
-        $recommended = $this->getRequest()->getParam('recommended');
-        $moduleName = 'emarsys_emarsys';
-        $controllerNamePleaseSelect = 'mapping_customer';
-        $controllerNameField = 'mapping_field';
-        $controllerNameProduct = 'mapping_product';
-        $controllerNameCustomer = 'mapping_customer';
-        $controllerNameOrder = 'mapping_order';
-        $controllerNameEvent = 'mapping_event';
-
-        $adminUrlEmarsysField = $this->backendHelper->getUrl($moduleName . '/' . $controllerNameField . '/index/store/' . $storeId);
-        $adminUrlEmarsysProduct = $this->backendHelper->getUrl($moduleName . '/' . $controllerNameProduct . '/index/store/' . $storeId);
-        $adminUrlEmarsysCustomer = $this->backendHelper->getUrl($moduleName . '/' . $controllerNameCustomer . '/index/store/' . $storeId);
-        $adminUrlEmarsysEvent = $this->backendHelper->getUrl($moduleName . '/' . $controllerNameEvent . '/index/store/' . $storeId);
-        $adminUrlEmarsysOrder = $this->backendHelper->getUrl($moduleName . '/' . $controllerNameOrder . '/index/store/' . $storeId);
-        $adminUrlEmarsysPleaseSelect = $this->backendHelper->getUrl($moduleName . '/' . $controllerNamePleaseSelect . '/index/store/' . $storeId);
-        $html = parent::getMainButtonsHtml();
-
-        return $html;
+        return parent::getMainButtonsHtml();
     }
 
     /**

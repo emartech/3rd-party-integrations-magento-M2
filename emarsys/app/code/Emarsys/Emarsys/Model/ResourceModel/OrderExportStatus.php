@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
+/**
+ * Class OrderExportStatus
+ * @package Emarsys\Emarsys\Model\ResourceModel
+ */
 class OrderExportStatus extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**

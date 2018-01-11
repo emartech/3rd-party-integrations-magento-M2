@@ -131,7 +131,7 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     public function getEmarsysAttrCount($storeId)
     {
         try {
-            $emarsysCount = $this->getConnection()->fetchOne("SELECT count(*) FROM " . $this->getTable('emarsys_emarsys_product_attributes'). " WHERE store_id=$storeId");
+            $emarsysCount = $this->getConnection()->fetchOne("SELECT count(*) FROM " . $this->getTable('emarsys_emarsys_product_attributes') . " WHERE store_id=$storeId");
             return $emarsysCount;
         } catch (Exception $e) {
             return $e->Message();
@@ -173,11 +173,11 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $productFields[] = ['Brand', 'Brand', 'String'];
         $productFields[] = ['Year', 'Year', 'Integer'];
         
-        foreach($productFields as $productField){
+        foreach ($productFields as $productField) {
             $code = $productField[0];
             $label = $productField[1];
             $field_type = $productField[2];
-            $existStmt = $this->getConnection()->query("SELECT code FROM " . $this->getTable('emarsys_emarsys_product_attributes') . " WHERE code = '".$code."' AND store_id = '". $storeId ."' AND label = '". $label ."' AND field_type = '". $field_type ."'");
+            $existStmt = $this->getConnection()->query("SELECT code FROM " . $this->getTable('emarsys_emarsys_product_attributes') . " WHERE code = '" . $code. "' AND store_id = '" . $storeId . "' AND label = '" . $label . "' AND field_type = '" . $field_type . "'");
             if (empty($existStmt->fetch())) {
                 $this->getConnection()->query("INSERT INTO " . $this->getTable("emarsys_emarsys_product_attributes") . " ( code, label, field_type, store_id) VALUES
                      ( '$code', '$label', '$field_type', '$storeId')
@@ -196,7 +196,7 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $emarsysCodes = ['Item', 'Title', 'Link', 'Image', 'Category', 'Price'];
         $result = [];
         foreach ($emarsysCodes as $code) {
-            $query = "SELECT id FROM " . $this->getTable("emarsys_emarsys_product_attributes") . " WHERE code = '" . $code . "' ".'AND store_id ='.$storeId;
+            $query = "SELECT id FROM " . $this->getTable("emarsys_emarsys_product_attributes") . " WHERE code = '" . $code . "' " . 'AND store_id =' . $storeId;
             $result[] = $this->getConnection()->fetchOne($query);
         }
         return $result;
@@ -213,8 +213,7 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $requiredMapping['category_ids'] = 'Category';
         $requiredMapping['price'] = 'Price';
         $returnArray = [];
-        foreach($requiredMapping as $key => $value)
-        {
+        foreach ($requiredMapping as $key => $value) {
             $attrData = [];
             $attrData['emarsys_contact_field'] = '';
             $attrData['magento_attr_code'] = $key;
@@ -231,7 +230,7 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     {
         $attrCode = $this->getConnection()->quote($attrCode);
         $emarsysAttributeId = '';
-        $emarsysAttributeId = $this->getConnection()->fetchOne("SELECT id FROM " . $this->getTable('emarsys_emarsys_product_attributes') . " WHERE code = ".$attrCode." AND store_id =" . $storeId); // Get this value from Emarsys Attributes Table based Code & Store ID
+        $emarsysAttributeId = $this->getConnection()->fetchOne("SELECT id FROM " . $this->getTable('emarsys_emarsys_product_attributes') . " WHERE code = " . $attrCode. " AND store_id =" . $storeId); // Get this value from Emarsys Attributes Table based Code & Store ID
         return $emarsysAttributeId;
     }
 
@@ -250,16 +249,14 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             }
 
             $requiredMapping = $this->getRequiredProductAttributesForExport($storeId);
-            foreach($requiredMapping as $_requiredMapping)
-            {
-                if(!in_array($_requiredMapping['emarsys_attr_code'], $emarsysAttributeId))
-                {
+            foreach ($requiredMapping as $_requiredMapping) {
+                if (!in_array($_requiredMapping['emarsys_attr_code'], $emarsysAttributeId)) {
                     $productAttributes[] = $_requiredMapping;
                 }
             }
             return $productAttributes;
         } catch (Exception $e) {
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getMappedProductAttribute');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getMappedProductAttribute');
         }
     }
 
@@ -275,7 +272,7 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             $emarsysFieldName = $this->getConnection()->fetchOne("SELECT label FROM " . $this->getTable('emarsys_emarsys_product_attributes') . " WHERE id = '" . $fieldId . "' AND store_id =" . $storeId);
             return $emarsysFieldName;
         } catch (Exception $e) {
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getEmarsysFieldName');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getEmarsysFieldName');
         }
     }
 
@@ -293,7 +290,7 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             return $emarsysFieldName;
         } catch (Exception $e) {
             $storeId = $this->_storeManager->getStore()->getId();
-            $this->emarsysLogs->addErrorLog($e->getMessage(),$storeId,'getAttributeName');
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getAttributeName');
         }
     }
 

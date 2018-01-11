@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model\Config\Source;
 
+/**
+ * Class DeleteArchiveDay
+ * @package Emarsys\Emarsys\Model\Config\Source
+ */
 class DeleteArchiveDay
 {
     /**

@@ -7,6 +7,10 @@
 
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Config
+ * @package Emarsys\Emarsys\Model
+ */
 class Config extends \Magento\Framework\DataObject
 {
     /**
@@ -15,10 +19,17 @@ class Config extends \Magento\Framework\DataObject
     public function _construct()
     {
         parent::_construct();
-        //$this->_init('Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents');
     }
 
-
+    /**
+     * Config constructor.
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Framework\App\Config\ValueInterface $backendModel
+     * @param \Magento\Framework\DB\Transaction $transaction
+     * @param \Magento\Framework\App\Config\ValueFactory $configValueFactory
+     * @param array $data
+     */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -27,15 +38,14 @@ class Config extends \Magento\Framework\DataObject
         \Magento\Framework\App\Config\ValueFactory $configValueFactory,
         $data = []
     ) {
-        parent::__construct($data = []);
+        parent::__construct($data);
         $this->_storeManager = $storeManager;
         $this->_scopeConfig = $scopeConfig;
         $this->_backendModel = $backendModel;
         $this->_transaction = $transaction;
         $this->_configValueFactory = $configValueFactory;
-        $this->_storeId=(int)$this->_storeManager->getStore()->getId();
-        $this->_storeCode=$this->_storeManager->getStore()->getCode();
     }
+
     /**
      * @param $path
      * @return mixed
@@ -43,7 +53,8 @@ class Config extends \Magento\Framework\DataObject
      */
     public function getCurrentStoreConfigValue($path)
     {
-        return $this->_scopeConfig->getValue($path, 'store', $this->_storeCode);
+        $storeCode = $this->_storeManager->getStore()->getCode();
+        return $this->_scopeConfig->getValue($path, 'store', $storeCode);
     }
 
     /**
@@ -53,11 +64,14 @@ class Config extends \Magento\Framework\DataObject
      */
     public function setCurrentStoreConfigValue($path, $value)
     {
+        $store = $this->_storeManager->getStore();
+        $storeCode = $store->getCode();
+        $storeId = $store->getId();
         $data = [
             'path' => $path,
             'scope' =>  'stores',
-            'scope_id' => $this->_storeId,
-            'scope_code' => $this->_storeCode,
+            'scope_id' => $storeId,
+            'scope_code' => $storeCode,
             'value' => $value,
         ];
 
@@ -65,5 +79,4 @@ class Config extends \Magento\Framework\DataObject
         $this->_transaction->addObject($this->_backendModel);
         $this->_transaction->save();
     }
-
 }

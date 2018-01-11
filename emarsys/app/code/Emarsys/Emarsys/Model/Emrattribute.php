@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Model;
 
+/**
+ * Class Emrattribute
+ * @package Emarsys\Emarsys\Model
+ */
 class Emrattribute extends \Magento\Framework\Model\AbstractModel
 {
     /**
