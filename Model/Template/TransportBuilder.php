@@ -13,7 +13,6 @@ use Magento\Framework\ObjectManagerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Magento\Framework\Mail\Template\FactoryInterface;
 use Magento\Framework\Mail\Template\SenderResolverInterface;
-use Emarsys\Emarsys\Model\Logs;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -28,11 +27,6 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     public $productCollObj = '';
 
     /**
-     * @var Logs
-     */
-    protected $emarsysLogs;
-
-    /**
      * @var StoreManagerInterface
      */
     protected $storeManager ;
@@ -44,7 +38,6 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      * @param SenderResolverInterface $senderResolver
      * @param ObjectManagerInterface $objectManager
      * @param TransportInterfaceFactory $mailTransportFactory
-     * @param Logs $emarsysLogs
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
@@ -53,10 +46,8 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         SenderResolverInterface $senderResolver,
         ObjectManagerInterface $objectManager,
         TransportInterfaceFactory $mailTransportFactory,
-        Logs $emarsysLogs,
         StoreManagerInterface $storeManager
     ) {
-        $this->emarsysLogs = $emarsysLogs;
         $this->storeManager = $storeManager;
         parent::__construct(
             $templateFactory,
@@ -204,17 +195,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      */
     protected function _formatPrice($value)
     {
-        try {
-            $value = sprintf('%01.2f', $value);
-        } catch (Exception $e) {
-            $this->emarsysLogs->addErrorLog(
-                $e->getMessage(),
-                $this->storeManager->getStore()->getId(),
-                'TransportBuilder::_formatPrice()'
-            );
-        }
-
-        return $value;
+        return sprintf('%01.2f', $value);
     }
 
     /**
@@ -237,77 +218,69 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
      */
     public function getOrderData($item)
     {
-        try {
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $optionGlue = " - ";
-            $optionSeparator = " : ";
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $optionGlue = " - ";
+        $optionSeparator = " : ";
 
-            $unitTaxAmount = $item->getTaxAmount() / $item->getQtyOrdered();
-            $order = [
-                'unitary_price_exc_tax' => $this->_formatPrice($item->getPriceInclTax() - $unitTaxAmount),
-                'unitary_price_inc_tax' => $this->_formatPrice($item->getPriceInclTax()),
-                'unitary_tax_amount' => $this->_formatPrice($unitTaxAmount),
-                'line_total_price_exc_tax' => $this->_formatPrice($item->getRowTotalInclTax() - $item->getTaxAmount()),
-                'line_total_price_inc_tax' => $this->_formatPrice($item->getRowTotalInclTax()),
-                'line_total_tax_amount' => $this->_formatPrice($item->getTaxAmount())
-            ];
-            $order['product_id'] = $item->getData('product_id');
-            $order['product_type'] = $item->getData('product_type');
-            $order['base_original_price'] = $this->_formatPrice($item->getData('base_original_price'));
-            $order['sku'] = $item->getData('sku');
-            $order['product_name'] = $item->getData('name');
-            $order['product_weight'] = $item->getData('weight');
-            $order['qty_ordered'] = $this->_formatQty($item->getData('qty_ordered'));
-            $order['original_price'] = $this->_formatPrice($item->getData('original_price'));
-            $order['price'] = $this->_formatPrice($item->getData('price'));
-            $order['base_price'] = $this->_formatPrice($item->getData('base_price'));
-            $order['tax_percent'] = $this->_formatPrice($item->getData('tax_percent'));
-            $order['tax_amount'] = $this->_formatPrice($item->getData('tax_amount'));
-            $order['discount_amount'] = $this->_formatPrice($item->getData('discount_amount'));
-            $order['price_line_total'] = $this->_formatPrice($order['qty_ordered'] * $order['price']);
+        $unitTaxAmount = $item->getTaxAmount() / $item->getQtyOrdered();
+        $order = [
+            'unitary_price_exc_tax' => $this->_formatPrice($item->getPriceInclTax() - $unitTaxAmount),
+            'unitary_price_inc_tax' => $this->_formatPrice($item->getPriceInclTax()),
+            'unitary_tax_amount' => $this->_formatPrice($unitTaxAmount),
+            'line_total_price_exc_tax' => $this->_formatPrice($item->getRowTotalInclTax() - $item->getTaxAmount()),
+            'line_total_price_inc_tax' => $this->_formatPrice($item->getRowTotalInclTax()),
+            'line_total_tax_amount' => $this->_formatPrice($item->getTaxAmount())
+        ];
+        $order['product_id'] = $item->getData('product_id');
+        $order['product_type'] = $item->getData('product_type');
+        $order['base_original_price'] = $this->_formatPrice($item->getData('base_original_price'));
+        $order['sku'] = $item->getData('sku');
+        $order['product_name'] = $item->getData('name');
+        $order['product_weight'] = $item->getData('weight');
+        $order['qty_ordered'] = $this->_formatQty($item->getData('qty_ordered'));
+        $order['original_price'] = $this->_formatPrice($item->getData('original_price'));
+        $order['price'] = $this->_formatPrice($item->getData('price'));
+        $order['base_price'] = $this->_formatPrice($item->getData('base_price'));
+        $order['tax_percent'] = $this->_formatPrice($item->getData('tax_percent'));
+        $order['tax_amount'] = $this->_formatPrice($item->getData('tax_amount'));
+        $order['discount_amount'] = $this->_formatPrice($item->getData('discount_amount'));
+        $order['price_line_total'] = $this->_formatPrice($order['qty_ordered'] * $order['price']);
 
-            $_product = $this->productCollObj->load($order['product_id']);
+        $_product = $this->productCollObj->load($order['product_id']);
 
-            $base_url = $objectManager->get('Magento\Store\Model\StoreManagerInterface')
-                ->getStore($item->getData('store_id'))
-                ->getBaseUrl();
-            $base_url = trim($base_url, '/');
-            $order['_external_image_url'] = $base_url . '/media/catalog/product' . $_product->getData('thumbnail');
-            $order['_url'] = $base_url . "/" . $_product->getUrlPath();
-            $order['_url_name'] = $order['product_name'];
-            $order['product_description'] = $_product->getData('description');
-            $order['short_description'] = $_product->getData('short_description');
-            $attributes = $_product->getAttributes();
-            $prodData = $_product->getData();
-            foreach ($attributes as $attribute) {
-                if ($attribute->getFrontendInput() != "gallery") {
-                    if (!isset($prodData[$attribute->getAttributeCode()])) {
-                        //do nothing
-                    } else {
-                        $order['attribute_' . $attribute->getAttributeCode()] = $prodData[$attribute->getAttributeCode()];
-                    }
+        $base_url = $objectManager->get('Magento\Store\Model\StoreManagerInterface')
+            ->getStore($item->getData('store_id'))
+            ->getBaseUrl();
+        $base_url = trim($base_url, '/');
+        $order['_external_image_url'] = $base_url . '/media/catalog/product' . $_product->getData('thumbnail');
+        $order['_url'] = $base_url . "/" . $_product->getUrlPath();
+        $order['_url_name'] = $order['product_name'];
+        $order['product_description'] = $_product->getData('description');
+        $order['short_description'] = $_product->getData('short_description');
+        $attributes = $_product->getAttributes();
+        $prodData = $_product->getData();
+        foreach ($attributes as $attribute) {
+            if ($attribute->getFrontendInput() != "gallery") {
+                if (!isset($prodData[$attribute->getAttributeCode()])) {
+                    //do nothing
+                } else {
+                    $order['attribute_' . $attribute->getAttributeCode()] = $prodData[$attribute->getAttributeCode()];
                 }
             }
-            $order['full_options'] = [];
-            $prodOptions = $item->getProductOptions();
-
-            if (isset($prodOptions['attributes_info'])) {
-                foreach ($prodOptions['attributes_info'] as $option) {
-                    $order['full_options'][] = $option['label'] . $optionSeparator . $option['value'];
-                }
-                $order['full_options'] = implode($optionGlue, $order['full_options']);
-            }
-
-            $order = array_filter($order);
-            $order['additional_data'] = ($item->getData('additional_data') ? $item->getData('additional_data') : "");
-
-            return $order;
-        } catch (Exception $e) {
-            $this->emarsysLogs->addErrorLog(
-                $e->getMessage(),
-                $this->storeManager->getStore()->getId(),
-                'TransportBuilder::getOrderData()'
-            );
         }
+        $order['full_options'] = [];
+        $prodOptions = $item->getProductOptions();
+
+        if (isset($prodOptions['attributes_info'])) {
+            foreach ($prodOptions['attributes_info'] as $option) {
+                $order['full_options'][] = $option['label'] . $optionSeparator . $option['value'];
+            }
+            $order['full_options'] = implode($optionGlue, $order['full_options']);
+        }
+
+        $order = array_filter($order);
+        $order['additional_data'] = ($item->getData('additional_data') ? $item->getData('additional_data') : "");
+
+        return $order;
     }
 }
