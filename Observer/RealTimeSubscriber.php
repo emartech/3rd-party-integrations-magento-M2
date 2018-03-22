@@ -89,6 +89,10 @@ class RealTimeSubscriber implements ObserverInterface
         $websiteId = $store->getWebsiteId();
         $pageHandle = $this->request->getFullActionName();
 
+        if ($this->dataHelper->isEmarsysEnabled($websiteId) == 'false') {
+            return;
+        }
+
         $realtimeStatus = $this->customerResourceModel->getDataFromCoreConfig(
             'contacts_synchronization/emarsys_emarsys/realtime_sync',
             \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE,

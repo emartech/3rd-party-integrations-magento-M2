@@ -16,10 +16,19 @@ use Magento\Framework\Event\ObserverInterface;
  */
 class RealTimeAdminSubscriber implements ObserverInterface
 {
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
 
+    /**
+     * @var \Magento\Customer\Model\CustomerFactory
+     */
     protected $customerFactory;
 
+    /**
+     * @var \Emarsys\Emarsys\Model\ResourceModel\Customer
+     */
     protected $customerResourceModel;
 
     /**
@@ -56,6 +65,11 @@ class RealTimeAdminSubscriber implements ObserverInterface
         $subscriberId = $observer->getEvent()->getSubscriber()->getId();
         $storeId = $observer->getEvent()->getSubscriber()->getStoreId();
         $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
+
+        if ($this->dataHelper->isEmarsysEnabled($websiteId) == 'false') {
+            return;
+        }
+        
         $realtimeStatus = $this->customerResourceModel->getDataFromCoreConfig('contacts_synchronization/emarsys_emarsys/realtime_sync', \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE, $websiteId);
         if ($realtimeStatus == 1) {
             $frontendFlag = '';

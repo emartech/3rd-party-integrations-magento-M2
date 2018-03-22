@@ -16,7 +16,7 @@ use Emarsys\Emarsys\Model\ResourceModel\Emrattribute\CollectionFactory;
  * Class Save
  * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Emrattribute
  */
-class Save extends \Magento\Framework\App\Action\Action
+class Save extends Action
 {
     /**
      * @var EmrattributeFactory
@@ -85,5 +85,4 @@ class Save extends \Magento\Framework\App\Action\Action
         
         return $resultRedirect;
     }
-
 }

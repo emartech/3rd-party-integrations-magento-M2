@@ -115,6 +115,7 @@ class SendEmail extends AbstractModel
     {
         $errorStatus = false;
         $emarsysErrorStatus = false;
+        $emarsysPlaceholdersData = [];
         $emarsysApiEventID = '';
 
         $storeId = $this->storeManager->getStore()->getId();
@@ -143,8 +144,6 @@ class SendEmail extends AbstractModel
 
                 //check emarsys transaction emails enable
                 if ($this->checkTransactionalMailEnabled($websiteId)) {
-                    $emarsysPlaceholdersData = [];
-
                     if (is_array($_emarsysPlaceholdersData)) {
                         if (isset($_emarsysPlaceholdersData['emarsysPlaceholders'])) {
                             $emarsysPlaceholdersData = $_emarsysPlaceholdersData['emarsysPlaceholders'];

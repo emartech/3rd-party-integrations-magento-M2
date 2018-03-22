@@ -15,9 +15,8 @@ use Magento\Framework\View\Result\PageFactory;
  * Class Delete
  * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Emrattribute
  */
-class Delete extends \Magento\Framework\App\Action\Action
+class Delete extends Action
 {
-
     /**
      * @var PageFactory
      */
@@ -42,15 +41,25 @@ class Delete extends \Magento\Framework\App\Action\Action
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $_storeManager;
+
+    /**
+     * @var \Magento\Framework\Controller\Result\JsonFactory
+     */
     protected $_resultJsonFactory;
 
     /**
-     *
+     * Delete constructor.
      * @param Context $context
      * @param \Emarsys\Emarsys\Model\CustomerFactory $customerFactory
      * @param \Emarsys\Emarsys\Model\ResourceModel\Customer $resourceModelCustomer
+     * @param \Emarsys\Emarsys\Helper\Data $emsrsysHelper
+     * @param \Emarsys\Emarsys\Helper\Logs $logHelper
+     * @param \Emarsys\Emarsys\Model\Logs $emarsysLogs
+     * @param \Emarsys\Emarsys\Model\Emrattribute $Emrattribute
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
      * @param PageFactory $resultPageFactory
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
      */
     public function __construct(
         Context $context,

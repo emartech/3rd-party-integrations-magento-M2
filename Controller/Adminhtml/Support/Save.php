@@ -14,6 +14,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Emarsys\Emarsys\Helper\Data;
 use Emarsys\Emarsys\Helper\Email;
+use Psr\Log\LoggerInterface as Logger;
 
 /**
  * Class Save
@@ -47,6 +48,16 @@ class Save extends Action
     protected $email;
 
     /**
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
+     * @var \Magento\Backend\Model\Session
+     */
+    protected $session;
+
+    /**
      * Save constructor.
      * @param Session $authSession
      * @param ScopeConfigInterface $scopeConfigInterface
@@ -54,6 +65,7 @@ class Save extends Action
      * @param Data $data
      * @param Email $email
      * @param Context $context
+     * @param Logger $logger
      */
     public function __construct(
         Session $authSession,
@@ -61,7 +73,8 @@ class Save extends Action
         StoreManagerInterface $storeManager,
         Data $data,
         Email $email,
-        Context $context
+        Context $context,
+        Logger $logger
     ) {
         parent::__construct($context);
         $this->authSession = $authSession;
@@ -69,6 +82,8 @@ class Save extends Action
         $this->storeManager = $storeManager;
         $this->helper =$data;
         $this->emailHelper = $email;
+        $this->logger = $logger;
+        $this->session = $context->getSession();
     }
 
     /**
@@ -148,12 +163,14 @@ class Save extends Action
                 }
                 $this->messageManager->addSuccessMessage(__('Request send succesfully'));
                 $this->_redirect('emarsys_emarsys/support/index');
+
                 return;
             } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage(__($e->getMessage()));
-                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-                $this->_objectManager->get('Magento\Backend\Model\Session')->setPageData($data);
+                $this->logger->critical($e);
+                $this->session->setPageData($data);
                 $this->_redirect('emarsys_emarsys/support/index');
+
                 return;
             }
         }

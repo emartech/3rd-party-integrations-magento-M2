@@ -24,7 +24,7 @@ use Emarsys\Emarsys\Model\ResourceModel\Product;
  * Class SaveRecommended
  * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Product
  */
-class SaveRecommended extends \Magento\Backend\App\Action
+class SaveRecommended extends Action
 {
     /**
      * @var PageFactory
@@ -133,7 +133,8 @@ class SaveRecommended extends \Magento\Backend\App\Action
                 'category_ids' => ['emarsys_attr_code' => $data[4]],
                 'price' => ['emarsys_attr_code' => $data[5]]
             ];
-
+	    // Remove existing data
+	    $this->resourceModelProduct->deleteRecommendedMappingExistingAttr($recommendedData,$storeId);
             foreach ($recommendedData as $key => $value) {
                 $mappedAttributeCode = $this->productAttributeCollection->create()
                     ->addFieldToFilter('magento_attr_code', ['eq' => $key])

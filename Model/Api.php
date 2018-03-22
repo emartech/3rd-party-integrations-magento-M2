@@ -7,6 +7,8 @@
 
 namespace Emarsys\Emarsys\Model;
 
+use Magento\Framework\Json\Helper\Data as JsonHelperData;
+
 /**
  * Class Api
  * @package Emarsys\Emarsys\Model
@@ -19,11 +21,31 @@ class Api extends \Magento\Framework\HTTP\ZendClient
 
     public $_password;
 
+    public $jasonHelper;
+
+    public $config = [];
+
+    /**
+     * @param $params
+     * @param JsonHelperData $jasonHelper
+     * @return \Magento\Framework\HTTP\ZendClient
+     */
+    public function _construct($params, JsonHelperData $jasonHelper)
+    {
+        $this->jasonHelper = $jasonHelper;
+        $this->_apiUrl = $params['api_url'];
+        $this->_username = $params['api_username'];
+        $this->_password = $params['api_password'];
+        $this->config['timeout'] = 60;
+
+        return parent::__construct($this->_apiUrl, $config = null);
+    }
+
     /**
      * @param $params
      * @return \Magento\Framework\HTTP\ZendClient
      */
-    public function _construct($params)
+    public function setParams($params)
     {
         $this->_apiUrl = $params['api_url'];
         $this->_username = $params['api_username'];
@@ -62,8 +84,6 @@ class Api extends \Magento\Framework\HTTP\ZendClient
      */
     protected function _request($apiCall, $method = 'GET', $data = [], $jsonDecode = true)
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $this->jasonHelper = $objectManager->get('Magento\Framework\Json\Helper\Data');
         $this->setUri($this->_apiUrl . $apiCall);
         $this->setHeaders(
             [
