@@ -6,6 +6,10 @@
  */
 namespace Emarsys\Emarsys\Controller\Adminhtml\Email;
 
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\Registry;
+use Magento\Email\Model\BackendTemplateFactory;
+
 /**
  * Class Template
  * @package Emarsys\Emarsys\Controller\Adminhtml\Email
@@ -27,12 +31,23 @@ class Template extends \Magento\Email\Controller\Adminhtml\Email\Template
     protected $_coreRegistry = null;
 
     /**
-     * @param \Magento\Backend\App\Action\Context $context
-     * @param \Magento\Framework\Registry $coreRegistry
+     * @var BackendTemplate
      */
-    public function __construct(\Magento\Backend\App\Action\Context $context, \Magento\Framework\Registry $coreRegistry)
-    {
+    protected $backendTemplate;
+
+    /**
+     * Template constructor.
+     * @param Context $context
+     * @param Registry $coreRegistry
+     * @param BackendTemplateFactory $backendTemplate
+     */
+    public function __construct(
+        Context $context,
+        Registry $coreRegistry,
+        BackendTemplateFactory $backendTemplate
+    ) {
         $this->_coreRegistry = $coreRegistry;
+        $this->backendTemplate = $backendTemplate;
         parent::__construct($context, $coreRegistry);
     }
 
@@ -51,12 +66,12 @@ class Template extends \Magento\Email\Controller\Adminhtml\Email\Template
      * Load email template from request
      *
      * @param string $idFieldName
-     * @return \Magento\Email\Model\BackendTemplate $model
+     * @return mixed
      */
     protected function _initTemplate($idFieldName = 'template_id')
     {
         $id = (int)$this->getRequest()->getParam($idFieldName);
-        $model = $this->_objectManager->create('Magento\Email\Model\BackendTemplate');
+        $model = $this->backendTemplate->create();
         if ($id) {
             $model->load($id);
         }

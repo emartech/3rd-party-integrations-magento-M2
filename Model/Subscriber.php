@@ -7,6 +7,7 @@
 namespace Emarsys\Emarsys\Model;
 
 use Magento\Store\Model\ScopeInterface;
+use Emarsys\Emarsys\Helper\Data\Proxy as EmarsysHelperData;
 
 /**
  * Class Subscriber
@@ -15,21 +16,73 @@ use Magento\Store\Model\ScopeInterface;
 class Subscriber extends \Magento\Newsletter\Model\Subscriber
 {
     /**
-     * Subscribes by email
-     *
+     * @var EmarsysHelperData
+     */
+    protected $emarsysHelperData;
+
+    /**
+     * Subscriber constructor.
+     * @param EmarsysHelperData $emarsysHelperData
+     * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Newsletter\Helper\Data $newsletterData
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
+     * @param \Magento\Customer\Api\AccountManagementInterface $customerAccountManagement
+     * @param \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime|null $dateTime
+     * @param array $data
+     */
+    public function __construct
+    (
+        EmarsysHelperData $emarsysHelperData,
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Newsletter\Helper\Data $newsletterData,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
+        \Magento\Customer\Api\AccountManagementInterface $customerAccountManagement,
+        \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \Magento\Framework\Stdlib\DateTime\DateTime $dateTime = null,
+        array $data = []
+    ) {
+        $this->emarsysHelperData = $emarsysHelperData;
+        parent::__construct(
+            $context,
+            $registry,
+            $newsletterData,
+            $scopeConfig,
+            $transportBuilder,
+            $storeManager,
+            $customerSession,
+            $customerRepository,
+            $customerAccountManagement,
+            $inlineTranslation,
+            $resource,
+            $resourceCollection,
+            $data
+        );
+    }
+
+    /**
      * @param string $email
+     * @return int|void
      * @throws \Exception
-     * @return int
-     *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function subscribe($email)
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $emarsysHelper = $objectManager->get('\Emarsys\Emarsys\Helper\Data');
         $websiteId = $this->_storeManager->getStore()->getWebsiteId();
-        if ($emarsysHelper->isEmarsysEnabled($websiteId) == 'false') {
+        if ($this->emarsysHelperData->isEmarsysEnabled($websiteId) == 'false') {
             return parent::subscribe($email);
         } else {
            return $this->subscribeByEmarsys($email);
@@ -45,8 +98,6 @@ class Subscriber extends \Magento\Newsletter\Model\Subscriber
     {
         $websiteId = $this->_storeManager->getStore()->getWebsiteId();
         $this->loadByEmail($email);
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $emarsysHelper = $objectManager->get('\Emarsys\Emarsys\Helper\Data');
 
         if (!$this->getId()) {
             $this->setSubscriberConfirmCode($this->randomSequence());
@@ -67,12 +118,11 @@ class Subscriber extends \Magento\Newsletter\Model\Subscriber
             }
         }
         $isOwnSubscribes = false;
-
         //It will return boolean value, If customer is logged in and email Id is the same.
         $isSubscribeOwnEmail = $this->_customerSession->isLoggedIn()
             && $this->_customerSession->getCustomerDataObject()->getEmail() == $email;
 
-        $optinForcedConfirmation = $emarsysHelper->isOptinForcedConfirmationEnabled($websiteId);
+        $optinForcedConfirmation = $this->emarsysHelperData->isOptinForcedConfirmationEnabled($websiteId);
         $isOwnSubscribes = $isSubscribeOwnEmail;
 
         if (!$this->getId() || $this->getStatus() == self::STATUS_UNSUBSCRIBED
@@ -143,14 +193,12 @@ class Subscriber extends \Magento\Newsletter\Model\Subscriber
 
         try {
             $this->save();
-	    if($this->getStatus() == self::STATUS_NOT_ACTIVE) {
-		$this->sendConfirmationRequestEmail();
-	    } elseif ($this->getStatus() == self::STATUS_SUBSCRIBED) {
-		$this->sendConfirmationSuccessEmail();
-	    }
-
+            if($this->getStatus() == self::STATUS_NOT_ACTIVE) {
+                $this->sendConfirmationRequestEmail();
+            } elseif ($this->getStatus() == self::STATUS_SUBSCRIBED) {
+                $this->sendConfirmationSuccessEmail();
+            }
             return $this->getStatus();
-
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }

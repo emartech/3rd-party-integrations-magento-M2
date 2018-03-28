@@ -159,6 +159,8 @@ class Save extends Action
 
                 if (!empty($modelCollData)) {
                     foreach ($modelColl as $model) {
+                        //Delete exsisting record
+                        $this->resourceModelProduct->deleteExistingEmarsysAttr($value['emarsys_attr_code'],$gridSessionStoreId);
                         if (isset($value['emarsys_attr_code'])) {
                             $model->setEmarsysAttrCode($value['emarsys_attr_code']);
                         }
@@ -167,6 +169,8 @@ class Save extends Action
                         $model->save();
                     }
                 } else {
+                    //Delete exsisting record
+                    $this->resourceModelProduct->deleteExistingEmarsysAttr($value['emarsys_attr_code'],$gridSessionStoreId);
                     $model = $this->productFactory->create();
                     $model = $model->setData($value);
                     $model->setStoreId($gridSessionStoreId);

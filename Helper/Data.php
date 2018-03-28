@@ -637,7 +637,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             'api_password' => $password,
         ];
 
-        return $this->modelApi->_construct($config);
+        return $this->modelApi->setParams($config);
     }
 
     /**

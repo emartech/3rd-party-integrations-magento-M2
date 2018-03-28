@@ -114,6 +114,35 @@ class Product extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $this->getConnection()->query("DELETE FROM " . $this->getTable("emarsys_product_mapping") . " WHERE store_id = $storeId AND emarsys_attr_code = 0");
     }
     
+    public function deleteExistingEmarsysAttr($attributeCode, $storeId = null)
+    {
+        try {
+            $emarsysContactField = $this->getConnection()->fetchOne("SELECT emarsys_contact_field FROM " . $this->getTable('emarsys_product_mapping'). " WHERE emarsys_attr_code=$attributeCode AND store_id=$storeId");
+            if(!empty($emarsysContactField)) {            
+                $this->getConnection()->query("DELETE FROM " . $this->getTable("emarsys_product_mapping") . " WHERE store_id = $storeId AND emarsys_contact_field = $emarsysContactField");
+            }
+        } catch (\Exception $e) {
+            return $e->Message();
+        }
+    }
+
+    public function deleteRecommendedMappingExistingAttr($recommendedDatas, $storeId = null)
+    {
+        foreach ($recommendedDatas as $key => $recommendedData)
+        {
+            $attributeCode = $recommendedData['emarsys_attr_code'];
+            try {
+                $stm = "SELECT emarsys_contact_field FROM " . $this->getTable('emarsys_product_mapping') . " WHERE emarsys_attr_code=$attributeCode AND store_id=$storeId AND magento_attr_code != '". $key. "' ";
+                $emarsysContactField = $this->getConnection()->fetchOne($stm);
+                if (!empty($emarsysContactField)) {
+                    $this->getConnection()->query("DELETE FROM " . $this->getTable("emarsys_product_mapping") . " WHERE store_id = $storeId AND emarsys_contact_field = $emarsysContactField");
+                }
+            } catch (\Exception $e) {
+                return $e->Message();
+            }
+        }
+    }    
+
     /**
      * Define main table
      * @return void
