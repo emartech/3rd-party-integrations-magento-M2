@@ -299,7 +299,7 @@ class Order extends AbstractModel
         if ($merchantId != '' && $token != '') {
             //test connection using merchant id and token
             $this->apiExport->assignApiCredentials($merchantId, $token);
-            $response = $this->apiExport->testSIExportApi();
+            $response = $this->apiExport->testSIExportApi($storeId);
 
             if ($response['result'] == 1) {
                 //get directory path bases on entity
