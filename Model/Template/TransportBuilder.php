@@ -117,7 +117,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         if (!$magentoEventID) {
             $this->message->setMessageType($types[$template->getType()])
                 ->setBody($body)
-                ->setSubject($template->getSubject())
+                ->setSubject(html_entity_decode($template->getSubject(), ENT_QUOTES))
                 ->setEmarsysData([
                     "emarsysPlaceholders" => '',
                     "emarsysEventId" => '',
@@ -133,7 +133,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         if (!$emarsysEventMappingID) {
             $this->message->setMessageType($types[$template->getType()])
                 ->setBody($body)
-                ->setSubject($template->getSubject())
+                ->setSubject(html_entity_decode($template->getSubject(), ENT_QUOTES))
                 ->setEmarsysData([
                     "emarsysPlaceholders" => '',
                     "emarsysEventId" => '',
@@ -146,7 +146,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         if (!$emarsysEventApiID) {
             $this->message->setMessageType($types[$template->getType()])
                 ->setBody($body)
-                ->setSubject($template->getSubject())
+                ->setSubject(html_entity_decode($template->getSubject(), ENT_QUOTES))
                 ->setEmarsysData([
                     "emarsysPlaceholders" => '',
                     "emarsysEventId" => '',
@@ -202,7 +202,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         }
         $this->message->setMessageType($types[$template->getType()])
             ->setBody($body)
-            ->setSubject($template->getSubject())
+            ->setSubject(html_entity_decode($template->getSubject(), ENT_QUOTES))
             ->setEmarsysData([
                 "emarsysPlaceholders" => $processedVariables,
                 "emarsysEventId" => $emarsysEventApiID,
