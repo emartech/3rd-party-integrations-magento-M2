@@ -67,11 +67,10 @@ class LayoutProcessor
     ) {
         $flag = 0;
         $store = $this->storeManagerInterface->getStore();
-        $storeCode = $store->getCode();
         $websiteId = $store->getWebsiteId();
         $newsLetterConfValue = $this->scopeConfigInterface->getValue(
             'opt_in/subscription_checkout_process/newsletter_sub_checkout_yes_no',
-            $storeCode,
+            'websites',
             $websiteId
         );
         if ($this->session->isLoggedIn()) {
