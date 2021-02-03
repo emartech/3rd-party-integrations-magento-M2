@@ -1,24 +1,22 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Model;
 
-use Magento\{
-    Cron\Model\ScheduleFactory,
-    Cron\Model\Schedule,
-    Store\Model\StoreManagerInterface,
-    Framework\Model\Context,
-    Framework\Registry,
-    Framework\Model\ResourceModel\AbstractResource,
-    Framework\Data\Collection\AbstractDb
-};
+use Magento\Cron\Model\Schedule;
+use Magento\Cron\Model\ScheduleFactory;
+use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class EmarsysCronDetails
- * @package Emarsys\Emarsys\Model
  */
 class EmarsysCronDetails extends \Magento\Framework\Model\AbstractModel
 {
@@ -35,10 +33,11 @@ class EmarsysCronDetails extends \Magento\Framework\Model\AbstractModel
     /**
      * @var StoreManagerInterface
      */
-    protected $storeManager ;
+    protected $storeManager;
 
     /**
      * EmarsysCronDetails constructor.
+     *
      * @param Context $context
      * @param ScheduleFactory $scheduleFactory
      * @param Logs $emarsysLogs
@@ -63,6 +62,7 @@ class EmarsysCronDetails extends \Magento\Framework\Model\AbstractModel
         $this->storeManager = $storeManager;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
+
     /**
      * Constructor
      *
@@ -71,7 +71,7 @@ class EmarsysCronDetails extends \Magento\Framework\Model\AbstractModel
     protected function _construct()
     {
         parent::_construct();
-        $this->_init('Emarsys\Emarsys\Model\ResourceModel\EmarsysCronDetails');
+        $this->_init(\Emarsys\Emarsys\Model\ResourceModel\EmarsysCronDetails::class);
     }
 
     /**
@@ -96,16 +96,14 @@ class EmarsysCronDetails extends \Magento\Framework\Model\AbstractModel
             //get collection of successful, missed and error crons
             $processedCronJobs = $this->scheduleFactory->create()->getCollection()
                 ->addFieldToSelect('schedule_id')
-                ->addFieldToFilter('job_code', ['like'=>'emarsys%'])
+                ->addFieldToFilter('job_code', ['like' => 'emarsys%'])
                 ->addFieldToFilter(
                     'status',
                     ['in' => [Schedule::STATUS_SUCCESS, Schedule::STATUS_MISSED, Schedule::STATUS_ERROR]]
                 );
 
             if ($processedCronJobs->getSize()) {
-                foreach ($processedCronJobs as $job) {
-                    array_push($itemIdsToRemove, $job->getScheduleId());
-                }
+                $itemIdsToRemove = $processedCronJobs->getAllIds();
             }
 
             //get collection of that are already removed from cron_schedule table
@@ -119,9 +117,7 @@ class EmarsysCronDetails extends \Magento\Framework\Model\AbstractModel
                 ->where('main_table.schedule_id is null');
 
             if ($clearedCronJobs->getSize()) {
-                foreach ($clearedCronJobs as $job) {
-                    array_push($itemIdsToRemove, $job->getScheduleId());
-                }
+                $itemIdsToRemove = $itemIdsToRemove + $clearedCronJobs->getAllIds();
             }
 
             //remove items from emarsys cron details table

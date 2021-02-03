@@ -1,9 +1,14 @@
 <?php
+/**
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
+ */
+
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
 /**
  * Class Placeholders
- * @package Emarsys\Emarsys\Model\ResourceModel
  */
 class Placeholders extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {

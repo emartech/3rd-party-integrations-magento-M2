@@ -1,15 +1,13 @@
 <?xml version="1.0"?>
 <!--
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="Magento\Checkout\Model\ShippingInformationManagement">
-        <plugin name="emarsys-save-in-quote" type="Emarsys\Emarsys\Model\Checkout\ShippingInformationManagement" sortOrder="9"/>
-    </type>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Emarsys\Emarsys\Logger\Handler">
         <arguments>
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
@@ -23,21 +21,40 @@
             </argument>
         </arguments>
     </type>
-    <preference for="Magento\Framework\Mail\TransportInterface" type="Emarsys\Emarsys\Model\Transport"/>
-    <preference for="Magento\Framework\Mail\Message" type="Emarsys\Emarsys\Model\Message"/>
-    <preference for="Magento\Framework\Mail\Template\TransportBuilder" type="Emarsys\Emarsys\Model\Template\TransportBuilder"/>
-    <preference for="Magento\Email\Model\Template" type="Emarsys\Emarsys\Model\Template"/>
-    <preference for="Magento\Newsletter\Model\Subscriber" type="Emarsys\Emarsys\Model\Subscriber"/>
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="emarsysProductExport" xsi:type="object">Emarsys\Emarsys\Console\Command\EmarsysProductExport</item>
                 <item name="emarsysOrderExport" xsi:type="object">Emarsys\Emarsys\Console\Command\EmarsysOrderExport</item>
                 <item name="emarsysCustomerExport" xsi:type="object">Emarsys\Emarsys\Console\Command\EmarsysCustomerExport</item>
+                <item name="EmarsysAsyncExport" xsi:type="object">Emarsys\Emarsys\Console\Command\EmarsysAsyncExport</item>
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
-        <plugin name="subscription" type="Emarsys\Emarsys\Plugin\Checkout\Model\Checkout\LayoutProcessor"/>
+    <type name="Magento\Newsletter\Model\Subscriber">
+        <plugin name="emarsys_subscribe" type="Emarsys\Emarsys\Plugin\Subscriber" sortOrder="100" disabled="false" />
     </type>
+    <type name="Magento\Checkout\Model\ShippingInformationManagement">
+        <plugin name="emarsys_save_in_quote" type="Emarsys\Emarsys\Plugin\Checkout\ShippingInformationManagement" sortOrder="100" disabled="false" />
+    </type>
+    <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
+        <plugin name="emarsys_checkout_subscription_layoutprocessor" type="Emarsys\Emarsys\Plugin\Checkout\Model\Checkout\LayoutProcessor" sortOrder="100" disabled="false" />
+    </type>
+    <type name="Magento\Customer\CustomerData\Customer">
+        <plugin name="emarsys_subscriber" type="Emarsys\Emarsys\Plugin\CustomerData" sortOrder="100" disabled="false" />
+    </type>
+    <type name="Magento\Checkout\CustomerData\Cart">
+        <plugin name="emarsys_cart" type="Emarsys\Emarsys\Plugin\CustomerDataCart" sortOrder="100" disabled="false" />
+    </type>
+
+    <type name="Magento\Framework\Mail\TransportInterface">
+        <plugin name="emarsys_transport" type="Emarsys\Emarsys\Plugin\Email\TransportPlugin" sortOrder="100" disabled="false" />
+    </type>
+    <type name="Magento\Email\Model\Template">
+        <plugin name="emarsys_template" type="Emarsys\Emarsys\Plugin\Email\TemplatePlugin" sortOrder="100" disabled="false"/>
+    </type>
+
+    <preference for="Emarsys\Emarsys\Api\CountryRepositoryInterface" type="Emarsys\Emarsys\Model\CountryRepository"/>
+    <preference for="Emarsys\Emarsys\Api\Data\CountryInterface" type="Emarsys\Emarsys\Model\CountryRepository"/>
+    <preference for="Emarsys\Emarsys\Api\Data\CountrySearchResultInterface" type="Emarsys\Emarsys\Model\CountrySearchResult"/>
 </config>

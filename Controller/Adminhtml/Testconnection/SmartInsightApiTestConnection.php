@@ -1,21 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Testconnection;
 
+use Exception;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Config\Model\ResourceModel\Config;
 use Emarsys\Emarsys\Model\ApiExport;
 use Emarsys\Emarsys\Helper\Logs;
+use Zend_Http_Client_Exception;
+use Zend_Json;
 
-/**
- * Class SmartInsightApiTestConnection
- * @package Emarsys\Emarsys\Controller\Adminhtml\Testconnection
- */
 class SmartInsightApiTestConnection extends TestConnection
 {
     /**
@@ -63,10 +65,10 @@ class SmartInsightApiTestConnection extends TestConnection
 
     /**
      * Emarsys test connection api credentials
-     * @return bool
-     * @throws \Magento\Framework\Exception\FileSystemException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Zend_Http_Client_Exception
+     *
+     * @throws FileSystemException
+     * @throws LocalizedException
+     * @throws Zend_Http_Client_Exception
      */
     public function execute()
     {
@@ -109,46 +111,78 @@ class SmartInsightApiTestConnection extends TestConnection
             if ($response['result'] == 1 || (in_array($response['status'], ['200', '400']))) {
                 try {
                     //save information in respected configuration.
-                    $this->config->saveConfig('smart_insight/api_settings/marchant_id', $merchantId, $scopeType, $scopeId);
-                    $this->config->saveConfig('smart_insight/api_settings/token', $token, $scopeType, $scopeId);
+                    $this->config->saveConfig(
+                        'smart_insight/api_settings/marchant_id',
+                        $merchantId,
+                        $scopeType,
+                        $scopeId
+                    );
+                    $this->config->saveConfig(
+                        'smart_insight/api_settings/token',
+                        $token,
+                        $scopeType,
+                        $scopeId
+                    );
 
-                    $logsArray['description'] = 'Smart Insight API Test Connection Successful. | ' . \Zend_Json::encode($response['resultBody']);
+                    $logsArray['description'] = 'Smart Insight API Test Connection Successful.'
+                        . ' | ' . Zend_Json::encode($response['resultBody']);
                     $logsArray['message_type'] = 'Success';
                     $logsArray['log_action'] = 'True';
                     $logsArray['status'] = 'success';
                     $logsArray['messages'] = 'Smart Insight Test Connection Completed';
                     $this->logsHelper->manualLogs($logsArray);
-                    $this->messageManager->addSuccessMessage('Smart Insight API Test connection is successfull.');
-                } catch (\Exception $e) {
-                    $logsArray['description'] = 'Smart Insight API Test Connection Failed Due to Error' . $e->getMessage();
+                    $this->messageManager->addSuccessMessage(
+                        __(
+                            'Smart Insight API Test connection is successfull.'
+                        )
+                    );
+                } catch (Exception $e) {
+                    $logsArray['description'] = 'Smart Insight API Test Connection Failed Due to Error '
+                        . $e->getMessage();
                     $logsArray['message_type'] = 'Error';
                     $logsArray['log_action'] = 'True';
                     $logsArray['status'] = 'error';
                     $logsArray['messages'] = 'Smart Insight API Test Connection Failed.';
                     $this->logsHelper->manualLogs($logsArray);
-                    $this->messageManager->addErrorMessage('Smart Insight Test Connection is Failed.' . $e->getMessage());
+                    $this->messageManager->addErrorMessage(
+                        __(
+                            'Smart Insight Test Connection is Failed. %1',
+                            $e->getMessage()
+                        )
+                    );
                 }
             } else {
-                $logsArray['description'] = 'Smart Insight API Test Connection Failed Due to Error. ' . $response['resultBody'];
+                $logsArray['description'] = 'Smart Insight API Test Connection Failed Due to Error. '
+                    . $response['resultBody'];
                 $logsArray['message_type'] = 'Error';
                 $logsArray['log_action'] = 'True';
                 $logsArray['status'] = 'error';
-                $logsArray['messages'] = 'Smart Insight API Test Connection Failed. Please Check Credentials. ' . $response['resultBody'];
+                $logsArray['messages'] = 'Smart Insight API Test Connection Failed. Please Check Credentials. '
+                    . $response['resultBody'];
                 $this->logsHelper->manualLogs($logsArray);
-                $this->messageManager->addErrorMessage('Smart Insight API Test Connection Failed. Please Check Credentials.');
+                $this->messageManager->addErrorMessage(
+                    __(
+                        'Smart Insight API Test Connection Failed. Please Check Credentials.'
+                    )
+                );
             }
         } else {
-            $logsArray['description'] = 'Smart Insight API Test Connection Failed Due to Invalid Credentials. Either Merchant Id or Token not Found. Please check and try again.';
+            $logsArray['description'] = 'Smart Insight API Test Connection Failed Due to Invalid Credentials.'
+                . ' Either Merchant Id or Token not Found. Please check and try again.';
             $logsArray['message_type'] = 'Error';
             $logsArray['log_action'] = 'True';
             $logsArray['status'] = 'error';
-            $logsArray['messages'] = 'Smart Insight API Test Connection Failed Due to Invalid Credentials. Either Merchant Id or Token not Found. Please check and try again.';
+            $logsArray['messages'] = 'Smart Insight API Test Connection Failed Due to Invalid Credentials.'
+                . ' Either Merchant Id or Token not Found. Please check and try again.';
             $this->logsHelper->manualLogs($logsArray);
-            $this->messageManager->addErrorMessage('Smart Insight API Test Connection Failed. Please Enter the Api Credentials');
+            $this->messageManager->addErrorMessage(
+                __(
+                    'Smart Insight API Test Connection Failed. Please Enter the Api Credentials'
+                )
+            );
         }
 
         $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
         $this->logsHelper->manualLogs($logsArray);
-        return true;
     }
 }

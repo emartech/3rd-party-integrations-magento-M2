@@ -1,15 +1,14 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
 use Magento\Backend\Block\Widget\Context;
 use Magento\Email\Model\Template\Config;
-use Emarsys\Emarsys\Model\ResourceModel\Order as ResourceModelOrder;
 use Emarsys\Emarsys\Model\ResourceModel\Event as ResourceModelEvent;
 use Emarsys\Emarsys\Model\ResourceModel\Product as ResourceModelProduct;
 use Emarsys\Emarsys\Model\ResourceModel\Customer as ResourceModelCustomer;
@@ -22,6 +21,7 @@ use Magento\Email\Model\Template as EmailModelTemplate;
 
 /**
  * Class MappingButtons
+ *
  * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
  */
 class MappingButtons extends \Magento\Backend\Block\Widget\Container
@@ -30,11 +30,6 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
      * @var ResourceModelEvent
      */
     protected $resourceModelEvent;
-
-    /**
-     * @var ResourceModelOrder
-     */
-    protected $resourceModelOrder;
 
     /**
      * @var ResourceModelProduct
@@ -91,7 +86,6 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
      *
      * @param Context $context
      * @param Config $edit
-     * @param ResourceModelOrder $resourceModelOrder
      * @param ResourceModelEvent $resourceModelEvent
      * @param ResourceModelProduct $resourceModelProduct
      * @param ResourceModelCustomer $resourceModelCustomer
@@ -106,7 +100,6 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     public function __construct(
         Context $context,
         Config $edit,
-        ResourceModelOrder $resourceModelOrder,
         ResourceModelEvent $resourceModelEvent,
         ResourceModelProduct $resourceModelProduct,
         ResourceModelCustomer $resourceModelCustomer,
@@ -122,7 +115,6 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
         $this->scopeConfigInterface = $context->getScopeConfig();
         $this->emarsysmagentoeventsCollection = $emarsysmagentoeventsCollection;
         $this->emarsysEventCollection = $emarsysEventCollection;
-        $this->resourceModelOrder = $resourceModelOrder;
         $this->resourceModelEvent = $resourceModelEvent;
         $this->resourceModelProduct = $resourceModelProduct;
         $this->resourceModelCustomer = $resourceModelCustomer;
@@ -135,18 +127,16 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
 
     /**
      * @return int|mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getStoreId()
     {
         $storeId = $this->getRequest()->getParam('store');
-        if (!$storeId) {
-            $storeId = $this->emarsysHelper->getFirstStoreId();
-        }
-        return $storeId;
+        return $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
     }
 
     /**
-     * @param $configPath
+     * @param  $configPath
      * @return string
      */
     public function getMagentoDefaultTemplate($configPath)
@@ -165,7 +155,7 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     }
 
     /**
-     * @param $mappingItem
+     * @param  $mappingItem
      * @return array
      */
     public function getMappingOption($mappingItem)
@@ -215,7 +205,8 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     public function getCustomerRecommendedUrl()
     {
         $customerMappingCheck = $this->resourceModelCustomer->checkCustomerMapping($this->getStoreId());
-        $recommdedBtnUrl = "'" . $this->getUrl("*/*/saveRecommended", ["store" => $this->getStoreId()]) . "','" . $customerMappingCheck . "'";
+        $recommdedBtnUrl = "'" . $this->getUrl("*/*/saveRecommended",
+                ["store" => $this->getStoreId()]) . "','" . $customerMappingCheck . "'";
         return $recommdedBtnUrl;
     }
 
@@ -226,7 +217,8 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     {
         $storeId = $this->getStoreId();
         $productMappingCheck = $this->resourceModelProduct->checkProductMapping($storeId);
-        $recommdedBtn = "'" . $this->getUrl("*/*/saveRecommended", ["store" => $storeId]) . "','" . $productMappingCheck . "'";
+        $recommdedBtn = "'" . $this->getUrl("*/*/saveRecommended",
+                ["store" => $storeId]) . "','" . $productMappingCheck . "'";
         return $recommdedBtn;
     }
 
@@ -283,7 +275,7 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     }
 
     /**
-     * @param $path
+     * @param  $path
      * @return mixed
      */
     public function getTemplateId($path)
@@ -292,7 +284,7 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     }
 
     /**
-     * @param $emarsysEventId
+     * @param  $emarsysEventId
      * @return string
      */
     public function getEmarsysEvent($emarsysEventId)
@@ -306,7 +298,7 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     }
 
     /**
-     * @param $templateId
+     * @param  $templateId
      * @return string
      */
     public function getTemplateCodeById($templateId)
@@ -320,7 +312,7 @@ class MappingButtons extends \Magento\Backend\Block\Widget\Container
     }
 
     /**
-     * @param $magentoEventId
+     * @param  $magentoEventId
      * @return bool
      */
     public function getEventsCollectionById($magentoEventId)

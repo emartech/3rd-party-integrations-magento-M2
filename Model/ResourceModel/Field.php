@@ -1,22 +1,19 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
 use Emarsys\Emarsys\Model\ContactFieldOption as ModelContactFieldOption;
-use Magento\{
-    Store\Api\StoreRepositoryInterface,
-    Framework\Model\ResourceModel\Db\Context,
-    Framework\Model\ResourceModel\Db\AbstractDb
-};
+use Magento\Store\Api\StoreRepositoryInterface;
+use Magento\Framework\Model\ResourceModel\Db\Context;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
 /**
  * Class Field
- * @package Emarsys\Emarsys\Model\ResourceModel
  */
 class Field extends AbstractDb
 {
@@ -137,33 +134,6 @@ class Field extends AbstractDb
     }
 
     /**
-     * @param $attributeCode
-     * @return string
-     */
-    public function getCustomerAttributeId($attributeCode)
-    {
-        if (strpos($attributeCode, 'BILLADD_') !== false) {
-            $entityTypeId = 2;
-            $attributeCode = str_replace('BILLADD_', '', $attributeCode);
-        } else {
-            $entityTypeId = 1;
-        }
-        $attributeCode = $this->getConnection()->quoteInto($attributeCode);
-        $select = $this->getConnection()
-            ->select()
-            ->from($this->getTable('eav_attribute'), 'attribute_id')
-            ->where('attribute_code = ?', $attributeCode)
-            ->where('entity_type_id = ?', $entityTypeId);
-
-        $attributeId = $this->getConnection()->fetchOne($select);
-        if ($attributeId) {
-            return $attributeId;
-        } else {
-            return '';
-        }
-    }
-
-    /**
      * @param $magentoOptionId
      * @param $emarsysOptionId
      * @param $emarsysFieldId
@@ -214,5 +184,3 @@ class Field extends AbstractDb
         ];
     }
 }
-
-

@@ -1,29 +1,26 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
-use Magento\{
-    Framework\App\ObjectManager,
-    Framework\Model\ResourceModel\Db\AbstractDb,
-    Framework\Model\ResourceModel\Db\Context,
-    Eav\Model\Entity\Type,
-    Eav\Model\Entity\Attribute,
-    Framework\Stdlib\DateTime\DateTime,
-    Framework\Stdlib\DateTime\TimezoneInterface,
-    Customer\Model\CustomerFactory,
-    Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory,
-    Store\Model\StoreManagerInterface,
-    Framework\App\Config\ScopeConfigInterface
-};
+use Magento\Customer\Model\CustomerFactory;
+use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use Magento\Eav\Model\Entity\Attribute;
+use Magento\Eav\Model\Entity\Type;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\Context;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class Customer
- * @package Emarsys\Emarsys\Model\ResourceModel
  */
 class Customer extends AbstractDb
 {
@@ -71,12 +68,14 @@ class Customer extends AbstractDb
 
     /**
      * Date
+     *
      * @var DateTime
      */
     protected $dateTime;
 
     /**
      * Customer constructor.
+     *
      * @param Context $context
      * @param Type $entityType
      * @param Attribute $attribute
@@ -123,6 +122,7 @@ class Customer extends AbstractDb
 
     /**
      * Checking count of the mapping table
+     *
      * @param $storeId
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -139,12 +139,16 @@ class Customer extends AbstractDb
 
     /**
      * Truncate the mapping table
+     *
      * @param $storeId
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function truncateMappingTable($storeId)
     {
-        $this->getConnection()->delete($this->getMainTable(), $this->getConnection()->quoteInto('store_id = ?', $storeId));
+        $this->getConnection()->delete(
+            $this->getMainTable(),
+            $this->getConnection()->quoteInto('store_id = ?', $storeId)
+        );
     }
 
     /**
@@ -155,7 +159,8 @@ class Customer extends AbstractDb
      */
     public function deleteMapping($custMageId, $magentoAttributeId, $storeId)
     {
-        $this->getConnection()->delete($this->getMainTable(),
+        $this->getConnection()->delete(
+            $this->getMainTable(),
             $this->getConnection()->quoteInto('store_id = ?', $storeId)
             . $this->getConnection()->quoteInto(' AND magento_custom_attribute_id = ?', $custMageId)
             . $this->getConnection()->quoteInto(' AND magento_attribute_id = ?', $magentoAttributeId)
@@ -169,7 +174,10 @@ class Customer extends AbstractDb
      */
     public function updateCustomerSchema($contactFields = [], $storeId)
     {
-        $this->getConnection()->delete($this->getTable('emarsys_contact_field'), $this->getConnection()->quoteInto('store_id = ?', $storeId));
+        $this->getConnection()->delete(
+            $this->getTable('emarsys_contact_field'),
+            $this->getConnection()->quoteInto('store_id = ?', $storeId)
+        );
         if (isset($contactFields['data'])) {
             foreach ($contactFields['data'] as $field) {
                 $this->getConnection()->insert($this->getTable('emarsys_contact_field'), [
@@ -222,7 +230,10 @@ class Customer extends AbstractDb
             ->from(['main_table' => $this->getTable('eav_attribute')], 'main_table.attribute_id')
             ->join(
                 ['emca' => $this->getTable('emarsys_magento_customer_attributes')],
-                $this->getConnection()->quoteInto('emca.attribute_code = main_table.attribute_code AND emca.entity_type_id = ?',  $entityTypeId)
+                $this->getConnection()->quoteInto(
+                    'emca.attribute_code = main_table.attribute_code AND emca.entity_type_id = ?',
+                    $entityTypeId
+                )
                 . $this->getConnection()->quoteInto(' AND emca.attribute_code_custom = ?', $attributeCode)
                 . $this->getConnection()->quoteInto(' AND emca.store_id = ?', (int)$storeId),
                 []
@@ -281,7 +292,7 @@ class Customer extends AbstractDb
             'last_name' => 'lastname',
             'email' => 'email',
             'gender' => 'gender',
-            'birth_date' => 'dob'
+            'birth_date' => 'dob',
         ];
 
         foreach ($emarsysCodes as $emarsysCode => $magentoCode) {
@@ -365,7 +376,7 @@ class Customer extends AbstractDb
      * @param int|null $scopeId
      * @return array
      */
-    public function getDataFromCoreConfig($path, $scope = NULL, $scopeId = NULL)
+    public function getDataFromCoreConfig($path, $scope = null, $scopeId = null)
     {
         if ($scope && $scopeId) {
             return $this->scopeConfigInterface->getValue($path, $scope, $scopeId);
@@ -420,7 +431,7 @@ class Customer extends AbstractDb
     /**
      * get all customer based on website and date
      *
-     * @param type $data
+     * @param array $data
      * @param int|null $storeId
      * @param int $currentPageNumber
      * @return array
@@ -430,7 +441,7 @@ class Customer extends AbstractDb
         $customers = $this->customerCollection->create()
             ->addFieldToFilter('website_id', ['eq' => $data['website']]);
 
-        if (isset($data['fromDate']) &&  !empty($data['fromDate'])) {
+        if (isset($data['fromDate']) && !empty($data['fromDate'])) {
             date_default_timezone_set($this->_timezoneInterface->getConfigTimezone());
             $fromDateUTC = gmdate("Y-m-d H:i:s", strtotime($data['fromDate']));
             date_default_timezone_set($this->_timezoneInterface->getDefaultTimezone());
@@ -460,7 +471,8 @@ class Customer extends AbstractDb
 
     /**
      * Get collection of subscribed customer
-     * @param type $data
+     *
+     * @param array $data
      * @param $storeIds
      * @param $getAll
      * @return array
@@ -469,7 +481,10 @@ class Customer extends AbstractDb
     {
         $select = $this->getConnection()
             ->select()
-            ->from($this->getTable('newsletter_subscriber'), ['subscriber_id', 'subscriber_status', 'subscriber_email', 'store_id'])
+            ->from(
+                $this->getTable('newsletter_subscriber'),
+                ['subscriber_id', 'subscriber_status', 'subscriber_email', 'store_id']
+            )
             ->where('store_id in (?)', $storeIds);
 
         if (isset($data['attributevalue']) && $data['attributevalue'] != '') {
@@ -484,21 +499,6 @@ class Customer extends AbstractDb
     }
 
     /**
-     * @param $data
-     * @return string
-     */
-    public function getSubscribeIdFromEmail($data)
-    {
-        $select = $this->getConnection()
-            ->select()
-            ->from($this->getTable('newsletter_subscriber'), 'subscriber_id')
-            ->where('subscriber_email = ?', @$data['email'])
-            ->where('store_id = ?', @$data['store_id']);
-
-        return $this->getConnection()->fetchOne($select);
-    }
-
-    /**
      * @param int $status
      * @param array $subscriberIds
      *
@@ -510,7 +510,7 @@ class Customer extends AbstractDb
             $this->getTable('newsletter_subscriber'),
             [
                 'subscriber_status' => $status,
-                'change_status_at' => $this->dateTime->gmtDate()
+                'change_status_at' => $this->dateTime->gmtDate(),
             ],
             $this->getConnection()->quoteInto('subscriber_id in (?)', $subscriberIds)
         );
@@ -518,24 +518,7 @@ class Customer extends AbstractDb
 
     /**
      *
-     * @param string $email
-     * @param int $websiteId
-     * @return string
-     */
-    public function checkCustomerExistsInMagento($email, $websiteId)
-    {
-        $select = $this->getConnection()
-            ->select()
-            ->from($this->getTable('customer_entity'), 'entity_id')
-            ->where('email = ?', $email)
-            ->where('website_id = ?', $websiteId);
-
-        return $this->getConnection()->fetchOne($select);
-    }
-
-    /**
-     *
-     * @param type $storeId
+     * @param int $storeId
      * @return array
      */
     public function customerMappingExists($storeId)
@@ -550,8 +533,8 @@ class Customer extends AbstractDb
 
     /**
      *
-     * @param type $attributesData
-     * @param type $storeId
+     * @param array $attributesData
+     * @param int $storeId
      */
     public function insertCustomerMageAtts($attributesData, $storeId)
     {
@@ -566,48 +549,65 @@ class Customer extends AbstractDb
                         ->where('store_id = ?', $storeId);
 
                     if (empty($this->getConnection()->fetchOne($select))) {
-                        $this->getConnection()->insert($this->getTable('emarsys_magento_customer_attributes'), [
-                            'attribute_code' => $attribute['attribute_code'],
-                            'attribute_code_custom' => $attribute['attribute_code'],
-                            'frontend_label' => $attribute['frontend_label'],
-                            'entity_type_id' => $attribute['entity_type_id'],
-                            'store_id' => $storeId
-                        ]);
+                        $this->getConnection()->insert(
+                            $this->getTable('emarsys_magento_customer_attributes'),
+                            [
+                                'attribute_code' => $attribute['attribute_code'],
+                                'attribute_code_custom' => $attribute['attribute_code'],
+                                'frontend_label' => $attribute['frontend_label'],
+                                'entity_type_id' => $attribute['entity_type_id'],
+                                'store_id' => $storeId,
+                            ]
+                        );
                     }
                 } elseif ($attribute['entity_type_id'] == 2) {
                     // if the attributes are of customer address
                     $select = $this->getConnection()
                         ->select()
                         ->from($this->getTable('emarsys_magento_customer_attributes'), 'id')
-                        ->where('attribute_code_custom = ?', 'default_billing_' . $attribute['attribute_code'])
+                        ->where(
+                            'attribute_code_custom = ?',
+                            'default_billing_' . $attribute['attribute_code']
+                        )
                         ->where('entity_type_id = ?', $attribute['entity_type_id'])
                         ->where('store_id = ?', $storeId);
 
                     if (empty($this->getConnection()->fetchOne($select))) {
-                        $this->getConnection()->insert($this->getTable('emarsys_magento_customer_attributes'), [
-                            'attribute_code' => $attribute['attribute_code'],
-                            'attribute_code_custom' => 'default_billing_' . $attribute['attribute_code'],
-                            'frontend_label' => 'Default Billing ' . $attribute['frontend_label'] . '(' . $attribute['attribute_code'] . ')',
-                            'entity_type_id' => $attribute['entity_type_id'],
-                            'store_id' => $storeId
-                        ]);
+                        $this->getConnection()->insert(
+                            $this->getTable('emarsys_magento_customer_attributes'),
+                            [
+                                'attribute_code' => $attribute['attribute_code'],
+                                'attribute_code_custom' => 'default_billing_' . $attribute['attribute_code'],
+                                'frontend_label' => 'Default Billing '
+                                    . $attribute['frontend_label'] . '(' . $attribute['attribute_code'] . ')',
+                                'entity_type_id' => $attribute['entity_type_id'],
+                                'store_id' => $storeId,
+                            ]
+                        );
                     }
 
                     $select = $this->getConnection()
                         ->select()
                         ->from($this->getTable('emarsys_magento_customer_attributes'), 'id')
-                        ->where('attribute_code_custom = ?', 'default_shipping_' . $attribute['attribute_code'])
+                        ->where(
+                            'attribute_code_custom = ?',
+                            'default_shipping_' . $attribute['attribute_code']
+                        )
                         ->where('entity_type_id = ?', $attribute['entity_type_id'])
                         ->where('store_id = ?', $storeId);
 
                     if (empty($this->getConnection()->fetchOne($select))) {
-                        $this->getConnection()->insert($this->getTable('emarsys_magento_customer_attributes'), [
-                            'attribute_code' => $attribute['attribute_code'],
-                            'attribute_code_custom' => 'default_shipping_' . $attribute['attribute_code'],
-                            'frontend_label' => 'Default Shipping ' . $attribute['frontend_label'] . '(' . $attribute['attribute_code'] . ')',
-                            'entity_type_id' => $attribute['entity_type_id'],
-                            'store_id' => $storeId
-                        ]);
+                        $this->getConnection()->insert(
+                            $this->getTable('emarsys_magento_customer_attributes'),
+                            [
+                                'attribute_code' => $attribute['attribute_code'],
+                                'attribute_code_custom' => 'default_shipping_' . $attribute['attribute_code'],
+                                'frontend_label' => 'Default Shipping '
+                                    . $attribute['frontend_label'] . '(' . $attribute['attribute_code'] . ')',
+                                'entity_type_id' => $attribute['entity_type_id'],
+                                'store_id' => $storeId,
+                            ]
+                        );
                     }
                 }
             }
@@ -616,9 +616,9 @@ class Customer extends AbstractDb
 
     /**
      *
-     * @param type $attributeCode
-     * @param type $storeId
-     * @return array
+     * @param string $attributeCode
+     * @param int $storeId
+     * @return int
      */
     public function getCustAttIdByCode($attributeCode, $storeId)
     {
@@ -639,10 +639,14 @@ class Customer extends AbstractDb
      */
     public function getEmarsysFieldNameContact($attdata, $storeId)
     {
+        if ($attdata['emarsys_contact_field'] ?? null) {
+            return [];
+        }
+
         $select = $this->getConnection()
             ->select()
             ->from($this->getTable('emarsys_contact_field'))
-            ->where('emarsys_field_id = ?', @$attdata['emarsys_contact_field'])
+            ->where('emarsys_field_id = ?', $attdata['emarsys_contact_field'])
             ->where('store_id = ?', $storeId);
 
         return $this->getConnection()->fetchRow($select);
@@ -658,7 +662,10 @@ class Customer extends AbstractDb
     {
         $select = $this->getConnection()
             ->select()
-            ->from($this->getTable('emarsys_magento_customer_attributes'), ['attribute_code', 'attribute_code_custom', 'entity_type_id'])
+            ->from(
+                $this->getTable('emarsys_magento_customer_attributes'),
+                ['attribute_code', 'attribute_code_custom', 'entity_type_id']
+            )
             ->where('id = ?', $id)
             ->where('store_id = ?', $storeId);
 

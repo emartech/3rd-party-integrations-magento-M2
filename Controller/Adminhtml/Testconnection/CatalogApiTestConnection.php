@@ -1,21 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Testconnection;
 
+use Exception;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Config\Model\ResourceModel\Config;
 use Emarsys\Emarsys\Model\ApiExport;
 use Emarsys\Emarsys\Helper\Logs;
+use Zend_Http_Client_Exception;
+use Zend_Json;
 
-/**
- * Class CatalogApiTestConnection
- * @package Emarsys\Emarsys\Controller\Adminhtml\Testconnection
- */
 class CatalogApiTestConnection extends TestConnection
 {
     /**
@@ -53,7 +55,7 @@ class CatalogApiTestConnection extends TestConnection
         Config $config,
         ApiExport $apiExport,
         Logs $logsHelper
-    )  {
+    ) {
         $this->date = $date;
         $this->config = $config;
         $this->apiExport = $apiExport;
@@ -63,7 +65,10 @@ class CatalogApiTestConnection extends TestConnection
 
     /**
      * Emarsys test connection api credentials
-     * @return \Magento\Framework\App\ResponseInterface
+     *
+     * @throws FileSystemException
+     * @throws LocalizedException
+     * @throws Zend_Http_Client_Exception
      */
     public function execute()
     {
@@ -106,42 +111,75 @@ class CatalogApiTestConnection extends TestConnection
             if ($response['result'] == 1 || (in_array($response['status'], ['200', '400']))) {
                 try {
                     //save information in respected configuration.
-                    $this->config->saveConfig('emarsys_predict/catalog_api_settings/catalog_merchant_id', $merchantId, $scopeType, $scopeId);
-                    $this->config->saveConfig('emarsys_predict/catalog_api_settings/catalog_token', $token, $scopeType, $scopeId);
+                    $this->config->saveConfig(
+                        'emarsys_predict/catalog_api_settings/catalog_merchant_id',
+                        $merchantId,
+                        $scopeType,
+                        $scopeId
+                    );
+                    $this->config->saveConfig(
+                        'emarsys_predict/catalog_api_settings/catalog_token',
+                        $token,
+                        $scopeType,
+                        $scopeId
+                    );
 
-                    $logsArray['description'] = 'Catalog API Test Connection Successful. | ' . \Zend_Json::encode($response['resultBody']);
+                    $logsArray['description'] = 'Catalog API Test Connection Successful.'
+                        . ' | ' . Zend_Json::encode($response['resultBody']);
                     $logsArray['message_type'] = 'Success';
                     $logsArray['log_action'] = 'True';
                     $logsArray['status'] = 'success';
                     $logsArray['messages'] = 'Catalog Test Connection Completed';
                     $this->logsHelper->manualLogs($logsArray);
-                    $this->messageManager->addSuccessMessage('Catalog API Test Connection is successful.');
-                } catch (\Exception $e) {
-                    $logsArray['description'] = 'Catalog API Test Connection Failed Due to Error | ' . $e->getMessage();
+                    $this->messageManager->addSuccessMessage(
+                        __(
+                            'Catalog API Test Connection is successful.'
+                        )
+                    );
+                } catch (Exception $e) {
+                    $logsArray['description'] = 'Catalog API Test Connection Failed Due to Error | '
+                        . $e->getMessage();
                     $logsArray['message_type'] = 'Error';
                     $logsArray['log_action'] = 'True';
                     $logsArray['status'] = 'error';
                     $logsArray['messages'] = 'Catalog API Test Connection Failed.';
                     $this->logsHelper->manualLogs($logsArray);
-                    $this->messageManager->addErrorMessage('Catalog API Test Connection Failed. | ' . $e->getMessage());
+                    $this->messageManager->addErrorMessage(
+                        __(
+                            'Catalog API Test Connection Failed. | %1',
+                            $e->getMessage()
+                        )
+                    );
                 }
             } else {
-                $logsArray['description'] = 'Catalog API Test Connection Failed Due to Error. | ' . $response['resultBody'];
+                $logsArray['description'] = 'Catalog API Test Connection Failed Due to Error.'
+                    . ' | ' . $response['resultBody'];
                 $logsArray['message_type'] = 'Error';
                 $logsArray['log_action'] = 'True';
                 $logsArray['status'] = 'error';
-                $logsArray['messages'] = 'Catalog API Test Connection Failed. Please Check Credentials. | ' . $response['resultBody'];
+                $logsArray['messages'] = 'Catalog API Test Connection Failed. Please Check Credentials.'
+                    . ' | ' . $response['resultBody'];
                 $this->logsHelper->manualLogs($logsArray);
-                $this->messageManager->addErrorMessage('Catalog API Test Connection Failed. Please Check Credentials.');
+                $this->messageManager->addErrorMessage(
+                    __(
+                        'Catalog API Test Connection Failed. Please Check Credentials.'
+                    )
+                );
             }
         } else {
-            $logsArray['description'] = 'Catalog API Test Connection Failed Due to Invalid Credentials. Either Merchant Id or Token not Found. Please check and try again.';
+            $logsArray['description'] = 'Catalog API Test Connection Failed Due to Invalid Credentials.'
+                . ' Either Merchant Id or Token not Found. Please check and try again.';
             $logsArray['message_type'] = 'Error';
             $logsArray['log_action'] = 'True';
             $logsArray['status'] = 'error';
-            $logsArray['messages'] = 'Catalog API Test Connection Failed Due to Invalid Credentials. Either Merchant Id or Token not Found. Please check and try again.';
+            $logsArray['messages'] = 'Catalog API Test Connection Failed Due to Invalid Credentials.'
+                . ' Either Merchant Id or Token not Found. Please check and try again.';
             $this->logsHelper->manualLogs($logsArray);
-            $this->messageManager->addErrorMessage('Catalog API Test Connection Failed. Please enter the api credentials');
+            $this->messageManager->addErrorMessage(
+                __(
+                    'Catalog API Test Connection Failed. Please enter the api credentials'
+                )
+            );
         }
 
         $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());

@@ -1,26 +1,27 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Field;
 
-use Magento\Backend\App\Action;
-use Magento\Backend\App\Action\Context;
-use Magento\Framework\View\Result\PageFactory;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Helper\Logs;
 use Emarsys\Emarsys\Model\FieldFactory;
 use Emarsys\Emarsys\Model\ResourceModel\Field;
-use Emarsys\Emarsys\Helper\Logs;
-use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Exception;
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\View\Result\PageFactory;
 use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class Save
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Field
- */
 class Save extends Action
 {
     /**
@@ -29,7 +30,7 @@ class Save extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -59,12 +60,13 @@ class Save extends Action
     protected $logsHelper;
 
     /**
-     * @var DateTime 
+     * @var DateTime
      */
     protected $date;
 
     /**
      * Save constructor.
+     *
      * @param Context $context
      * @param FieldFactory $fieldFactory
      * @param Field $resourceModelField
@@ -96,16 +98,18 @@ class Save extends Action
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return Redirect
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
         $session = $this->session->getData();
-        if (isset($session['storeId'])) {
-            $storeId = $session['storeId'];
-        } else {
-            $storeId = $this->emarsysHelper->getFirstStoreId();
+        $storeId = false;
+        if (isset($session['store'])) {
+            $storeId = $session['store'];
         }
+        $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
         $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
         $resultRedirect = $this->resultRedirectFactory->create();
         try {
@@ -127,42 +131,23 @@ class Save extends Action
             }
             if (isset($gridSessionData) && $gridSessionData != '') {
                 foreach ($gridSessionData as $magentoOptionId => $emarsysFieldOption) {
-                    if ($emarsysFieldOption == '') {
+                    $modelColl = $model->getCollection()
+                        ->addFieldToFilter('magento_option_id', $magentoOptionId)
+                        ->addFieldToFilter('store_id', $storeId)
+                        ->getFirstItem();
+
+                    if (trim($emarsysFieldOption) == '') {
+                        $modelColl->delete();
                         continue;
                     }
 
-                    $emarsysField = explode('-', $emarsysFieldOption);
-                    $emarsysOptionId = $emarsysField[1];
-                    $emarsysFieldId = $emarsysField[0];
-                    $modelColl = $model->getCollection()
-                        ->addFieldToFilter('magento_option_id', $magentoOptionId)
-                        ->addFieldToFilter('store_id', $storeId);
-                    $modelCollData = $modelColl->getData();
+                    list($emarsysFieldId, $emarsysOptionId) = explode('-', $emarsysFieldOption);
 
-                    foreach ($modelCollData as $cols) {
-                        $colsValue = $cols['id'];
-                    }
-
-                    if (isset($colsValue)) {
-                        $model = $model->load($colsValue);
-                    }
-
-                    if (!empty($modelCollData)) {
-                        foreach ($modelColl as $model) {
-                            if (isset($emarsysOptionId)) {
-                                $model->setEmarsysOptionId($emarsysOptionId);
-                                $model->setEmarsysFieldId($emarsysFieldId);
-                            }
-                            $model->save();
-                        }
-                    } else {
-                        $model = $this->fieldFactory->create();
-                        $model->setEmarsysOptionId($emarsysOptionId);
-                        $model->setEmarsysFieldId($emarsysFieldId);
-                        $model->setMagentoOptionId($magentoOptionId);
-                        $model->setStoreId($storeId);
-                        $model->save();
-                    }
+                    $modelColl->setEmarsysOptionId(trim($emarsysOptionId));
+                    $modelColl->setEmarsysFieldId(trim($emarsysFieldId));
+                    $modelColl->setMagentoOptionId(trim($magentoOptionId));
+                    $modelColl->setStoreId($storeId);
+                    $modelColl->save();
                 }
             }
             $logId = $this->logsHelper->manualLogs($logsArray);
@@ -177,15 +162,15 @@ class Save extends Action
             $logsArray['status'] = 'success';
             $logsArray['messages'] = 'Save Customer Filed Mapping Successful';
             $this->logsHelper->manualLogs($logsArray);
-            $this->messageManager->addSuccessMessage('Customer-Field attributes mapped successfully');
-        } catch (\Exception $e) {
+            $this->messageManager->addSuccessMessage(__('Customer-Field attributes mapped successfully'));
+        } catch (Exception $e) {
             $this->emarsysHelper->addErrorLog(
                 'Customer Filed Mapping',
                 $e->getMessage(),
                 $storeId,
                 'Save (Customer Filed)'
             );
-            $this->messageManager->addErrorMessage('Error occurred while mapping Customer-Field');
+            $this->messageManager->addErrorMessage(__('Error occurred while mapping Customer-Field'));
         }
 
         return $resultRedirect->setRefererOrBaseUrl();

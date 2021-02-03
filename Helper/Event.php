@@ -1,27 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Helper;
 
-use Magento\{
-    Framework\App\Helper\AbstractHelper,
-    Framework\App\Helper\Context,
-    Store\Model\StoreManagerInterface  as StoreManager,
-    AdminNotification\Model\InboxFactory
-};
-use Emarsys\Emarsys\{
-    Model\ResourceModel\Event as EmarsysResourceModelEvent,
-    Model\EmarsyseventsFactory,
-    Helper\Data as EmarsysHelper,
-    Model\Api\Api as EmarsysModelApiApi
-};
+use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\StoreManagerInterface  as StoreManager;
+use Magento\AdminNotification\Model\InboxFactory;
+use Emarsys\Emarsys\Model\ResourceModel\Event as EmarsysResourceModelEvent;
+use Emarsys\Emarsys\Model\EmarsyseventsFactory;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Model\Api\Api as EmarsysModelApiApi;
 
 /**
  * Class Event
- * @package Emarsys\Emarsys\Helper
  */
 class Event extends AbstractHelper
 {
@@ -47,6 +43,7 @@ class Event extends AbstractHelper
 
     /**
      * Event constructor.
+     *
      * @param EmarsysHelper $emarsysHelper
      * @param EmarsysResourceModelEvent $resourceModelEvent
      * @param Context $context
@@ -140,11 +137,10 @@ class Event extends AbstractHelper
             );
         }
         return false;
-
     }
 
     /**
-     * @param $websiteId
+     * @param  $websiteId
      * @return array|bool
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -152,10 +148,8 @@ class Event extends AbstractHelper
     {
         $emarsysLocalIds = [];
         try {
-            $defaultStore = $this->storeManager->getWebsite($websiteId)->getDefaultStore();
-            if ($defaultStore) {
-                $defaultStore = $defaultStore->getId();
-            } else {
+            $defaultStore = $this->emarsysHelper->getFirstStoreIdOfWebsite($websiteId);
+            if (!$defaultStore) {
                 throw new \Exception(__('There is no default store selected for website id %1', $websiteId));
             }
             $emarsysContactFields = $this->resourceModelEvent->getEmarsysEvents($defaultStore);

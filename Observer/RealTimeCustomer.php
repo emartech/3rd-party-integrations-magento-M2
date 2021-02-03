@@ -1,29 +1,24 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Observer;
 
-use Magento\{
-    Customer\Model\CustomerFactory,
-    Framework\Event\Observer,
-    Framework\Event\ObserverInterface,
-    Framework\Registry,
-    Newsletter\Model\Subscriber,
-    Store\Model\StoreManagerInterface
-};
-use Emarsys\Emarsys\{
-    Model\Api\Contact,
-    Model\ResourceModel\Customer,
-    Helper\Data as EmarsysHelper
-};
+use Magento\Customer\Model\CustomerFactory;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Registry;
+use Magento\Newsletter\Model\Subscriber;
+use Magento\Store\Model\StoreManagerInterface;
+use Emarsys\Emarsys\Model\Api\Contact;
+use Emarsys\Emarsys\Model\ResourceModel\Customer;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 
 /**
  * Class RealTimeCustomer
- * @package Emarsys\Emarsys\Observer
  */
 class RealTimeCustomer implements ObserverInterface
 {
@@ -93,6 +88,8 @@ class RealTimeCustomer implements ObserverInterface
 
     /**
      * @param Observer $observer
+     * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function execute(Observer $observer)

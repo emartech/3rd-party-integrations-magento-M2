@@ -8,7 +8,6 @@
 
 namespace Emarsys\Emarsys\Model;
 
-
 class CreditmemoExport extends \Magento\Sales\Model\Order\Creditmemo
 {
     /**

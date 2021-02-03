@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Schedular
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Schedular
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer;
@@ -11,10 +11,6 @@ use Magento\Cron\Model\Schedule;
 use Magento\Framework\DataObject;
 use Magento\Backend\Block\Widget\Grid\Column\Renderer\AbstractRenderer;
 
-/**
- * Class StatusColor
- * @package Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer
- */
 class StatusColor extends AbstractRenderer
 {
     /**
@@ -23,7 +19,7 @@ class StatusColor extends AbstractRenderer
      */
     public function render(DataObject $row)
     {
-        $value =  $row->getData($this->getColumn()->getIndex());
+        $value = $row->getData($this->getColumn()->getIndex());
         switch ($value) {
             case Schedule::STATUS_PENDING:
                 $color = 'black';
@@ -35,8 +31,6 @@ class StatusColor extends AbstractRenderer
                 $color = 'green';
                 break;
             case Schedule::STATUS_MISSED:
-                $color = 'red';
-                break;
             case Schedule::STATUS_ERROR:
                 $color = 'red';
                 break;

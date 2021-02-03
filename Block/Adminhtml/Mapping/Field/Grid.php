@@ -1,33 +1,35 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Field;
 
+use Emarsys\Emarsys\Block\Adminhtml\Mapping\Field\Renderer\FieldOption;
 use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Exception;
 use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Grid\Extended;
 use Magento\Backend\Helper\Data;
+use Magento\Backend\Model\Session;
 use Magento\Eav\Model\Entity\Type;
 use Magento\Eav\Model\Entity\Attribute\Option;
+use Magento\Framework\Data\Collection;
+use Magento\Framework\Exception\LocalizedException;
 
-/**
- * Class Grid
- * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Field
- */
-class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
+class Grid extends Extended
 {
     /**
      * Collection object
      *
-     * @var \Magento\Framework\Data\Collection
+     * @var Collection
      */
     protected $_collection;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -79,15 +81,14 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
 
     /**
      * @return void
+     * @throws LocalizedException
      */
     protected function _construct()
     {
         parent::_construct();
-        $this->session->setData('gridData', '');
+        $this->session->setData('gridData', []);
         $storeId = $this->getRequest()->getParam('store');
-        if (!$storeId) {
-            $storeId = $this->emarsysHelper->getFirstStoreId();
-        }
+        $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
         $this->session->setData('store', $storeId);
     }
 
@@ -136,7 +137,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      * Initialize grid columns
      *
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     protected function _prepareColumns()
     {
@@ -148,15 +149,15 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
                 'index' => 'value',
                 'header_css_class' => 'col-id',
                 'column_css_class' => 'col-id',
-                'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Mapping\Field\Renderer\Option',
+                'renderer' => Renderer\Option::class,
             ]
         );
         $this->addColumn(
             'emarsys_contact_header',
             [
                 'header' => __('Emarsys Fields'),
-                'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Mapping\Field\Renderer\FieldOption',
-                'filter' => false
+                'renderer' => FieldOption::class,
+                'filter' => false,
             ]
         );
 
@@ -164,7 +165,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     }
 
     /**
-     * @param $row
+     * @param  $row
      * @return string
      */
     public function getRowUrl($row)

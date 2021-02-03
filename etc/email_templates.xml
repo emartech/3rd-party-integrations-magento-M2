@@ -1,18 +1,15 @@
 <?xml version="1.0"?>
 <!--
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
-    <template id="emarsys_log_cleaning_template" label="Archive File Email" file="emarsys_log_cleaning.html" type="html"
+    <template id="emarsys_error_log_email_template" label="Error Email" file="error_log_email.html" type="html"
               module="Emarsys_Emarsys" area="adminhtml"/>
-    <template id="emarsys_log_cleaning_error_template" label="Archive File Error Email"
-              file="emarsys_log_error_cleaning.html" type="html" module="Emarsys_Emarsys" area="adminhtml"/>
-    <template id="error_log_email_template" label="Error Email" file="error_log_email.html" type="html"
+    <template id="emarsys_help_email_template_id" label="Emarsys Support Email" file="support_email_template.html" type="html"
               module="Emarsys_Emarsys" area="adminhtml"/>
-    <template id="help_email_template_id" label="Emarsys Support Email" file="support_email_template.html" type="html" module="Emarsys_Emarsys" area="adminhtml"/>
 </config>

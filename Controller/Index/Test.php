@@ -4,16 +4,20 @@ namespace Emarsys\Emarsys\Controller\Index;
 
 use Magento\Framework\App\Action\Context;
 
-class Test extends \Magento\Framework\App\Action\Action
+use Magento\Framework\App\Action\Action;
+use Emarsys\Emarsys\Helper\Event;
+
+class Test extends Action
 {
     /**
      * Test constructor.
+     *
      * @param Context $context
-     * @param \Emarsys\Emarsys\Helper\Event $eventHelper
+     * @param Event $eventHelper
      */
     public function __construct(
         Context $context,
-        \Emarsys\Emarsys\Helper\Event $eventHelper
+        Event $eventHelper
     ) {
         parent::__construct($context);
         $this->eventHelper = $eventHelper;

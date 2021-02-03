@@ -1,28 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Observer;
 
-use Magento\{
-    Framework\Event\ObserverInterface,
-    Framework\Event\Observer,
-    Framework\Registry,
-    Store\Model\StoreManagerInterface,
-    Customer\Model\CustomerFactory
-};
-use Emarsys\Emarsys\{
-    Helper\Data as EmarsysHelper,
-    Model\Api\Contact,
-    Model\ResourceModel\Customer
-};
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Registry;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Customer\Model\CustomerFactory;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Model\Api\Contact;
+use Emarsys\Emarsys\Model\ResourceModel\Customer;
 
 /**
  * Class AfterAddressSaveObserver
- * @package Emarsys\Emarsys\Observer
  */
 class AfterAddressSaveObserver implements ObserverInterface
 {
@@ -90,12 +85,20 @@ class AfterAddressSaveObserver implements ObserverInterface
     {
         try {
             /** @var $customerAddress Address */
-            $customerAddress = $observer->getCustomerAddress();
+            $customerAddress = $observer->getEvent()->getCustomerAddress();
+            if (!$customerAddress) {
+                return;
+            }
             $customer = $customerAddress->getCustomer();
             $customerObj = $this->customerFactory->create()->load($customer->getId());
 
             $customerId = $customerObj->getEntityId();
             $websiteId = $customerObj->getWebsiteId();
+
+            if (!$this->emarsysHelper->isContactsSynchronizationEnable($websiteId)) {
+                return;
+            }
+
             $defaultBillingId = $customerObj->getDefaultBilling();
             $defaultShippingId = $customerObj->getDefaultShipping();
 
@@ -103,10 +106,6 @@ class AfterAddressSaveObserver implements ObserverInterface
                 if (!in_array($customerAddress->getId(), [$defaultBillingId, $defaultShippingId])) {
                     return;
                 }
-            }
-
-            if (!$this->emarsysHelper->isContactsSynchronizationEnable($websiteId)) {
-                return;
             }
 
             $storeId = $customerObj->getStoreId();

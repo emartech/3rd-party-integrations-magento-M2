@@ -1,16 +1,12 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Schedular
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Schedular
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Cron;
 
-/**
- * Class Grid
- * @package Emarsys\Emarsys\Block\Adminhtml\Cron
- */
 class Grid extends \Magento\Backend\Block\Template
 {
     protected $_template = 'cron/grid.phtml';
@@ -23,7 +19,7 @@ class Grid extends \Magento\Backend\Block\Template
         \Magento\Backend\Block\Widget\Context $context,
         $data = []
     ) {
-    
+
         parent::__construct($context, $data);
     }
 
@@ -35,13 +31,17 @@ class Grid extends \Magento\Backend\Block\Template
     {
         $this->setChild(
             'grid',
-            $this->getLayout()->createBlock('Emarsys\Emarsys\Block\Adminhtml\Cron', 'emarsys.categorylogs.grid')
+            $this->getLayout()->createBlock(
+                \Emarsys\Emarsys\Block\Adminhtml\Cron::class,
+                'emarsys.categorylogs.grid'
+            )
         );
         return parent::_prepareLayout();
     }
 
     /**
      * Render grid
+     *
      * @return string
      */
     public function getGridHtml()

@@ -1,101 +1,88 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Helper;
 
-use Magento\{
-    Framework\App\Filesystem\DirectoryList,
-    Framework\App\Helper\AbstractHelper,
-    Framework\App\Helper\Context,
-    Framework\App\ProductMetadataInterface,
-    Framework\Exception\FileSystemException,
-    Framework\Exception\LocalizedException,
-    Framework\Exception\NoSuchEntityException,
-    Framework\Filesystem\Io\File as FilesystemIoFile,
-    Framework\Filesystem\Io\Ftp,
-    Framework\Stdlib\DateTime\DateTime,
-    Framework\Stdlib\DateTime\Timezone,
-    Framework\Module\ModuleListInterface,
-    Framework\UrlInterface,
-    Store\Api\Data\StoreInterface,
-    Store\Api\Data\WebsiteInterface,
-    Store\Model\StoreManagerInterface,
-    Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory,
-    Store\Model\ScopeInterface,
-    Newsletter\Model\ResourceModel\Subscriber\CollectionFactory as SubscriberCollectionFactory,
-    Newsletter\Model\Subscriber,
-    Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as ProductCollectionFactory,
-    Email\Model\TemplateFactory as EmailTemplateFactory,
-    Backend\Model\Session as BackendSession,
-    Store\Model\Website
-};
+use Emarsys\Emarsys\Controller\Adminhtml\Email\Template as ControllerTemplate;
+use Emarsys\Emarsys\Helper\Logs as EmarsysHelperLogs;
+use Emarsys\Emarsys\Model\Api\Api as EmarsysApiApi;
+use Emarsys\Emarsys\Model\EmarsyseventmappingFactory as EmarsysEventMappingFactory;
+use Emarsys\Emarsys\Model\Emarsysevents;
+use Emarsys\Emarsys\Model\EmarsyseventsFactory;
+use Emarsys\Emarsys\Model\Logs as EmarsysModelLogs;
+use Emarsys\Emarsys\Model\PlaceholdersFactory;
+use Emarsys\Emarsys\Model\Queue;
+use Emarsys\Emarsys\Model\QueueFactory as EmarsysQueueFactory;
+use Emarsys\Emarsys\Model\ResourceModel\Customer as ModelResourceModelCustomer;
+use Emarsys\Emarsys\Model\ResourceModel\Emarsysevents\CollectionFactory as EmarsyseventsCollectionFactory;
+use Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory;
+use Emarsys\Emarsys\Model\ResourceModel\Event as ModelResourceModelEvent;
+use Magento\Backend\Model\Session as BackendSession;
+use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as ProductCollectionFactory;
+use Magento\Email\Model\TemplateFactory as EmailTemplateFactory;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
-use Emarsys\Emarsys\{
-    Model\ResourceModel\Customer as ModelResourceModelCustomer,
-    Model\Queue,
-    Model\QueueFactory as EmarsysQueueFactory,
-    Model\ResourceModel\Emarsysmagentoevents\CollectionFactory,
-    Model\PlaceholdersFactory,
-    Model\EmarsyseventmappingFactory as EmarsysEventMappingFactory,
-    Model\ResourceModel\Emarsysevents\CollectionFactory as EmarsyseventsCollectionFactory,
-    Model\Api as EmarsysApi,
-    Model\Emarsysevents,
-    Model\ResourceModel\Event as ModelResourceModelEvent,
-    Model\EmarsyseventsFactory,
-    Model\Api\Api as EmarsysApiApi,
-    Model\Logs as EmarsysModelLogs,
-    Helper\Logs as EmarsysHelperLogs,
-    Controller\Adminhtml\Email\Template
-};
+use Magento\Framework\Filesystem\Io\File as FilesystemIoFile;
+use Magento\Framework\Filesystem\Io\Ftp;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\Stdlib\DateTime\Timezone;
+use Magento\Framework\UrlInterface;
+use Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory as SubscriberCollectionFactory;
+use Magento\Newsletter\Model\Subscriber;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Api\Data\WebsiteInterface;
+use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\Website;
 use Zend_Json;
 
-/**
- * Class Data
- *
- * @package Emarsys\Emarsys\Helper
- */
 class Data extends AbstractHelper
 {
+    const VERSION = '1.0.30';
+
     const EMARSYS_CDN_API_URL = 'https://api-cdn.emarsys.net/api/v2/';
 
     const EMARSYS_DEFAULT_API_URL = 'https://api.emarsys.net/api/v2/';
 
     //XML Path of Emarsys Credentials
-    const XPATH_EMARSYS_ENABLED = 'emarsys_settings/emarsys_setting/enable';
+    const XPATH_EMARSYS_ENABLED = 'emartech/emarsys_setting/enable';
 
-    const XPATH_EMARSYS_API_ENDPOINT = 'emarsys_settings/emarsys_setting/emarsys_api_endpoint';
+    const XPATH_EMARSYS_API_ENDPOINT = 'emartech/emarsys_setting/emarsys_api_endpoint';
 
-    const XPATH_EMARSYS_CUSTOM_URL = 'emarsys_settings/emarsys_setting/emarsys_custom_url';
+    const XPATH_EMARSYS_CUSTOM_URL = 'emartech/emarsys_setting/emarsys_custom_url';
 
-    const XPATH_EMARSYS_API_USER = 'emarsys_settings/emarsys_setting/emarsys_api_username';
+    const XPATH_EMARSYS_API_USER = 'emartech/emarsys_setting/emarsys_api_username';
 
-    const XPATH_EMARSYS_API_PASS = 'emarsys_settings/emarsys_setting/emarsys_api_password';
+    const XPATH_EMARSYS_API_PASS = 'emartech/emarsys_setting/emarsys_api_password';
 
-    //XML Path of Webdav Credentials
-    const XPATH_WEBDAV_URL = 'emarsys_settings/webdav_setting/webdav_url';
-
-    const XPATH_WEBDAV_USER = 'emarsys_settings/webdav_setting/webdav_user';
-
-    const XPATH_WEBDAV_PASSWORD = 'emarsys_settings/webdav_setting/webdav_password';
+    const XPATH_EMARSYS_ASYNC_ENABLE = 'emartech/async/enable';
 
     //XML Path of FTP Credentials
-    const XPATH_EMARSYS_FTP_HOSTNAME = 'emarsys_settings/ftp_settings/hostname';
+    const XPATH_EMARSYS_FTP_HOSTNAME = 'emartech/ftp_settings/hostname';
 
-    const XPATH_EMARSYS_FTP_PORT = 'emarsys_settings/ftp_settings/port';
+    const XPATH_EMARSYS_FTP_PORT = 'emartech/ftp_settings/port';
 
-    const XPATH_EMARSYS_FTP_USERNAME = 'emarsys_settings/ftp_settings/username';
+    const XPATH_EMARSYS_FTP_USERNAME = 'emartech/ftp_settings/username';
 
-    const XPATH_EMARSYS_FTP_PASSWORD = 'emarsys_settings/ftp_settings/ftp_password';
+    const XPATH_EMARSYS_FTP_PASSWORD = 'emartech/ftp_settings/ftp_password';
 
-    const XPATH_EMARSYS_FTP_BULK_EXPORT_DIR = 'emarsys_settings/ftp_settings/ftp_bulk_export_dir';
+    const XPATH_EMARSYS_FTP_BULK_EXPORT_DIR = 'emartech/ftp_settings/ftp_bulk_export_dir';
 
-    const XPATH_EMARSYS_FTP_USEFTP_OVER_SSL = 'emarsys_settings/ftp_settings/useftp_overssl';
+    const XPATH_EMARSYS_FTP_USEFTP_OVER_SSL = 'emartech/ftp_settings/useftp_overssl';
 
-    const XPATH_EMARSYS_FTP_USE_PASSIVE_MODE = 'emarsys_settings/ftp_settings/usepassive_mode';
+    const XPATH_EMARSYS_FTP_USE_PASSIVE_MODE = 'emartech/ftp_settings/usepassive_mode';
 
     //Contacts Synchronization
     const XPATH_EMARSYS_ENABLE_CONTACT_FEED = 'contacts_synchronization/enable/contact_feed';
@@ -104,14 +91,12 @@ class Data extends AbstractHelper
 
     const XPATH_EMARSYS_BACKGROUND_RUNTIME = 'contacts_synchronization/emarsys_emarsys/background_runtime';
 
-    const XPATH_EMARSYS_UNIQUE_FIELD = 'contacts_synchronization/emarsys_emarsys/unique_field';
-
     //Opt In Settings
     const XPATH_OPTIN_ENABLED = 'opt_in/optin_enable/enable_optin';
 
     const XPATH_OPTIN_EVERYPAGE_STRATEGY = 'opt_in/optin_enable/opt_in_strategy';
 
-    const XPATH_OPTIN_SUBSCRIPTION_CHECKOUT_PROCESS = 'opt_in/subscription_checkout_process/newsletter_sub_checkout_yes_no';
+    const XPATH_OPTIN_SUBSCRIPTION_CHECKOUT = 'opt_in/subscription_checkout_process/newsletter_sub_checkout_yes_no';
 
     //Smart Insight
     const XPATH_SMARTINSIGHT_ENABLED = 'smart_insight/smart_insight/smartinsight_enabled';
@@ -178,8 +163,6 @@ class Data extends AbstractHelper
     const XPATH_WEBEXTEND_USE_BASE_CURRENCY = 'web_extend/javascript_tracking/use_base_currency';
 
     const XPATH_WEBEXTEND_INCLUDE_TAX = 'web_extend/javascript_tracking/tax_included';
-
-    const XPATH_WEBEXTEND_AJAXUPDATE = 'web_extend/javascript_tracking/ajaxupdate';
 
     const ENTITY_EXPORT_MODE_AUTOMATIC = 'Automatic';
 
@@ -254,7 +237,7 @@ class Data extends AbstractHelper
     protected $emarsysEventPlaceholderMappingFactory;
 
     /**
-     * @var Template
+     * @var ControllerTemplate
      */
     protected $emailTemplate;
 
@@ -302,11 +285,6 @@ class Data extends AbstractHelper
      * @var EmarsysApiApi
      */
     protected $api;
-
-    /**
-     * @var EmarsysApi
-     */
-    protected $modelApi;
 
     /**
      * @var StoreCollectionFactory
@@ -369,6 +347,11 @@ class Data extends AbstractHelper
     protected $_emarsysApiUrl = 'https://trunk-int.s.emarsys.com/api/v2/';
 
     /**
+     * @var array
+     */
+    protected $_websites = [];
+
+    /**
      * Data constructor.
      *
      * @param Context $context
@@ -382,11 +365,10 @@ class Data extends AbstractHelper
      * @param EmarsysQueueFactory $queueModelColl
      * @param CollectionFactory $magentoEventsCollection
      * @param PlaceholdersFactory $emarsysEventPlaceholderMappingFactory
-     * @param Template $emailTemplate
+     * @param ControllerTemplate $emailTemplate
      * @param ProductCollectionFactory $magentoProductAttributeColl
      * @param EmarsysEventMappingFactory $emarsysEventMapping
      * @param EmarsyseventsCollectionFactory $emarsysEventCollectionFactory
-     * @param EmarsysApi $modelApi
      * @param Emarsysevents $emarsysEventsModel
      * @param ModelResourceModelEvent $eventsResourceModel
      * @param EmailTemplateFactory $templateFactory
@@ -411,11 +393,10 @@ class Data extends AbstractHelper
         EmarsysQueueFactory $queueModelColl,
         CollectionFactory $magentoEventsCollection,
         PlaceholdersFactory $emarsysEventPlaceholderMappingFactory,
-        Template $emailTemplate,
+        ControllerTemplate $emailTemplate,
         ProductCollectionFactory $magentoProductAttributeColl,
         EmarsysEventMappingFactory $emarsysEventMapping,
         EmarsyseventsCollectionFactory $emarsysEventCollectionFactory,
-        EmarsysApi $modelApi,
         Emarsysevents $emarsysEventsModel,
         ModelResourceModelEvent $eventsResourceModel,
         EmailTemplateFactory $templateFactory,
@@ -452,7 +433,6 @@ class Data extends AbstractHelper
         $this->templateFactory = $templateFactory;
         $this->emarsysEventsModelFactory = $emarsysEventsModelFactory;
         $this->api = $api;
-        $this->modelApi = $modelApi;
         $this->storeCollection = $storeCollection;
         $this->moduleListInterface = $moduleListInterface;
         $this->newsLetterCollectionFactory = $newsLetterCollectionFactory;
@@ -475,12 +455,12 @@ class Data extends AbstractHelper
 
     /**
      * @param null|int $storeId
-     * @return bool
+     * @return string
      * @throws NoSuchEntityException
      */
     public function getUniqueIdentifier($storeId = null)
     {
-        return (bool)$this->storeManager->getStore($storeId)->getConfig(self::XPATH_WEBEXTEND_UNIQUE_ID);
+        return $this->storeManager->getStore($storeId)->getConfig(self::XPATH_WEBEXTEND_UNIQUE_ID);
     }
 
     /**
@@ -504,14 +484,13 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param null|int $storeId
      * @return bool
+     * @throws NoSuchEntityException
      */
-    public function isAjaxUpdateEnabled()
+    public function isAsyncEnabled($storeId = null)
     {
-        return (bool)$this->scopeConfig->getValue(
-            self::XPATH_WEBEXTEND_AJAXUPDATE,
-            ScopeInterface::SCOPE_STORE
-        );
+        return (bool)$this->storeManager->getStore($storeId)->getConfig(self::XPATH_EMARSYS_ASYNC_ENABLE);
     }
 
     /**
@@ -554,23 +533,9 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return EmarsysApi
-     */
-    public function getClient()
-    {
-        $this->modelApi->setParams([
-            'api_url' => $this->_emarsysApiUrl,
-            'api_username' => $this->_username,
-            'api_password' => $this->_secret,
-        ]);
-
-        return $this->modelApi;
-    }
-
-    /**
      * Get Emarsys API Details
      *
-     * @param type $storeId
+     * @param int $storeId
      * @throws NoSuchEntityException
      */
     public function getEmarsysAPIDetails($storeId)
@@ -755,20 +720,44 @@ class Data extends AbstractHelper
 
             $pi = preg_replace(
                 [
-                    '#^.*<body>(.*)</body>.*$#m', '#<h2>PHP License</h2>.*$#ms',
-                    '#<h1>Configuration</h1>#', "#\r?\n#", "#</(h1|h2|h3|tr)>#", '# +<#',
-                    "#[ \t]+#", '#&nbsp;#', '#  +#', '# class=".*?"#', '%&#039;%',
+                    '#^.*<body>(.*)</body>.*$#m',
+                    '#<h2>PHP License</h2>.*$#ms',
+                    '#<h1>Configuration</h1>#',
+                    "#\r?\n#",
+                    "#</(h1|h2|h3|tr)>#",
+                    '# +<#',
+                    "#[ \t]+#",
+                    '#&nbsp;#',
+                    '#  +#',
+                    '# class=".*?"#',
+                    '%&#039;%',
                     '#<tr>(?:.*?)" src="(?:.*?)=(.*?)" alt="PHP Logo" /></a><h1>PHP Version (.*?)</h1>(?:\n+?)</td></tr>#',
                     '#<h1><a href="(?:.*?)\?=(.*?)">PHP Credits</a></h1>#',
                     '#<tr>(?:.*?)" src="(?:.*?)=(.*?)"(?:.*?)Zend Engine (.*?),(?:.*?)</tr>#',
-                    "# +#", '#<tr>#', '#</tr>#'],
+                    "# +#",
+                    '#<tr>#',
+                    '#</tr>#',
+                ],
                 [
-                    '$1', '', '', '', '</$1>' . "\n", '<', ' ', ' ', ' ', '', ' ',
+                    '$1',
+                    '',
+                    '',
+                    '',
+                    '</$1>' . "\n",
+                    '<',
+                    ' ',
+                    ' ',
+                    ' ',
+                    '',
+                    ' ',
                     '<h2>PHP Configuration</h2>' . "\n" . '<tr><td>PHP Version</td><td>$2</td></tr>' .
                     "\n" . '<tr><td>PHP Egg</td><td>$1</td></tr>',
                     '<tr><td>PHP Credits Egg</td><td>$1</td></tr>',
                     '<tr><td>Zend Engine</td><td>$2</td></tr>' . "\n" .
-                    '<tr><td>Zend Egg</td><td>$1</td></tr>', ' ', '%S%', '%E%',
+                    '<tr><td>Zend Egg</td><td>$1</td></tr>',
+                    ' ',
+                    '%S%',
+                    '%E%',
                 ],
                 ob_get_clean()
             );
@@ -805,7 +794,7 @@ class Data extends AbstractHelper
     public function getPhpSettings()
     {
         return [
-            'max_execution_time' => @ini_get('max_execution_time'),
+            'max_execution_time' => ini_get('max_execution_time'),
             'phpinfo' => $this->getPhpInfoArray(),
         ];
     }
@@ -815,7 +804,7 @@ class Data extends AbstractHelper
      */
     public function getPhpVersion()
     {
-        $phpVersion = @phpversion();
+        $phpVersion = phpversion();
         $array = explode("-", $phpVersion);
         return $array[0];
     }
@@ -842,13 +831,11 @@ class Data extends AbstractHelper
      */
     public function getRequirementsInfo($storeId = null)
     {
-        if ($storeId) {
-            $storeID = $storeId;
-        } else {
-            $storeID = $this->storeManager->getStore()->getId();
+        if (!$storeId) {
+            $storeId = $this->storeManager->getStore()->getId();
         }
-        $websiteId = $this->storeManager->getStore($storeID)->getWebsiteId();
-        $aggregatePortStatus = $this->openPortStatus($storeID);
+        $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
+        $aggregatePortStatus = $this->openPortStatus($storeId);
         $smartInsightStatus = $this->getCheckSmartInsight($websiteId);
         $smartInsight = $smartInsightStatus ? 'Enable' : 'Disable';
         $emarsysStatus = $this->getEmarsysConnectionSetting($websiteId);
@@ -906,7 +893,7 @@ class Data extends AbstractHelper
                 'title' => 'Emarsys Extension Version',
                 'condition' => [
                     'sign' => '>=',
-                    'value' => '1.0.12',
+                    'value' => self::VERSION,
                 ],
                 'current' => [
                     'value' => $this->getEmarsysVersion(),
@@ -998,20 +985,13 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $storeID
+     * @param $storeId
      * @return string
      * @throws NoSuchEntityException
      */
-    public function openPortStatus($storeID)
+    public function openPortStatus($storeId)
     {
-        $websiteId = $this->storeManager->getStore($storeID)->getWebsiteId();
-        $scope = ScopeInterface::SCOPE_WEBSITES;
-
-        if ($scope && $websiteId) {
-            $host = $this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_FTP_HOSTNAME, $scope, $websiteId);
-        } else {
-            $host = $this->scopeConfigInterface->getValue(self::XPATH_EMARSYS_FTP_HOSTNAME);
-        }
+        $host = $this->storeManager->getStore($storeId)->getConfig(self::XPATH_EMARSYS_FTP_HOSTNAME);
 
         $ports = [21, rand(32000, 32500), rand(32000, 32500)];
         $portStatus = [];
@@ -1019,12 +999,15 @@ class Data extends AbstractHelper
             $errno = null;
             $errstr = null;
 
-            $connection = @fsockopen($host, $port, $errno, $errstr);
-
-            if (is_resource($connection)) {
-                $portStatus[] = 'open';
-                fclose($connection);
-            } else {
+            try {
+                $connection = fsockopen($host, $port, $errno, $errstr);
+                if (is_resource($connection)) {
+                    $portStatus[] = 'open';
+                    fclose($connection);
+                } else {
+                    $portStatus[] = 'closed';
+                }
+            } catch (\Exception $e) {
                 $portStatus[] = 'closed';
             }
         }
@@ -1052,11 +1035,11 @@ class Data extends AbstractHelper
         $queueColl->addFieldToFilter('entity_id', $customerId);
         $queueColl->addFieldToFilter('website_id', $websiteId);
 
-        if (($queueColl->getSize() > 0) && $queueColl->getData() && isset($queueColl->getData()[0])) {
-            $data = $queueColl->getData()[0];
-            $queueModel->load($data['id']);
+        if ($queueColl->getSize()) {
+            $data = $queueColl->getFirstItem();
+            $queueModel->load($data->getId());
             if ($cron == 1) {
-                $queueModel->setHitCount($data['hit_count'] + 1);
+                $queueModel->setHitCount($data->getHitCount() + 1);
             } else {
                 $queueModel->setHitCount(0);
             }
@@ -1087,8 +1070,7 @@ class Data extends AbstractHelper
         $queueColl->addFieldToFilter('website_id', $websiteId);
 
         if ($queueColl->getSize() > 0) {
-            $data = $queueColl->getData()[0];
-            $queueModel->load($data['id']);
+            $queueModel->load($queueColl->getFirstItem()->getId());
             $queueModel->delete();
         }
     }
@@ -1096,91 +1078,97 @@ class Data extends AbstractHelper
     /**
      * @param $mappingId
      * @param $storeId
-     * @return string
+     * @return array
      * @throws \Exception
      */
     public function insertFirstTimeMappingPlaceholders($mappingId, $storeId)
     {
-        $magentoPlaceholderarray = [];
+        $store = $this->storeManager->getStore($storeId);
+        $return = [];
+        $magentoPlaceholderArray = [];
+        $value = '';
         $emarsysEventMappingColl = $this->emarsysEventMapping->create()->getCollection()
-            ->addFieldToFilter('id', $mappingId);
-        $magentoEventColl = $this->magentoEventsCollection->create()
-            ->addFieldToFilter('id', $emarsysEventMappingColl->getData()[0]['magento_event_id']);
-        $value = $this->scopeConfigInterface->getValue($magentoEventColl->getData()[0]['config_path'], 'default', 0);
+            ->addFieldToFilter('magento_event_id', $mappingId)
+            ->addFieldToFilter('store_id', $storeId);
+        $emarsysEventMappingItem = $emarsysEventMappingColl->getFirstItem();
 
-        if ($value == "") {
-            return '';
+        if ($emarsysEventMappingItem->getMagentoEventId()) {
+            $magentoEventColl = $this->magentoEventsCollection->create()
+                ->addFieldToFilter('id', $emarsysEventMappingItem->getMagentoEventId());
+            $magentoEventItem = $magentoEventColl->getFirstItem();
+            $value = $store->getConfig($magentoEventItem->getConfigPath());
+        }
+
+        if (empty($value)) {
+            return $return;
         }
         if (is_numeric($value)) {
             $emailTemplateModelColl = $this->templateFactory->create()->getCollection()
                 ->addFieldToFilter('template_id', $value);
-            $emailText = $emailTemplateModelColl->getData()[0]['template_text'];
+            $emailText = $emailTemplateModelColl->getFirstItem()->getTemplateText();
         } else {
             $template = $this->emailTemplate->initTemplate('id');
-            $templateId = $value;
-            $template->setForcedArea($templateId);
-            $template->loadDefault($templateId);
-            $emailText = $template->getData()['template_text'];
+            $template->setForcedArea($value);
+            $template->loadDefault($value);
+            $emailText = $template->getTemplateText();
         }
 
-        $array = [];
-        $i = 0;
         while ($variable = $this->substringBetween($emailText)) {
             $emailText = str_replace($variable, '', $emailText);
-            $emarsysVariable = $this->getPlaceholderName($variable);
 
-            if (!strstr($variable, '{{trans')) {
-                $emarsysVariable = $this->getPlaceholderName($variable);
-            }
-
-            if (strstr($variable, '{{trans')) {
+            if (strstr($variable, '{{/depend')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
-
-            if (strstr($variable, '{{depend')) {
-                $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
-            }
-
             if (strstr($variable, '{{/if')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
-
             if (strstr($variable, '{{template config_path')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
-
+            if (strstr($variable, '{{depend')) {
+                $variable = $this->substringBetweenTransVar($variable);
+            }
             if (strstr($variable, '{{if')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
+            }
+            if (strstr($variable, '{{else')) {
+                $variable = $this->substringBetweenTransVar($variable);
+            }
+            if (strstr($variable, '{{inlinecss')) {
+                $variable = $this->substringBetweenTransVar($variable);
+            }
+            if (strstr($variable, '{{css')) {
+                $variable = $this->substringBetweenTransVar($variable);
             }
 
-            if (!empty($emarsysVariable)) {
-                $array[$i]["event_mapping_id"] = $mappingId;
-                $array[$i]["magento_placeholder_name"] = $variable;
-                $array[$i]["emarsys_placeholder_name"] = $emarsysVariable;
-                $array[$i]["store_id"] = $storeId;
-                $i++;
+            if (!empty($variable)) {
+                $name = $variable;
+                if (strstr($name, '{{trans')) {
+                    $name = $this->substringBetweenTransVar($name);
+                }
+                if (empty($name)) {
+                    continue;
+                }
+                if (in_array($variable, $magentoPlaceholderArray)) {
+                    continue;
+                }
+                $placeholderModel = $this->emarsysEventPlaceholderMappingFactory->create()->getCollection()
+                    ->addFieldToFilter('event_mapping_id', $mappingId)
+                    ->addFieldToFilter('store_id', $storeId)
+                    ->addFieldToFilter('magento_placeholder_name', $variable)
+                    ->getFirstItem();
+
+                $placeholderModel->setEventMappingId($mappingId);
+                $placeholderModel->setMagentoPlaceholderName($variable);
+                $placeholderModel->setEmarsysPlaceholderName($this->getPlaceholderName($name));
+                $placeholderModel->setStoreId($storeId);
+                $magentoPlaceholderArray[] = $variable;
+                $placeholderModel->save();
+                $return[$placeholderModel->getEmarsysPlaceholderName()] = $variable;
             }
         }
 
-        foreach ($array as $key => $value) {
-            if (in_array($value['magento_placeholder_name'], $magentoPlaceholderarray)) {
-                continue;
-            }
-            $placeholderModel = $this->emarsysEventPlaceholderMappingFactory->create();
-            $placeholderModel->setEventMappingId($value['event_mapping_id']);
-            $placeholderModel->setMagentoPlaceholderName($value['magento_placeholder_name']);
-            $placeholderModel->setEmarsysPlaceholderName($value['emarsys_placeholder_name']);
-            $placeholderModel->setStoreId($value['store_id']);
-            $magentoPlaceholderarray[] = $value['magento_placeholder_name'];
-            $placeholderModel->save();
-        }
-
-        return 'success';
+        return $return;
     }
 
     /**
@@ -1188,107 +1176,102 @@ class Data extends AbstractHelper
      *
      * @param $mappingId
      * @param $storeId
-     * @throws \Exception
+     * @throws \Magento\Framework\Exception\MailException
+     * @throws NoSuchEntityException
      */
     public function refreshPlaceholders($mappingId, $storeId)
     {
-        $emarsysEventMappingCollFromDbArray = [];
-        $emarsysEventMappingCollFromDb = $this->emarsysEventPlaceholderMappingFactory->create()
+        $store = $this->storeManager->getStore($storeId);
+        $emarsysEventFromDbArray = [];
+        $emarsysEventsMappingCollFromDb = $this->emarsysEventPlaceholderMappingFactory->create()
             ->getCollection()
             ->addFieldToFilter('event_mapping_id', $mappingId)
             ->addFieldToFilter('store_id', $storeId);
 
-        foreach ($emarsysEventMappingCollFromDb as $_emarsysEventMappingCollFromDb) {
-            $emarsysEventMappingCollFromDbArray[$_emarsysEventMappingCollFromDb['id']] = $_emarsysEventMappingCollFromDb['magento_placeholder_name'];
+        foreach ($emarsysEventsMappingCollFromDb as $emarsysEventFromDb) {
+            $emarsysEventFromDbArray[$emarsysEventFromDb->getId()] = $emarsysEventFromDb->getMagentoPlaceholderName();
         }
 
         $emarsysEventMappingColl = $this->emarsysEventMapping->create()
             ->getCollection()
-            ->addFieldToFilter('id', $mappingId);
-        $magentoEventColl = $this->magentoEventsCollection->create()
-            ->addFieldToFilter('id', $emarsysEventMappingColl->getData()[0]['magento_event_id']);
+            ->addFieldToFilter('magento_event_id', $mappingId)
+            ->addFieldToFilter('store_id', $storeId);
 
-        $value = $this->scopeConfigInterface->getValue($magentoEventColl->getData()[0]['config_path'], 'store', $storeId);
+        $emarsysEventMappingItem = $emarsysEventMappingColl->getFirstItem();
+
+        $magentoEventColl = $this->magentoEventsCollection->create()
+            ->addFieldToFilter('id', $emarsysEventMappingItem->getMagentoEventId());
+
+        $magentoEventItem = $magentoEventColl->getFirstItem();
+
+        $value = $store->getConfig($magentoEventItem->getConfigPath());
 
         if (is_numeric($value)) {
             $emailTemplateModelColl = $this->templateFactory->create()
                 ->getCollection()
                 ->addFieldToFilter('template_id', $value);
-            $emailText = $emailTemplateModelColl->getData()[0]['template_text'];
+            $emailText = $emailTemplateModelColl->getFirstItem()->getTemplateText();
         } else {
             $template = $this->emailTemplate->initTemplate('id');
-            $templateId = $value;
-            $template->setForcedArea($templateId);
-            $template->loadDefault($templateId);
-
-            $emailText = $template->getData()['template_text'];
+            $template->setForcedArea($value);
+            $template->loadDefault($value);
+            $emailText = $template->getTemplateText();
         }
 
         $templatePlaceholderArray = [];
-        $array = [];
-        $i = 0;
         while ($variable = $this->substringBetween($emailText)) {
             $emailText = str_replace($variable, '', $emailText);
-            $emarsysVariable = $this->getPlaceholderName($variable);
 
-            if (!strstr($variable, '{{trans')) {
-                $emarsysVariable = $this->getPlaceholderName($variable);
-            }
-
-            if (strstr($variable, '{{trans')) {
-                $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
-            }
             if (strstr($variable, '{{/depend')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
-
             if (strstr($variable, '{{/if')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
-
             if (strstr($variable, '{{template config_path')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
-
             if (strstr($variable, '{{depend')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
             if (strstr($variable, '{{if')) {
                 $variable = $this->substringBetweenTransVar($variable);
-                $emarsysVariable = $this->getPlaceholderName($variable);
             }
-
-            if (!empty($emarsysVariable)) {
-                $array[$i]["event_mapping_id"] = $mappingId;
-                $array[$i]["magento_placeholder_name"] = $variable;
-                $array[$i]["emarsys_placeholder_name"] = $emarsysVariable;
-                $array[$i]["store_id"] = $storeId;
-                $i++;
+            if (strstr($variable, '{{else')) {
+                $variable = $this->substringBetweenTransVar($variable);
+            }
+            if (strstr($variable, '{{inlinecss')) {
+                $variable = $this->substringBetweenTransVar($variable);
+            }
+            if (strstr($variable, '{{css')) {
+                $variable = $this->substringBetweenTransVar($variable);
             }
 
             $templatePlaceholderArray[] = $variable;
         }
 
-        $deleteFromDbArray = array_diff($emarsysEventMappingCollFromDbArray, $templatePlaceholderArray);
+        $deleteFromDbArray = array_diff($emarsysEventFromDbArray, $templatePlaceholderArray);
 
         foreach ($deleteFromDbArray as $key => $_deleteFromDbArray) {
             $placeholderModel = $this->emarsysEventPlaceholderMappingFactory->create()->load($key);
             $placeholderModel->delete();
         }
 
-        $insertNewFromTemplate = array_diff($templatePlaceholderArray, $emarsysEventMappingCollFromDbArray);
+        $insertNewFromTemplate = array_diff($templatePlaceholderArray, $emarsysEventFromDbArray);
 
         foreach ($insertNewFromTemplate as $key => $_insertNewFromTemplate) {
             if ($_insertNewFromTemplate) {
+                $name = $_insertNewFromTemplate;
+                if (strstr($name, '{{trans')) {
+                    $name = $this->substringBetweenTransVar($name);
+                }
+                if (empty($name)) {
+                    continue;
+                }
                 $placeholderModel = $this->emarsysEventPlaceholderMappingFactory->create();
                 $placeholderModel->setEventMappingId($mappingId);
                 $placeholderModel->setMagentoPlaceholderName($_insertNewFromTemplate);
-                $placeholderModel->setEmarsysPlaceholderName($this->getPlaceholderName($_insertNewFromTemplate));
+                $placeholderModel->setEmarsysPlaceholderName($this->getPlaceholderName($name));
                 $placeholderModel->setStoreId($storeId);
                 $placeholderModel->save();
             }
@@ -1300,16 +1283,25 @@ class Data extends AbstractHelper
      * @param string $start
      * @param string $end
      * @return bool|string
+     * @throws NoSuchEntityException
      */
     public function substringBetween($haystack, $start = "{{", $end = "}}")
     {
-        if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
-            return false;
-        } else {
-            $start_position = strpos($haystack, $start) + strlen($start);
-            $end_position = strpos($haystack, $end);
-            $string = substr($haystack, $start_position, $end_position - $start_position);
-            return $start . $string . $end;
+        try {
+            if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
+                return false;
+            } else {
+                $start_position = strpos($haystack, $start) + strlen($start);
+                $end_position = strpos($haystack, $end);
+                $string = substr($haystack, $start_position, $end_position - $start_position);
+                return $start . $string . $end;
+            }
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                $e->getMessage(),
+                $this->storeManager->getStore()->getId(),
+                'substringBetween($haystack, $start = "{{", $end = "}}")'
+            );
         }
     }
 
@@ -1318,71 +1310,85 @@ class Data extends AbstractHelper
      * @param string $start
      * @param string $end
      * @return bool|string
+     * @throws NoSuchEntityException
      */
     public function substringBetweenTransVar($haystack, $start = "=$", $end = "}}")
     {
-        if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
-            return false;
-        } else {
-            $start_position = strpos($haystack, $start) + strlen($start);
-            $end_position = strpos($haystack, $end);
-            $string = substr($haystack, $start_position, $end_position - $start_position);
-            return "{{var " . $string . "}}";
+        try {
+            if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
+                return false;
+            } else {
+                $start_position = strpos($haystack, $start) + strlen($start);
+                $end_position = strpos($haystack, $end);
+                $string = substr($haystack, $start_position, $end_position - $start_position);
+                return "{{var " . $string . "}}";
+            }
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                $e->getMessage(),
+                $this->storeManager->getStore()->getId(),
+                'substringBetweenTransVar($haystack, $start = "=$", $end = "}}")'
+            );
         }
     }
 
     /**
      * @param string $variable
      * @return string
+     * @throws NoSuchEntityException
      */
     public function getPlaceholderName($variable = '')
     {
-        if (empty($variable)
-            || in_array($variable, ["{{/if}}", "{{/depend}}", "{{else}}", "{{var non_inline_styles}}"])
-            || strstr($variable, 'inlinecss')
-        ) {
-            return;
+        try {
+            if (empty($variable)
+                || in_array($variable, ["{{/if}}", "{{/depend}}", "{{else}}", "{{var non_inline_styles}}"])
+                || strstr($variable, 'inlinecss')
+            ) {
+                return;
+            }
+            $findReplace = [
+                " " => "_",
+                ".get" => "_",
+                "." => "_",
+                "{{" => "_",
+                "}}" => "_",
+                "()" => "_",
+                "(" => "_",
+                ")" => "_",
+                "[" => "_",
+                "]" => "_",
+                "<" => "_",
+                ">" => "_",
+                "=$" => "_",
+                "=" => "_",
+                "/" => "_",
+                "\\" => "_",
+                "\n" => "_",
+                "$" => "_",
+                "%" => "_",
+                "," => "_",
+                ":" => "_",
+                "|" => "_",
+                "'" => "",
+                '"' => "",
+                "var" => "",
+                "trans" => "",
+                "_____" => "_",
+                "____" => "_",
+                "___" => "_",
+                "__" => "_",
+                "#" => '',
+            ];
+            $emarsysVariable = str_replace(array_keys($findReplace), $findReplace, strtolower($variable));
+            return trim(trim($emarsysVariable, "_"));
+        } catch (\Exception $e) {
+            $storeId = $this->storeManager->getStore()->getId();
+            $this->emarsysLogs->addErrorLog($e->getMessage(), $storeId, 'getPlaceholderName');
         }
-        $findReplace = [
-            " " => "_",
-            ".get" => "_",
-            "." => "_",
-            "{{" => "_",
-            "}}" => "_",
-            "()" => "_",
-            "(" => "_",
-            ")" => "_",
-            "[" => "_",
-            "]" => "_",
-            "<" => "_",
-            ">" => "_",
-            "=$" => "_",
-            "=" => "_",
-            "/" => "_",
-            "\\" => "_",
-            "\n" => "_",
-            "$" => "_",
-            "%" => "_",
-            "," => "_",
-            ":" => "_",
-            "|" => "_",
-            "'" => "",
-            '"' => "",
-            "var" => "",
-            "trans" => "",
-            "_____" => "_",
-            "____" => "_",
-            "___" => "_",
-            "__" => "_",
-        ];
-        $emarsysVariable = str_replace(array_keys($findReplace), $findReplace, strtolower($variable));
-        return trim(trim($emarsysVariable, "_"));
-
     }
 
     /**
-     * @return mixed
-     * @throws NoSuchEntityException
+     * @return array
      */
     public function emarsysDefaultPlaceholders()
     {
@@ -1420,251 +1426,296 @@ class Data extends AbstractHelper
             if ($attribute['attribute_code'] == "gallery") {
                 continue;
             }
-            $order['product_purchases']['attribute_' . $attribute['attribute_code']] = strtoupper('attribute_' . $attribute['attribute_code']);
+            $order['product_purchases']['attribute_' . $attribute['attribute_code']] = strtoupper(
+                'attribute_' . $attribute['attribute_code']
+            );
         }
 
         return $order;
     }
 
     /**
-     * @param $emarsysEventMappingID
-     * @param $storeId
-     * @return string
-     */
-    public function insertFirstTimeHeaderMappingPlaceholders($emarsysEventMappingID, $storeId)
-    {
-        $magentoEventsCollection = $this->magentoEventsCollection->create()
-            ->addFieldToFilter('config_path', 'design/email/header_template');
-        $emarsysEventMappingColl = $this->emarsysEventMapping->create()
-            ->getCollection()
-            ->addFieldToFilter('magento_event_id', $magentoEventsCollection->getData()[0]['id']);
-        $emarsysEventMappingColl->addFieldToFilter('store_id', $storeId);
-
-        return $this->insertFirstTimeMappingPlaceholders(
-            $emarsysEventMappingColl->getFirstItem()->getMagentoEventId(),
-            $storeId
-        );
-    }
-
-    /**
-     * @param $emarsysEventMappingID
-     * @param $storeId
-     * @return string
-     * @throws \Exception
-     */
-    public function insertFirstTimeFooterMappingPlaceholders($emarsysEventMappingID, $storeId)
-    {
-        $magentoEventsCollection = $this->magentoEventsCollection->create()
-            ->addFieldToFilter('config_path', 'design/email/footer_template');
-        $emarsysEventMappingColl = $this->emarsysEventMapping->create()
-            ->getCollection()
-            ->addFieldToFilter(
-                'magento_event_id',
-                $magentoEventsCollection->getData()[0]['id']
-            );
-        $emarsysEventMappingColl->addFieldToFilter('store_id', $storeId);
-
-        return $this->insertFirstTimeMappingPlaceholders(
-            $emarsysEventMappingColl->getFirstItem()->getMagentoEventId(),
-            $storeId
-        );
-    }
-
-    /**
-     * @param $emarsysEventMappingID
      * @param $storeId
      * @return array
      */
-    public function emarsysHeaderPlaceholders($emarsysEventMappingID, $storeId)
+    public function insertFirstTimeHeaderMappingPlaceholders($storeId)
+    {
+        try {
+            $magentoEventsCollection = $this->magentoEventsCollection->create()
+                ->addFieldToFilter('config_path', 'design/email/header_template');
+            $emarsysEventMappingColl = $this->emarsysEventMapping->create()
+                ->getCollection()
+                ->addFieldToFilter('magento_event_id', $magentoEventsCollection->getFirstItem()->getId())
+                ->addFieldToFilter('store_id', $storeId);
+
+            return $this->insertFirstTimeMappingPlaceholders(
+                $emarsysEventMappingColl->getFirstItem()->getMagentoEventId(),
+                $storeId
+            );
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                htmlentities($e->getMessage()),
+                $storeId,
+                'insertFirstTimeHeaderMappingPlaceholders'
+            );
+        }
+        return [];
+    }
+
+    /**
+     * @param $storeId
+     * @return array
+     */
+    public function insertFirstTimeFooterMappingPlaceholders($storeId)
+    {
+        try {
+            $magentoEventsCollection = $this->magentoEventsCollection->create()
+                ->addFieldToFilter('config_path', 'design/email/footer_template');
+            $emarsysEventMappingColl = $this->emarsysEventMapping->create()
+                ->getCollection()
+                ->addFieldToFilter(
+                    'magento_event_id',
+                    $magentoEventsCollection->getFirstItem()->getId()
+                )
+                ->addFieldToFilter('store_id', $storeId);
+
+            return $this->insertFirstTimeMappingPlaceholders(
+                $emarsysEventMappingColl->getFirstItem()->getMagentoEventId(),
+                $storeId
+            );
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                htmlentities($e->getMessage()),
+                $storeId,
+                'insertFirstTimeFooterMappingPlaceholders'
+            );
+        }
+        return [];
+    }
+
+    /**
+     * @param $storeId
+     * @return array
+     */
+    public function emarsysHeaderPlaceholders($storeId)
     {
         $headerPlaceholderArray = [];
-        $magentoEventsCollection = $this->magentoEventsCollection->create()
-            ->addFieldToFilter('config_path', 'design/email/header_template');
-        $emarsysEventMappingColl = $this->emarsysEventMapping->create()
-            ->getCollection()
-            ->addFieldToFilter('magento_event_id', $magentoEventsCollection->getData()[0]['id']);
-        $emarsysEventPlaceholderMappingColl = $this->emarsysEventPlaceholderMappingFactory->create()
-            ->getCollection()
-            ->addFieldToFilter('event_mapping_id', $emarsysEventMappingColl->getData()[0]['id']);
+        try {
+            $magentoEventsCollection = $this->magentoEventsCollection->create()
+                ->addFieldToFilter('config_path', 'design/email/header_template');
+            $placeholderMappingColls = $this->emarsysEventPlaceholderMappingFactory->create()
+                ->getCollection()
+                ->addFieldToFilter('event_mapping_id', $magentoEventsCollection->getFirstItem()->getId());
 
-        if (count($emarsysEventPlaceholderMappingColl->getData())) {
-            foreach ($emarsysEventPlaceholderMappingColl->getData() as $_emarsysEventPlaceholderMappingColl) {
-                $headerPlaceholderArray[$_emarsysEventPlaceholderMappingColl['emarsys_placeholder_name']] = $_emarsysEventPlaceholderMappingColl['magento_placeholder_name'];
+            foreach ($placeholderMappingColls as $coll) {
+                $headerPlaceholderArray[$coll->getEmarsysPlaceholderName()] = $coll->getMagentoPlaceholderName();
             }
+
+            return $headerPlaceholderArray;
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                htmlentities($e->getMessage()),
+                $storeId,
+                'emarsysHeaderPlaceholders'
+            );
         }
 
         return $headerPlaceholderArray;
     }
 
     /**
-     * @param $mapping_id
-     * @param $store_id
+     * @param $storeId
      * @return array
      */
-    public function emarsysFooterPlaceholders($mapping_id, $store_id)
+    public function emarsysFooterPlaceholders($storeId)
     {
-        $footerPlaceholderArray = [];
+        $footer = [];
+        try {
+            $magentoEventsCollection = $this->magentoEventsCollection->create()
+                ->addFieldToFilter('config_path', 'design/email/footer_template');
+            $emarsysEventPlaceholders = $this->emarsysEventPlaceholderMappingFactory->create()
+                ->getCollection()
+                ->addFieldToFilter('event_mapping_id', $magentoEventsCollection->getFirstItem()->getId());
 
-        $magentoEventsCollection = $this->magentoEventsCollection->create()
-            ->addFieldToFilter('config_path', 'design/email/footer_template');
-        $emarsysEventMappingColl = $this->emarsysEventMapping->create()
-            ->getCollection()
-            ->addFieldToFilter('magento_event_id', $magentoEventsCollection->getData()[0]['id']);
-        $emarsysEventPlaceholderMappingColl = $this->emarsysEventPlaceholderMappingFactory->create()
-            ->getCollection()
-            ->addFieldToFilter('event_mapping_id', $emarsysEventMappingColl->getData()[0]['id']);
-
-        if (count($emarsysEventPlaceholderMappingColl->getData())) {
-            foreach ($emarsysEventPlaceholderMappingColl->getData() as $_emarsysEventPlaceholderMappingColl) {
-                $footerPlaceholderArray[$_emarsysEventPlaceholderMappingColl['emarsys_placeholder_name']] = $_emarsysEventPlaceholderMappingColl['magento_placeholder_name'];
+            foreach ($emarsysEventPlaceholders as $placeholder) {
+                $footer[$placeholder->getEmarsysPlaceholderName()] = $placeholder->getMagentoPlaceholderName();
             }
-        }
-        return $footerPlaceholderArray;
-     }
-
-    /**
-     * @param $websiteId
-     * @return string
-     */
-    public function getCheckSmartInsight($websiteId)
-    {
-        $smartInsight = false;
-
-        if ($websiteId) {
-            if ($this->scopeConfigInterface->getValue(self::XPATH_SMARTINSIGHT_ENABLED, ScopeInterface::SCOPE_WEBSITES, $websiteId)) {
-                $smartInsight = true;
-            }
-        } else {
-            if ($this->scopeConfigInterface->getValue(self::XPATH_SMARTINSIGHT_ENABLED)) {
-                $smartInsight = true;
-            };
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                htmlentities($e->getMessage()),
+                $storeId,
+                'emarsysFooterPlaceholders'
+            );
         }
 
-        return $smartInsight;
+        return $footer;
     }
 
     /**
-     * @param null|int $websiteId
+     * @param $websiteId
      * @return bool
-     * @throws LocalizedException
      */
-    public function getEmarsysConnectionSetting($websiteId = null)
+    public function getCheckSmartInsight($websiteId = null)
     {
-        if (!$this->isEmarsysEnabled($websiteId)) {
-            return false;
+        $smartInsight = false;
+
+        if ($this->isEmarsysEnabled($websiteId)) {
+            /** @var $website Website */
+            $website = $this->storeManager->getWebsite($websiteId);
+            $smartInsight = $website->getConfig(self::XPATH_SMARTINSIGHT_ENABLED);
         }
 
-        /** @var WebsiteInterface $websiteId */
-        $website = $this->storeManager->getWebsite($websiteId);
+        return (bool)$smartInsight;
+    }
 
-        $emarsysUserName = (bool)$website->getConfig(self::XPATH_EMARSYS_API_USER);
-        $emarsysPassword = (bool)$website->getConfig(self::XPATH_EMARSYS_API_PASS);
-        $emarsysFlag = (bool)$website->getConfig(self::XPATH_EMARSYS_ENABLED);
+    /**
+     * @param $websiteId
+     * @return bool
+     */
+    public function getEmarsysConnectionSetting($websiteId)
+    {
+        $result = false;
 
-        if (!($emarsysUserName && $emarsysPassword && $emarsysFlag)) {
-            return false;
+        if ($websiteId) {
+            if ($this->scopeConfig->getValue(
+                self::XPATH_EMARSYS_ENABLED,
+                \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITES,
+                $websiteId
+            )) {
+                $result = true;
+            }
+        } else {
+            if ($this->scopeConfig->getValue(self::XPATH_EMARSYS_ENABLED)) {
+                $result = true;
+            }
         }
 
-        return true;
+        return $result;
     }
 
     /**
      * @param $templateId
-     * @param $storeScope
-     * @return string
+     * @param $storeId
+     * @return mixed
      * @throws NoSuchEntityException
      */
-    public function getMagentoEventId($templateId, $storeScope)
+    public function getMagentoEventId($templateId, $storeId = null)
     {
+        $store = $this->storeManager->getStore($storeId);
         $magentoEventsCollection = $this->magentoEventsCollection->create();
         foreach ($magentoEventsCollection as $magentoEvent) {
-            if ($this->scopeConfigInterface->getValue($magentoEvent->getConfigPath(), $storeScope) == $templateId) {
-                $eventId = $magentoEvent->getId();
+            if ($store->getConfig($magentoEvent->getConfigPath()) == $templateId
+                || $magentoEvent->getTemplateId() == $templateId
+            ) {
+                return $magentoEvent->getId();
             }
         }
 
-        return $eventId;
+        try {
+            $magentoEvent = clone $magentoEvent;
+            $magentoEvent->setData([]);
+            $magentoEvent->setData(
+                [
+                    'magento_event' => ucwords(str_ireplace('_', ' ', $templateId)),
+                    'template_id' => $templateId
+                ]
+            );
+            $magentoEvent->save();
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        return $magentoEvent->getId();
     }
 
     /**
      * @param $magentoEventId
      * @param null $storeId
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    public function getEmarsysEventMappingId($magentoEventId, $storeId = null)
-    {
-        if (is_null($storeId)) {
-            $storeId = $this->storeManager->getStore()->getId();
-        }
-
-        $emarsysEventMappingId = "";
-        $emarsysEventsMappingCollection = $this->emarsysEventMapping->create()
-            ->getCollection()
-            ->addFieldToFilter('store_id', $storeId)
-            ->addFieldToFilter('magento_event_id', $magentoEventId);
-
-        if (count($emarsysEventsMappingCollection->getData())) {
-            $emarsysEventMappingId = $emarsysEventsMappingCollection->getData()[0]['id'];
-        }
-
-        return $emarsysEventMappingId;
-}
-
-    /**
-     * @param $magentoEventId
-     * @param null $storeId
-     * @return string
+     * @return mixed
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function getEmarsysEventApiId($magentoEventId, $storeId = null)
     {
-        if (is_null($storeId)) {
+        if ($storeId === null) {
             $storeId = $this->storeManager->getStore()->getId();
         }
-        $emarsysEventApiId = "";
-        $emarsysEventsMappingCollection = $this->emarsysEventMapping->create()
-            ->getCollection()
-            ->addFieldToFilter('store_id', $storeId)
-            ->addFieldToFilter('magento_event_id', $magentoEventId);
 
-        $emarsysEventsColl = $this->emarsysEventsModelFactory->create()
-            ->getCollection()
-            ->addFieldToFilter('id', $emarsysEventsMappingCollection->getData()[0]['emarsys_event_id']);
+        $emarsysEventId = $this->getEmarsysEventId($magentoEventId, $storeId);
 
-        if (count($emarsysEventsColl->getData())) {
-            $emarsysEventApiId = $emarsysEventsColl->getData()[0]['event_id'];
+        if (!$emarsysEventId) {
+            $nStoreId = $this->getFirstStoreIdOfWebsiteByStoreId($storeId);
+            if ($nStoreId != $storeId) {
+                $emarsysEventId = $this->getEmarsysEventId($magentoEventId, $storeId);
+            }
         }
 
-        return $emarsysEventApiId;
+        return $this->emarsysEventsModelFactory->create()
+            ->getCollection()
+            ->addFieldToFilter('id', $emarsysEventId)
+            ->getFirstItem()
+            ->getEventId();
     }
 
     /**
-     * @return \Magento\Email\Model\Template
+     * @param $magentoEventId
+     * @param null $storeId
+     * @return mixed
      */
-    protected function getTemplateInstance()
+    public function getEmarsysEventId($magentoEventId, $storeId)
     {
-        return $this->templateFactory->create();
+        return $this->emarsysEventMapping->create()
+            ->getCollection()
+            ->addFieldToFilter('store_id', $storeId)
+            ->addFieldToFilter('magento_event_id', $magentoEventId)
+            ->getFirstItem()
+            ->getEmarsysEventId();
     }
 
     /**
      * @param $emarsysEventMappingId
+     * @param $storeId
      * @return array
+     * @throws NoSuchEntityException
      */
-    public function getPlaceHolders($emarsysEventMappingId)
+    public function getPlaceHolders($emarsysEventMappingId, $storeId)
     {
         $placeHolders = [];
-        $emarsysPlaceholderCollection = $this->emarsysEventPlaceholderMappingFactory->create()
-            ->getCollection()
-            ->addFieldToFilter('event_mapping_id', $emarsysEventMappingId);
+        try {
+            $emarsysPlaceholderCollection = $this->emarsysEventPlaceholderMappingFactory->create()
+                ->getCollection()
+                ->addFieldToFilter('event_mapping_id', $emarsysEventMappingId)
+                ->addFieldToFilter('store_id', $storeId);
 
-        if (count($emarsysPlaceholderCollection->getData())) {
-            foreach ($emarsysPlaceholderCollection->getData() as $value) {
-                $placeHolders[$value['emarsys_placeholder_name']] = $value['magento_placeholder_name'];
+            if ($emarsysPlaceholderCollection->getSize()) {
+                foreach ($emarsysPlaceholderCollection as $value) {
+                    $placeHolders[$value->getEmarsysPlaceholderName()] = $value->getMagentoPlaceholderName();
+                }
             }
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                htmlentities($e->getMessage()),
+                $this->storeManager->getStore()->getId(),
+                'getPlaceHolders'
+            );
         }
 
         return $placeHolders;
+    }
+
+    /**
+     * @param $path
+     * @param $storeCode
+     * @param $storeId
+     * @return mixed
+     */
+    public function getConfigValue($path, $storeCode, $storeId)
+    {
+        if ($storeCode == "default") {
+            return $this->scopeConfig->getValue($path, 'default', 0);
+        } else {
+            return $this->scopeConfig->getValue($path, $storeCode, $storeId);
+        }
     }
 
     /**
@@ -1687,8 +1738,30 @@ class Data extends AbstractHelper
     public function getFirstStoreId()
     {
         $stores = $this->storeManager->getStores();
-        $store = current($stores);
-        $firstStoreId = $store->getId();
+        ksort($stores);
+
+        $firstStore = false;
+        foreach ($stores as $store) {
+            if ($store->getConfig(self::XPATH_EMARSYS_ENABLED)) {
+                $firstStore = $store;
+                break;
+            }
+        }
+
+        if ($firstStore) {
+            $store = $firstStore;
+        } else {
+            $store = reset($stores);
+        }
+
+        /** @var \Magento\Store\Model\Website $website */
+        $website = $store->getWebsite();
+        $defaultStore = $website->getDefaultStore() ?? false;
+        if ($defaultStore && $defaultStore->getId()) {
+            $firstStoreId = $defaultStore->getId();
+        } else {
+            $firstStoreId = $store->getId();
+        }
 
         return $firstStoreId;
     }
@@ -1700,15 +1773,32 @@ class Data extends AbstractHelper
      */
     public function getFirstStoreIdOfWebsite($websiteId)
     {
+        $websites = $this->storeManager->getWebsites();
+        ksort($websites);
+
+        foreach ($websites as $wId => $website) {
+            if ($website->getConfig(self::XPATH_EMARSYS_ENABLED)) {
+                $apiUserName = $website->getConfig(self::XPATH_EMARSYS_API_USER);
+                if (!isset($this->_websites[$apiUserName])) {
+                    $this->_websites[$apiUserName] = $wId;
+                }
+
+                if ($wId == $websiteId) {
+                    $websiteId = $this->_websites[$apiUserName];
+                    break;
+                }
+            }
+        }
         /** @var WebsiteInterface $websiteId */
         $website = $this->storeManager->getWebsite($websiteId);
 
-        $defaultStore = @$website->getDefaultStore();
-        if ($defaultStore && $defaultStore->getId()) {
+        $defaultStore = $website->getDefaultStore();
+        if (($defaultStore ?? null) && $defaultStore->getId()) {
             $firstStoreId = $defaultStore->getId();
         } else {
             $stores = $website->getStores();
-            $store = current($stores);
+            ksort($stores);
+            $store = reset($stores);
             $firstStoreId = $store->getId();
         }
 
@@ -1716,24 +1806,51 @@ class Data extends AbstractHelper
     }
 
     /**
+     * @param $storeId
+     * @return int
+     * @throws LocalizedException
+     */
+    public function getFirstStoreIdOfWebsiteByStoreId($storeId)
+    {
+        if (!$storeId) {
+            return $this->getFirstStoreId();
+        }
+
+        $store = $this->storeManager->getStore($storeId);
+
+        return $this->getFirstStoreIdOfWebsite($store->getWebsiteId());
+    }
+
+    /**
      * @param $templateId
      * @param $storeScope
      * @param null $storeId
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getMagentoEventIdAndPath($templateId, $storeScope, $storeId = null)
     {
-        $eventId = $configPath = '';
-        $magentoEventsCollection = $this->magentoEventsCollection->create();
+        $event_id = "";
+        $configPath = '';
+        try {
+            $magentoEventsCollection = $this->magentoEventsCollection->create();
 
-        foreach ($magentoEventsCollection as $magentoEvent) {
-            if ($this->scopeConfigInterface->getValue($magentoEvent->getConfigPath(), $storeScope, $storeId) == $templateId) {
-                $eventId = $magentoEvent->getId();
-                $configPath = $magentoEvent->getConfigPath();
+            foreach ($magentoEventsCollection as $magentoEvent) {
+                $configTemplateId = $this->scopeConfig->getValue($magentoEvent->getConfigPath(), $storeScope, $storeId);
+                if ($configTemplateId == $templateId) {
+                    $event_id = $magentoEvent->getId();
+                    $configPath = $magentoEvent->getConfigPath();
+                }
             }
+        } catch (\Exception $e) {
+            $this->emarsysLogs->addErrorLog(
+                htmlentities($e->getMessage()),
+                $this->storeManager->getStore()->getId(),
+                'getMagentoEventIdAndPath'
+            );
         }
 
-        return [$eventId, $configPath];
+        return [$event_id, $configPath];
     }
 
     /**
@@ -1742,7 +1859,6 @@ class Data extends AbstractHelper
      */
     public function getDateTimeInLocalTimezone($dateTime = '')
     {
-
         $toTimezone = $this->timezone->getConfigTimezone();
         $returnDateTime = $this->timezone->date($dateTime);
         $returnDateTime->setTimezone(new \DateTimeZone($toTimezone));
@@ -1752,13 +1868,15 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null|int $websiteId
-     * @return bool
+     * Checks whether emarsys is enabled or not.
+     *
+     * @param null $websiteId
+     * @return boolean
      * @throws LocalizedException
      */
     public function isEmarsysEnabled($websiteId = null)
     {
-        return (bool)$this->storeManager->getWebsite($websiteId)->getConfig('emarsys_settings/emarsys_setting/enable');
+        return (bool)$this->storeManager->getWebsite($websiteId)->getConfig(self::XPATH_EMARSYS_ENABLED);
     }
 
     /**
@@ -1792,15 +1910,16 @@ class Data extends AbstractHelper
     /**
      * @param $subscriber
      * @param $logMessage
-     * @return $this
+     * @return bool
      */
     public function realtimeTimeBasedOptinSync($subscriber, $logMessage = 'Created Subscriber in Emarsys')
     {
         try {
-            $fieldId = $this->customerResourceModel->getKeyId(self::OPT_IN, $subscriber->getStoreId());
+            $sId = $this->getFirstStoreIdOfWebsiteByStoreId($subscriber->getStoreId());
+            $fieldId = $this->customerResourceModel->getKeyId(self::OPT_IN, $sId);
 
             $payload = [
-                'keyId' => $this->customerResourceModel->getKeyId(self::CUSTOMER_EMAIL, $subscriber->getStoreId()),
+                'keyId' => $this->customerResourceModel->getKeyId(self::CUSTOMER_EMAIL, $sId),
                 'keyValues' => [$subscriber->getSubscriberEmail()],
                 'fieldId' => $fieldId,
             ];
@@ -1830,12 +1949,13 @@ class Data extends AbstractHelper
                         $statusToBeChanged = Subscriber::STATUS_NOT_ACTIVE;
                     }
                     if (!in_array($magentoOptinValue, [
-                        Subscriber::STATUS_NOT_ACTIVE,
-                        Subscriber::STATUS_UNCONFIRMED
+                            Subscriber::STATUS_NOT_ACTIVE,
+                            Subscriber::STATUS_UNCONFIRMED,
                         ]) && !in_array($statusToBeChanged, [
                             Subscriber::STATUS_NOT_ACTIVE,
-                            Subscriber::STATUS_UNCONFIRMED
-                    ])) {
+                            Subscriber::STATUS_UNCONFIRMED,
+                        ])
+                    ) {
                         $subscriber->setSubscriberStatus($statusToBeChanged)
                             ->setEmarsysNoExport(true)
                             ->save();
@@ -1898,6 +2018,8 @@ class Data extends AbstractHelper
     public function backgroudTimeBasedOptinSync($subscriberIdsArray)
     {
         try {
+            $sId = $this->getFirstStoreIdOfWebsite($this->websiteId);
+
             $logsArray['job_code'] = 'Backgroud Time Based Optin Sync';
             $logsArray['status'] = 'started';
             $logsArray['messages'] = 'Backgroud Time Based Optin Sync';
@@ -1905,7 +2027,7 @@ class Data extends AbstractHelper
             $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['run_mode'] = 'Automatic';
             $logsArray['auto_log'] = 'Complete';
-            $logsArray['store_id'] = 0;
+            $logsArray['store_id'] = $sId;
             $logId = $this->logsHelper->manualLogs($logsArray);
 
             $subscribersCollection = $this->newsLetterCollectionFactory->create()
@@ -1919,12 +2041,8 @@ class Data extends AbstractHelper
                 ];
             }
 
-            /** @var Website $website */
-            $website = $this->storeManager->getWebsite($this->websiteId);
-            $storeId = current($website->getStoreIds());
-
-            $fieldId = $this->customerResourceModel->getKeyId(self::OPT_IN, $storeId);
-            $emailKey = $this->customerResourceModel->getKeyId(self::CUSTOMER_EMAIL, $storeId);
+            $fieldId = $this->customerResourceModel->getKeyId(self::OPT_IN, $sId);
+            $emailKey = $this->customerResourceModel->getKeyId(self::CUSTOMER_EMAIL, $sId);
 
             $payload = [
                 'keyId' => $emailKey,
@@ -1953,10 +2071,10 @@ class Data extends AbstractHelper
                         $statusToBeChanged = Subscriber::STATUS_NOT_ACTIVE;
                     }
 
-                    if ($statusToBeChanged != $magentoSubscriptionStatus) {
-                        if ($emarsysLastUpdateTime >= $magentoLastUpdatedTime) {
-                            $statuses[$statusToBeChanged][] = $subscriberId;
-                        }
+                    if ($statusToBeChanged != $magentoSubscriptionStatus
+                        && $emarsysLastUpdateTime >= $magentoLastUpdatedTime
+                    ) {
+                        $statuses[$statusToBeChanged][] = $subscriberId;
                     }
                 }
 
@@ -1965,7 +2083,8 @@ class Data extends AbstractHelper
                         $this->customerResourceModel->updateStatusOfSubscribers($status, $subscriberIds);
                         $logsArray['id'] = $logId;
                         $logsArray['emarsys_info'] = 'Backgroud Time Based Optin Sync Success';
-                        $logsArray['description'] = 'Status: ' . $status . ' set to: ' . Zend_Json::encode($subscriberIds);
+                        $logsArray['description'] = 'Status: ' . $status
+                            . ' set to: ' . Zend_Json::encode($subscriberIds);
                         $logsArray['action'] = 'Backgroud Time Based Optin Sync';
                         $logsArray['message_type'] = 'Success';
                         $logsArray['log_action'] = 'True';
@@ -2043,6 +2162,7 @@ class Data extends AbstractHelper
      * @param $contents
      * @param bool $isTimeBased
      * @return bool
+     * @throws \Exception
      */
     protected function _processSubscriptionUpdates($contents, $isTimeBased = false)
     {
@@ -2054,8 +2174,9 @@ class Data extends AbstractHelper
             }
 
             if ((!isset($changedOptinArray) || count($changedOptinArray) <= 1)
-                || (count($changedOptinArray) == 2 && (!isset($changedOptinArray[1][0]) || empty($changedOptinArray[1][0]))
-            )) {
+                || (count($changedOptinArray) == 2
+                    && (!isset($changedOptinArray[1][0]) || empty($changedOptinArray[1][0])))
+            ) {
                 $logsArray['messages'] = 'No opt-in updates';
                 $this->logsHelper->manualLogs($logsArray);
                 return false;
@@ -2086,14 +2207,22 @@ class Data extends AbstractHelper
      */
     public function getEmarsysLatestVersionInfo()
     {
-        $apiUrl = $this->scopeConfigInterface->getValue('emarsys_settings/ftp_settings/apiurl', 'default', 0);
+        $apiUrl = $this->scopeConfigInterface->getValue(
+            'emartech/ftp_settings/apiurl',
+            'default',
+            0
+        );
 
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_URL, $apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
+        curl_setopt(
+            $ch,
+            CURLOPT_USERAGENT,
+            'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13'
+        );
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
         $data = curl_exec($ch);
@@ -2107,48 +2236,8 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Check FTP Connection
-     *
-     * @param $hostname
-     * @param $username
-     * @param $password
-     * @param $port
-     * @param $ftpSsl
-     * @param $passiveMode
-     * @return bool
-     */
-    public function checkFtpConnection($hostname, $username, $password, $port, $ftpSsl, $passiveMode)
-    {
-        $result = false;
-        if (!$username || !$password || !$hostname || !$port) {
-            return $result;
-        }
-
-        if ($ftpSsl == 1) {
-            $ftpConnId = @ftp_ssl_connect($hostname, $port);
-        } else {
-            $ftpConnId = @ftp_connect($hostname, $port);
-        }
-        if ($ftpConnId != '') {
-            $ftpLogin = @ftp_login($ftpConnId, $username, $password);
-            if ($ftpLogin == 1) {
-                $passsiveState = true;
-                if ($passiveMode == 1) {
-                    $passsiveState = @ftp_pasv($ftpConnId, true);
-                }
-                if ($passsiveState) {
-                    $result = true;
-                    @ftp_close($ftpConnId);
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * @param null|string|bool|int|StoreInterface $store
-     * @return bool|true
+     * @return bool
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
@@ -2182,7 +2271,7 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param null|string|bool|int|StoreInterface  $store
+     * @param null|string|bool|int|StoreInterface $store
      * @param $filePath
      * @param $filename
      * @return bool
@@ -2222,7 +2311,6 @@ class Data extends AbstractHelper
                 }
             }
         } catch (\Exception $e) {
-
         }
 
         return false;
@@ -2251,30 +2339,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param $scope
-     * @param $websiteId
-     * @return array|bool
-     */
-    public function collectWebDavCredentials($scope, $websiteId)
-    {
-        //webDav credentials from admin configurations
-        $webDavUrl = $this->customerResourceModel->getDataFromCoreConfig(self::XPATH_WEBDAV_URL, $scope, $websiteId);
-        $webDavUser = $this->customerResourceModel->getDataFromCoreConfig(self::XPATH_WEBDAV_USER, $scope, $websiteId);
-        $webDavPass = $this->customerResourceModel->getDataFromCoreConfig(self::XPATH_WEBDAV_PASSWORD, $scope, $websiteId);
-
-        if ($webDavUrl != '' && $webDavUser != '' && $webDavPass != '') {
-            return [
-                'baseUri' => $webDavUrl,
-                'userName' => $webDavUser,
-                'password' => $webDavPass,
-                'proxy' => '',
-            ];
-        }
-
-        return false;
-    }
-
-    /**
      * @param $entity
      * @param $storeCode
      * @return string
@@ -2296,7 +2360,7 @@ class Data extends AbstractHelper
      */
     public function getContactCsvGenerationPath($outputFile)
     {
-        return BP . '/var/' . $outputFile;;
+        return BP . '/var/' . $outputFile;
     }
 
     /**
@@ -2319,6 +2383,17 @@ class Data extends AbstractHelper
     public function addNoticeLog($messages = '', $description = '', $storeId = 0, $info = '')
     {
         return $this->emarsysLogs->addNoticeLog($messages, $description, $storeId, $info);
+    }
+
+    /**
+     * @param $messages
+     * @param $description
+     * @param $storeId
+     * @param $info
+     */
+    public function addSuccessLog($messages = '', $description = '', $storeId = 0, $info = '')
+    {
+        return $this->emarsysLogs->addSuccessLog($messages, $description, $storeId, $info);
     }
 
     /**
@@ -2351,5 +2426,27 @@ class Data extends AbstractHelper
     {
         $this->websiteId = $websiteId;
         return $this;
+    }
+
+    /**
+     * @param $storeId
+     * @return bool|mixed
+     */
+    public function getEmarsysCustomerSchema($storeId)
+    {
+        try {
+            $store = $this->storeManager->getStore($storeId);
+            $this->api->setWebsiteId($store->getWebsiteId());
+            $response = $this->api->sendRequest('GET', 'field/translate/en');
+            return $response['body'];
+        } catch (\Exception $e) {
+            $this->addErrorLog(
+                'getEmarsysCustomerSchema',
+                htmlentities($e->getMessage()),
+                $storeId,
+                'getEmarsysCustomerSchema'
+            );
+        }
+        return false;
     }
 }

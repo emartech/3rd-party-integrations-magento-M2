@@ -1,16 +1,12 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Customerexport\Edit;
 
-/**
- * Class Tabs
- * @package Emarsys\Emarsys\Block\Adminhtml\Customerexport\Edit
- */
 class Tabs extends \Magento\Backend\Block\Widget\Tabs
 {
     /**
@@ -20,6 +16,7 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
 
     /**
      * Tabs constructor.
+     *
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param \Magento\Backend\Model\Auth\Session $authSession
@@ -48,16 +45,17 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
     }
 
     /**
-     * @return Mage_Core_Block_Abstract
-     * @throws Exception
+     * @return \Magento\Backend\Block\Widget|\Magento\Framework\View\Element\AbstractBlock
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function _beforeToHtml()
     {
         $this->addTab(
             'form_section',
             [
-                'content' => $this->getLayout()->createBlock('Emarsys\Emarsys\Adminhtml\Customerexport\Edit\Tab\Form')->toHtml(),
-                'active' => true
+                'content' => $this->getLayout()
+                    ->createBlock(\Emarsys\Emarsys\Block\Adminhtml\Customerexport\Edit\Tab\Form::class)->toHtml(),
+                'active' => true,
             ]
         );
         return parent::_beforeToHtml();
@@ -65,6 +63,7 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
 
     /**
      * @return Mage_Core_Block_Abstract|void
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function _prepareLayout()
     {

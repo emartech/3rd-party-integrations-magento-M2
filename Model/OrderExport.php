@@ -8,7 +8,6 @@
 
 namespace Emarsys\Emarsys\Model;
 
-
 class OrderExport extends \Magento\Sales\Model\Order
 {
     /**

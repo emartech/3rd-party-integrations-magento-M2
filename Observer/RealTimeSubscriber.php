@@ -1,28 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Observer;
 
-use Magento\{
-    Customer\Model\Session,
-    Framework\Event\Observer,
-    Framework\Event\ObserverInterface,
-    Framework\App\Request\Http,
-    Store\Model\StoreManagerInterface
-};
-use Emarsys\Emarsys\{
-    Model\Api\Subscriber,
-    Model\ResourceModel\Customer,
-    Helper\Data as EmarsysHelper
-};
+use Magento\Customer\Model\Session;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\App\Request\Http;
+use Magento\Store\Model\StoreManagerInterface;
+use Emarsys\Emarsys\Model\Api\Subscriber;
+use Emarsys\Emarsys\Model\ResourceModel\Customer;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 
 /**
  * Class RealTimeSubscriber
- * @package Emarsys\Emarsys\Observer
  */
 class RealTimeSubscriber implements ObserverInterface
 {
@@ -108,7 +103,7 @@ class RealTimeSubscriber implements ObserverInterface
             $createSubscriber = $this->emarsysHelper->realtimeTimeBasedOptinSync($subscriber, $logMessage);
 
             if ($createSubscriber) {
-                $result = $this->subscriberModel->syncSubscriber($subscriberId, $storeId, 1);
+                $result = $this->subscriberModel->syncSubscriber($subscriberId, $storeId);
                 $subscriber->setEmarsysNoExport(true);
                 return $result;
             }

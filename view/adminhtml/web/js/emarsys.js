@@ -1,7 +1,7 @@
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 require(
@@ -101,7 +101,7 @@ function changeValue(url, attribute, coulmnAttr, value, entityTypeId)
 
 require([
     'jquery',
-    'tinymce',
+    'tinymce4',
     'Magento_Ui/js/modal/confirm',
     'Magento_Ui/js/modal/alert',
     'loadingPopup',
@@ -182,12 +182,15 @@ function openMyPopup(url)
         url: url,
         method: "GET",
         success: function (data) {
-            document.getElementById('json-data-container').innerHTML = '<pre>' + data + '</pre>';
+            document.getElementById('json-data-container').innerHTML = '<pre>' + JSON.stringify(data, undefined, 4) + '</pre>';
             jQuery(".loading-mask").css("display", "none");
             jQuery("#myModal").css("display", "block");
         },
         error: function (jqXhr, textStatus, errorThrown) {
             console.log(errorThrown);
+            document.getElementById('json-data-container').innerHTML = errorThrown;
+            jQuery(".loading-mask").css("display", "none");
+            jQuery("#myModal").css("display", "block");
         }
     });
 }
@@ -198,8 +201,8 @@ window.onload = function () {
         document.getElementById('contacts_synchronization_initial_db_load_initial_db_load2').disabled = true;
         document.getElementById('contacts_synchronization_initial_db_load_initial_db_load3').disabled = true;
     }
-    if (document.getElementById('row_emarsys_settings_ftp_settings_apiurl')) {
-        document.getElementById('row_emarsys_settings_ftp_settings_apiurl').style.display = 'none';
+    if (document.getElementById('row_emartech_ftp_settings_apiurl')) {
+        document.getElementById('row_emartech_ftp_settings_apiurl').style.display = 'none';
     }
 };
 

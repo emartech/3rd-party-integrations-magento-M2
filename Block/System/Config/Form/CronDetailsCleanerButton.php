@@ -1,15 +1,14 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block\System\Config\Form;
 
-/**
- * Class CronDetailsCleanerButton
- * @package Emarsys\Emarsys\Block\System\Config\Form
- */
+use Magento\Framework\Data\Form\Element\AbstractElement;
+
 class CronDetailsCleanerButton extends Button
 {
     /**
@@ -26,14 +25,17 @@ class CronDetailsCleanerButton extends Button
 
     /**
      * Get the button and scripts contents
-     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
+     *
+     * @param AbstractElement $element
      * @return string
      */
-    protected function _getElementHtml(\Magento\Framework\Data\Form\Element\AbstractElement $element)
+    protected function _getElementHtml(AbstractElement $element)
     {
         $originalData = $element->getOriginalData();
         $ajaxUrl = $this->_urlBuilder->getUrl("emarsys_emarsys/cronschedule/clear");
-        $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_testConnectionButtonLabel;
+        $buttonLabel = !empty($originalData['button_label'])
+            ? $originalData['button_label']
+            : $this->_testConnectionButtonLabel;
         $this->addData(
             [
                 'button_label' => __($buttonLabel),

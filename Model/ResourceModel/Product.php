@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
@@ -11,7 +11,6 @@ use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
 /**
  * Class Product
- * @package Emarsys\Emarsys\Model\ResourceModel
  */
 class Product extends AbstractDb
 {
@@ -27,6 +26,7 @@ class Product extends AbstractDb
 
     /**
      * Truncate Mapping Table
+     *
      * @param null $storeId
      * @return int
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -79,7 +79,11 @@ class Product extends AbstractDb
 
             $this->getConnection()->delete(
                 $this->getMainTable(),
-                ['store_id = ?' => $storeId, 'emarsys_attr_code = ?' => $attributeCode, 'magento_attr_code != ?' => $key]
+                [
+                    'store_id = ?' => $storeId,
+                    'emarsys_attr_code = ?' => $attributeCode,
+                    'magento_attr_code != ?' => $key,
+                ]
             );
         }
 
@@ -144,7 +148,7 @@ class Product extends AbstractDb
                 'code' => $productField[0],
                 'label' => $productField[1],
                 'field_type' => $productField[2],
-                'store_id' => $storeId
+                'store_id' => $storeId,
             ];
             $select = $this->getConnection()
                 ->select()
@@ -161,7 +165,6 @@ class Product extends AbstractDb
         }
         return $productFields;
     }
-
 
     public function getProductAttributeLabelId($storeId)
     {
@@ -210,6 +213,7 @@ class Product extends AbstractDb
 
     /**
      * Get this value from Emarsys Attributes Table based Code & Store ID
+     *
      * @param $code
      * @param $storeId
      * @return mixed
@@ -226,7 +230,7 @@ class Product extends AbstractDb
     }
 
     /**
-     * @param type $storeId
+     * @param int $storeId
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -261,8 +265,8 @@ class Product extends AbstractDb
 
     /**
      *
-     * @param type $storeId
-     * @param type $fieldId
+     * @param int $storeId
+     * @param int $fieldId
      * @return array
      */
     public function getEmarsysFieldName($storeId, $fieldId)

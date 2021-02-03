@@ -1,19 +1,19 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 ?>
 <script>
     require(['prototype'], function () {
         function testConnection() {
 
-            var username = document.getElementById('emarsys_settings_emarsys_setting_emarsys_api_username').value;
-            var password = document.getElementById('emarsys_settings_emarsys_setting_emarsys_api_password').value;
-            var endpoint = document.getElementById('emarsys_settings_emarsys_setting_emarsys_api_endpoint').value;
+            var username = document.getElementById('emartech_emarsys_setting_emarsys_api_username').value;
+            var password = document.getElementById('emartech_emarsys_setting_emarsys_api_password').value;
+            var endpoint = document.getElementById('emartech_emarsys_setting_emarsys_api_endpoint').value;
             if (endpoint == 'custom') {
-                url = document.getElementById('emarsys_settings_emarsys_setting_emarsys_custom_url').value;
+                url = document.getElementById('emartech_emarsys_setting_emarsys_custom_url').value;
             } else {
                 url = '';
             }
@@ -39,14 +39,14 @@
      *  If both are not equal then it will display error
      */
     function confirmPassword() {
-        document.getElementById('emarsys_settings_emarsys_setting_testapiconnection').setAttribute('disabled', 'disabled');
+        document.getElementById('emartech_emarsys_setting_testapiconnection').setAttribute('disabled', 'disabled');
         document.getElementById('errorConfirmPassword').innerHTML = "";
-        var password = document.getElementById('emarsys_settings_emarsys_setting_emarsys_api_password').value;
-        var confirmPassword = document.getElementById('emarsys_settings_emarsys_setting_confirm_password').value;
+        var password = document.getElementById('emartech_emarsys_setting_emarsys_api_password').value;
+        var confirmPassword = document.getElementById('emartech_emarsys_setting_confirm_password').value;
         if (password != confirmPassword) {
             document.getElementById('errorConfirmPassword').innerHTML = "Please enter the same value again.";
         } else {
-            document.getElementById('emarsys_settings_emarsys_setting_testapiconnection').removeAttribute('disabled');
+            document.getElementById('emartech_emarsys_setting_testapiconnection').removeAttribute('disabled');
             document.getElementById('errorConfirmPassword').innerHTML = "";
         }
     }

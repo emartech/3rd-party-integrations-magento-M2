@@ -22,7 +22,6 @@ require(
             });
         });
 
-
         jQuery("#emarAttribute").submit(function (e) {
             jQuery(".field_wrapper > div").each(function (f) {
 
@@ -43,12 +42,10 @@ require(
 
     });
 function editEmarAttr(url, Id) {
-    
     var code = jQuery("#field_name_" + Id).val();
     var label = jQuery("#field_label_" + Id).val();
     var field_type = jQuery("#attribute_type_" + Id).val();
     var error = 0;
-
 
     if (code == "") {
         jQuery("#field_name_" + Id).css('border', '1px solid red');
@@ -68,7 +65,6 @@ function editEmarAttr(url, Id) {
     if (error) {
         return false;
     }
-
 
     if (confirm("Do you want to Update?") == true) {
 
@@ -111,5 +107,3 @@ function deleteEmarAttr(url, Id, storeId) {
         });
     }
 }
-	
-	

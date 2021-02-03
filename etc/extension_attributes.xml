@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <!--
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
-    <extension_attributes for="Magento\Checkout\Api\Data\ShippingInformationInterface">
-        <attribute code="subscribe" type="string"/>
+    <extension_attributes for="Magento\Quote\Api\Data\AddressInterface">
+        <attribute code="emarsys_subscriber" type="string" />
     </extension_attributes>
 </config>

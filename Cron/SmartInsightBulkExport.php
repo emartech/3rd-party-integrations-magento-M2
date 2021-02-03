@@ -1,19 +1,17 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Cron;
 
 use Emarsys\Emarsys\Model\Order as EmarsysOrderModel;
 use Emarsys\Emarsys\Helper\Cron as EmarsysCronHelper;
 use Emarsys\Emarsys\Model\Logs;
+use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class SmartInsightBulkExport
- * @package Emarsys\Emarsys\Cron
- */
 class SmartInsightBulkExport
 {
     /**
@@ -36,15 +34,18 @@ class SmartInsightBulkExport
      *
      * @param EmarsysCronHelper $cronHelper
      * @param EmarsysOrderModel $order
+     * @param StoreManagerInterface $storeManager
      * @param Logs $emarsysLogs
      */
     public function __construct(
         EmarsysCronHelper $cronHelper,
         EmarsysOrderModel $order,
+        StoreManagerInterface $storeManager,
         Logs $emarsysLogs
     ) {
         $this->cronHelper = $cronHelper;
-        $this->emarsysOrderModel =  $order;
+        $this->emarsysOrderModel = $order;
+        $this->storeManager = $storeManager;
         $this->emarsysLogs = $emarsysLogs;
     }
 
@@ -56,13 +57,28 @@ class SmartInsightBulkExport
                 \Emarsys\Emarsys\Helper\Cron::CRON_JOB_SI_BULK_EXPORT
             );
 
-            if ($currentCronInfo) {
-                $data = \Zend_Json::decode($currentCronInfo->getParams());
+            if (!$currentCronInfo) {
+                return;
+            }
 
-                $storeId = isset($data['storeId']) ? $data['storeId'] : 0;
-                $fromDate = isset($data['fromDate']) ? $data['fromDate'] : null;
-                $toDate = isset($data['toDate']) ? $data['toDate'] : null;
+            $data = \Zend_Json::decode($currentCronInfo->getParams());
 
+            $storeId = isset($data['storeId']) ? $data['storeId'] : 0;
+            $fromDate = isset($data['fromDate']) ? $data['fromDate'] : null;
+            $toDate = isset($data['toDate']) ? $data['toDate'] : null;
+            if (!$storeId) {
+                throw new \Exception('store_id not specify');
+            }
+
+            /** @var \Magento\Store\Model\Store $store */
+            $store = $this->storeManager->getStore($storeId);
+            if (!$store || !$store->getId()) {
+                throw new \Exception('store_id not specify');
+            }
+
+            $stores = $store->getWebsite()->getStores();
+
+            foreach ($stores as $storeId => $store) {
                 $this->emarsysOrderModel->syncOrders(
                     $storeId,
                     \Emarsys\Emarsys\Helper\Data::ENTITY_EXPORT_MODE_MANUAL,

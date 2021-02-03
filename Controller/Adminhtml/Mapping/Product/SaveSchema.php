@@ -1,20 +1,25 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Product;
 
+use Emarsys\Emarsys\Helper\Data;
+use Emarsys\Emarsys\Model\Logs;
+use Emarsys\Emarsys\Model\ResourceModel\Product;
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
+use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\View\Result\PageFactory;
+use Magento\Store\Model\StoreManagerInterface;
+use Zend_Json;
 
-/**
- * Class SaveSchema
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Product
- */
-class SaveSchema extends \Magento\Backend\App\Action
+class SaveSchema extends Action
 {
     /**
      * @var PageFactory
@@ -22,29 +27,29 @@ class SaveSchema extends \Magento\Backend\App\Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
     /**
-     * @var \Emarsys\Emarsys\Model\ResourceModel\Product
+     * @var Product
      */
     protected $productResourceModel;
 
     /**
      * @param Context $context
-     * @param \Emarsys\Emarsys\Model\ResourceModel\Product $productResourceModel
-     * @param \Emarsys\Emarsys\Model\Logs $emarsysLogs
+     * @param Product $productResourceModel
+     * @param Logs $emarsysLogs
      * @param PageFactory $resultPageFactory
      */
     public function __construct(
         Context $context,
-        \Emarsys\Emarsys\Model\ResourceModel\Product $productResourceModel,
-        \Emarsys\Emarsys\Helper\Data $emarsysHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\Stdlib\DateTime\DateTime $date,
+        Product $productResourceModel,
+        Data $emarsysHelper,
+        StoreManagerInterface $storeManager,
+        DateTime $date,
         \Emarsys\Emarsys\Helper\Logs $logsHelper,
-        \Emarsys\Emarsys\Model\Logs $emarsysLogs,
+        Logs $emarsysLogs,
         PageFactory $resultPageFactory
     ) {
         parent::__construct($context);
@@ -60,11 +65,8 @@ class SaveSchema extends \Magento\Backend\App\Action
 
     public function execute()
     {
-        if ($this->getRequest()->getParam('store')) {
-            $storeId = $this->getRequest()->getParam('store');
-        } else {
-            $storeId = $this->emarsysHelper->getFirstStoreId();
-        }
+        $storeId = $this->getRequest()->getParam('store', false);
+        $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
         $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
         try {
             $productFields = [];
@@ -86,15 +88,15 @@ class SaveSchema extends \Magento\Backend\App\Action
             $logsArray['emarsys_info'] = 'Update Product Mapping';
             $logsArray['action'] = 'Update Product Mapping Successful';
             $logsArray['message_type'] = 'Success';
-            $logsArray['description'] = 'Product Mapping Updated as ' . \Zend_Json::encode($productFields);
+            $logsArray['description'] = 'Product Mapping Updated as ' . Zend_Json::encode($productFields);
             $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['log_action'] = 'True';
             $logsArray['status'] = 'success';
             $logsArray['messages'] = 'Update Product Mapping Saved Successfully';
             $this->logsHelper->manualLogs($logsArray);
-            $this->messageManager->addSuccessMessage("Product schema added/updated successfully");
-        } catch (\Exception $e) {
+            $this->messageManager->addSuccessMessage(__('Product schema added/updated successfully'));
+        } catch (Exception $e) {
             if ($logId) {
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'Update Product Mapping not Successful';
@@ -108,7 +110,9 @@ class SaveSchema extends \Magento\Backend\App\Action
                 $this->logsHelper->manualLogs($logsArray);
             }
             $this->messageManager->addErrorMessage(
-                __('There was a problem while Updating Product Mapping. Please refer emarsys logs for more information.')
+                __(
+                    'There was a problem while Updating Product Mapping. Please refer emarsys logs for more information.'
+                )
             );
         }
 

@@ -1,19 +1,19 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\CronSchedule;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Cron\Model\ScheduleFactory;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 
-/**
- * Class Index
- * @package Emarsys\Emarsys\Controller\Adminhtml\CronSchedule
- */
 class Delete extends Action
 {
     /**
@@ -23,6 +23,7 @@ class Delete extends Action
 
     /**
      * Params constructor.
+     *
      * @param Context $context
      * @param ScheduleFactory $scheduleFactory
      */
@@ -35,8 +36,8 @@ class Delete extends Action
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Exception
+     * @return ResponseInterface|ResultInterface
+     * @throws Exception
      */
     public function execute()
     {
@@ -45,7 +46,9 @@ class Delete extends Action
         $cron = $this->scheduleFactory->create()->load($id);
         if ($cron->getId() && stristr($cron->getJobCode(), 'emarsys')) {
             $cron->delete();
-            $this->messageManager->addSuccessMessage(__('Cron Job (%1: %2), removed successfully', $cron->getId(), $cron->getJobCode()));
+            $this->messageManager->addSuccessMessage(
+                __('Cron Job (%1: %2), removed successfully', $cron->getId(), $cron->getJobCode())
+            );
         } else {
             $this->messageManager->addErrorMessage(__('Something goes wrong'));
         }

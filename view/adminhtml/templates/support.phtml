@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 ?>
 <div class="content-header-support">
@@ -11,23 +11,30 @@
         <span class='acu-title'><?php echo __('Emarsys Support') ?></span>
     </h3>
 </div>
+
 <div class="box-left">
+    <legend class="admin__legend legend">
+        <span><?php echo __('About Extension') ?></span>
+    </legend>
+    <br />
     <div id="support_system_requirements_container" class="entry-edit">
-         <div class="example-responsive-block">
-            <h4><?php echo __('About Extension') ?></h4>
-        </div>
         <div class="fieldset sys-req">
             <div class="hor-scroll">
                 <?php echo $block->getChildHtml('about_emarsys'); ?>
             </div>
         </div>
-        <div class="example-responsive-block">
-            <h4><?php echo __('System Requirements') ?></h4>
-        </div>
+    </div>
+    <br />
+    <legend class="admin__legend legend">
+        <span><?php echo __('System Requirements') ?></span>
+    </legend>
+    <br />
+    <div id="support_system_requirements_container" class="entry-edit">
         <div class="fieldset sys-req">
             <div class="hor-scroll">
                 <?php echo $block->getChildHtml('system_requirements'); ?>
             </div>
         </div>
     </div>
+    <br />
 </div>

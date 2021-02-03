@@ -1,57 +1,47 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Schedular
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Schedular
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml;
 
-/**
- * Class Cron
- * @package Emarsys\Emarsys\Block\Adminhtml
- */
-class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Grid\Extended;
+use Magento\Backend\Helper\Data;
+use Magento\Backend\Model\Session;
+use Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection as AttributeCollection;
+use Magento\Framework\Data\Collection;
+use Magento\Framework\DataObjectFactory;
+
+class Cron extends Extended
 {
     /**
-     * @var \Magento\Framework\Module\Manager
-     */
-    protected $moduleManager;
-
-    /**
-     * @var \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection
+     * @var AttributeCollection
      */
     protected $_collection;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
     /**
-     * @var \Magento\Backend\Helper\Data
+     * @var Data
      */
     protected $backendHelper;
 
     /**
-     * @var \Magento\Framework\Data\Collection
+     * @var Collection
      */
     protected $dataCollection;
 
     /**
-     * @var \Magento\Framework\DataObjectFactory
+     * @var DataObjectFactory
      */
     protected $dataObjectFactory;
-
-    /**
-     * @var \Magento\Cron\Model\ConfigInterface
-     */
-    protected $cronConfig;
-
-    /**
-     * @var \Magento\Framework\Dataobject
-     */
-    protected $dataObject;
 
     /**
      * @var CronData
@@ -59,36 +49,36 @@ class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
     protected $cronData;
 
     /**
+     * @var EmarsysHelper
+     */
+    protected $emarsysHelper;
+
+    /**
      * Cron constructor.
-     * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Backend\Helper\Data $backendHelper
-     * @param \Magento\Framework\Data\Collection $dataCollection
-     * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
+     *
+     * @param Context $context
+     * @param Data $backendHelper
+     * @param Collection $dataCollection
+     * @param DataObjectFactory $dataObjectFactory
      * @param CronData $cronData
-     * @param \Magento\Framework\Module\Manager $moduleManager
-     * @param \Magento\Cron\Model\ConfigInterface $cronConfig
-     * @param \Magento\Framework\Dataobject $dataObject
+     * @param EmarsysHelper $emarsysHelper
      * @param array $data
      */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Backend\Helper\Data $backendHelper,
-        \Magento\Framework\Data\Collection $dataCollection,
-        \Magento\Framework\DataObjectFactory $dataObjectFactory,
-        \Emarsys\Emarsys\Block\Adminhtml\CronData $cronData,
-        \Magento\Framework\Module\Manager $moduleManager,
-        \Magento\Cron\Model\ConfigInterface $cronConfig,
-        \Magento\Framework\Dataobject $dataObject,
+        Context $context,
+        Data $backendHelper,
+        Collection $dataCollection,
+        DataObjectFactory $dataObjectFactory,
+        CronData $cronData,
+        EmarsysHelper $emarsysHelper,
         $data = []
     ) {
-        $this->session = $context->getSession();
-        $this->moduleManager = $moduleManager;
+        $this->session = $context->getBackendSession();
         $this->backendHelper = $backendHelper;
         $this->dataCollection = $dataCollection;
         $this->dataObjectFactory = $dataObjectFactory;
-        $this->cronConfig = $cronConfig;
-        $this->dataObject = $dataObject;
-        $this->cronData  = $cronData;
+        $this->cronData = $cronData;
+        $this->emarsysHelper = $emarsysHelper;
         parent::__construct($context, $backendHelper, $data);
     }
 
@@ -105,6 +95,7 @@ class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->setUseAjax(true);
         $this->setVarNameFilter('frontend_label');
         $storeId = $this->getRequest()->getParam('store');
+        $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
         $this->session->setData('storeId', $storeId);
     }
 
@@ -120,17 +111,18 @@ class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
         foreach ($rows as $row) {
             foreach ($row as $key => $datahere) {
                 $datahere['rowid'] = $count;
-                /*condition to filter only emarsys starts here, to get all the crons in this mageto remove the below if condition*/
+                /* condition to filter only emarsys starts here,
+                to get all the crons in this mageto remove the below if condition */
                 if (isset($datahere['name'])) {
                     $emarsysexp = explode("_", $datahere['name']);
                 }
-                if ($emarsysexp[0]!='emarsys') {
+                if ($emarsysexp[0] != 'emarsys') {
                     continue;
                 }
 
                 /* filter code ends here */
-
-                $rowObj = $this->dataObjectFactory->create();// use this create method to prevent getting only the last data in the grid.
+                // use this create method to prevent getting only the last data in the grid.
+                $rowObj = $this->dataObjectFactory->create();
                 $rowObj->setData($datahere)->toJson();
                 $collection->addItem($rowObj);
                 $collection->loadData();
@@ -144,36 +136,48 @@ class Cron extends \Magento\Backend\Block\Widget\Grid\Extended
 
     protected function _prepareColumns()
     {
-        $this->addColumn("name", [
-            "header" => __("Code"),
-            "align" => "left",
-            'width' => '25',
-            "index" => "name",
-        ]);
+        $this->addColumn(
+            "name",
+            [
+                "header" => __("Code"),
+                "align" => "left",
+                'width' => '25',
+                "index" => "name",
+            ]
+        );
 
-        $this->addColumn("method", [
-            "header" => __("Method"),
-            "align" => "center",
-            "index" => "method",
-            'width' => '150'
+        $this->addColumn(
+            "method",
+            [
+                "header" => __("Method"),
+                "align" => "center",
+                "index" => "method",
+                'width' => '150',
 
-        ]);
+            ]
+        );
 
-        $this->addColumn("schedule", [
-            "header" =>__("Schedule"),
-            "align"  => "left",
-            "index"  => "schedule",
-            'width'  => '150'
+        $this->addColumn(
+            "schedule",
+            [
+                "header" => __("Schedule"),
+                "align" => "left",
+                "index" => "schedule",
+                'width' => '150',
 
-        ]);
+            ]
+        );
 
-        $this->addColumn("rowid", [
-            "header" =>__("Action"),
-            "align"  => "left",
-            "index"  => "rowid",
-            'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Cron\Renderer\Messagetype',
-            'width'  => '150'
-        ]);
+        $this->addColumn(
+            "rowid",
+            [
+                "header" => __("Action"),
+                "align" => "left",
+                "index" => "rowid",
+                'renderer' => \Emarsys\Emarsys\Block\Adminhtml\Cron\Renderer\Messagetype::class,
+                'width' => '150',
+            ]
+        );
         return parent::_prepareColumns();
     }
 }

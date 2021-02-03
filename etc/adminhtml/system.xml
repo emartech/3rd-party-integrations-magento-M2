@@ -1,441 +1,609 @@
 <?xml version="1.0"?>
 <!--
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <tab id="emarsys_connect" sortOrder="500">
-            <label>Emarsys Connect</label>
+        <tab id="emarsys" translate="label" sortOrder="500">
+            <label>Emarsys</label>
         </tab>
-        <section id="emarsys_settings" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
+        <section id="emartech" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Connections</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="emarsys_info" translate="label" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Please switch to website level!</label>
-                <field id="emarsys_info" translate="label" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" />
-            </group>
-            <group id="emarsys_setting" type="text" sortOrder="5" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="emarsys_setting" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>API Settings</label>
                 <comment>Used for contact synchronisation, Event triggering etc.</comment>
-                <field id="enable" translate="label" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
-                    <label>Enabled</label>
+                <field id="enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Enable V1</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="emarsys_api_endpoint" translate="label" type="select" sortOrder="11" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="emarsys_api_endpoint" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API Endpoint</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\ApiEndpoint</source_model>
+                    <depends>
+                        <field id="*/*/enable">1</field>
+                    </depends>
                 </field>
-                <field id="emarsys_custom_url" translate="label" type="text" sortOrder="12" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="emarsys_custom_url" translate="label" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Custom API URL</label>
+                    <depends>
+                        <field id="*/*/emarsys_api_endpoint">custom</field>
+                    </depends>
                 </field>
-                <field id="emarsys_api_username" translate="label" type="text" sortOrder="21" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="emarsys_api_username" translate="label" type="text" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API Username</label>
                     <validate>required-entry</validate>
+                    <depends>
+                        <field id="*/*/enable">1</field>
+                    </depends>
                 </field>
-                <field id="emarsys_api_password" translate="label" type="password" sortOrder="22" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="emarsys_api_password" translate="label" type="password" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API Password</label>
                     <validate>required-entry</validate>
+                    <depends>
+                        <field id="*/*/enable">1</field>
+                    </depends>
                 </field>
-                <field id="testapiconnection" translate="button_label" sortOrder="24" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="testapiconnection" translate="button_label" sortOrder="24" showInDefault="1" showInWebsite="1" showInStore="0">
                     <button_label>Test Connection</button_label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Button\TestConnectionButton</frontend_model>
+                    <depends>
+                        <field id="*/*/enable">1</field>
+                    </depends>
                 </field>
             </group>
-            <group id="webdav_setting" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
-                <label>WebDAV Settings</label>
-                <comment>Used for bulk contact synchronisation</comment>
-                <field id="webdav_url" translate="label" type="text" sortOrder="15" showInDefault="0" showInWebsite="1" showInStore="0">
-                    <label>WebDAV URL</label>
+            <group id="async" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Asynchronous Export</label>
+                <comment>Export customers, subscribers and send emails asynchronous</comment>
+                <field id="enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Run asynchronously</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <backend_model>Emarsys\Emarsys\Model\Config\Backend\AsyncEnable</backend_model>
                 </field>
-                <field id="webdav_user" translate="label" type="text" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
-                    <label>WebDAV User</label>
+                <field id="frequency" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+                    <label>Frequency</label>
+                    <comment>in minutes (each [x] minutes)</comment>
+                    <source_model>Emarsys\Emarsys\Model\Config\Source\AsyncFrequency</source_model>
+                    <backend_model>Emarsys\Emarsys\Model\Config\Backend\AsyncFrequency</backend_model>
+                    <depends>
+                        <field id="*/async/enable">1</field>
+                    </depends>
                 </field>
-                <field id="webdav_password" translate="label" type="password" sortOrder="25" showInDefault="0" showInWebsite="1" showInStore="0">
-                    <label>WebDAV Password</label>
-                </field>
-                <field id="testwebdavconnection" translate="button_label" sortOrder="30" showInDefault="0" showInWebsite="1" showInStore="0">
-                    <button_label>Test Connection</button_label>
-                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Button\WebDavButton</frontend_model>
-                </field>
+                <depends>
+                    <field id="*/emarsys_setting/enable">1</field>
+                </depends>
             </group>
-            <group id="ftp_settings" type="text" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="ftp_settings" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>FTP Settings</label>
                 <comment>Used for all your e-commerce data.</comment>
-                <field id="hostname" translate="label" type="text" sortOrder="5" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="hostname" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Hostname</label>
                 </field>
-                <field id="port" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="port" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Port</label>
                 </field>
-                <field id="username" translate="label" type="text" sortOrder="15" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="username" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Username</label>
                 </field>
-                <field id="ftp_password" translate="label" type="password" sortOrder="20" showInDefault="0"
-                       showInWebsite="1" showInStore="0">
+                <field id="ftp_password" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Password</label>
                 </field>
-                <field id="ftp_bulk_export_dir" translate="label" type="text" sortOrder="25" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="ftp_bulk_export_dir" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Bulk Export Directory</label>
                 </field>
-                <field id="useftp_overssl" translate="label comment" type="select" sortOrder="30" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="useftp_overssl" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Use FTP over SSL(FTPS)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="usepassive_mode" translate="label comment" type="select" sortOrder="35" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="usepassive_mode" translate="label comment" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Use passive mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="ftp_test_connection" translate="button_label" sortOrder="40" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="ftp_test_connection" translate="button_label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                     <button_label>Test Connection</button_label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Button\FtpTestConnection</frontend_model>
                 </field>
                 <field id="apiurl" type="hidden" sortOrder="45" showInDefault="0" showInWebsite="0" showInStore="0" />
+                <depends>
+                    <field id="*/emarsys_setting/enable">1</field>
+                </depends>
+            </group>
+            <group id="emarsys" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                <depends>
+                    <field id="*/emarsys_setting/enable">0</field>
+                </depends>
             </group>
         </section>
         <section id="contacts_synchronization" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Contact Synchronization</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="emarsys_info" translate="label" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Please switch to website level!</label>
-                <field id="emarsys_info" translate="label" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" />
+            <group id="info" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>This configuration applies to V1 (extension should be enabled)</label>
+                <field id="enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/enable">0</field>
+                </depends>
             </group>
-            <group id="enable" type="text" sortOrder="1" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="enable" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Contact Synchronization</label>
-                <field id="contact_feed" translate="label comment" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="contact_feed" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="emarsys_emarsys" type="text" sortOrder="11" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="emarsys_emarsys" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Contact Synchronization Settings</label>
-                <field id="notification_secret_key" translate="label" type="text" sortOrder="30" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="notification_secret_key" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Notification secret key</label>
                 </field>
+                <field id="emarsys_setting_enable" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
         </section>
         <section id="opt_in" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Opt-In</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="emarsys_info" translate="label" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Please switch to website level!</label>
-                <field id="emarsys_info" translate="label" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" />
+            <group id="info" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>This configuration applies to V1 (extension should be enabled)</label>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">0</field>
+                </depends>
             </group>
-            <group id="optin_enable" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="optin_enable" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Enable Opt In</label>
-                <field id="enable_optin" translate="label" type="select" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="enable_optin" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enable Opt In</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="opt_in_strategy" translate="label comment" sortOrder="30" type="select" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="opt_in_strategy" translate="label comment" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Opt-In Strategy</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\OptInStrategy</source_model>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="subscription_checkout_process" type="text" sortOrder="12" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="subscription_checkout_process" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Subscription: Checkout process</label>
-                <field id="newsletter_sub_checkout_yes_no" translate="label comment" sortOrder="10" type="select" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="newsletter_sub_checkout_yes_no" translate="label comment" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Newsletter Subscription on Checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
         </section>
         <section id="transaction_mail" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Transaction Emails</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="emarsys_info" translate="label" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Please switch to website level!</label>
-                <field id="emarsys_info" translate="label" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" />
+            <group id="info" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>This configuration applies to V1 (extension should be enabled)</label>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">0</field>
+                </depends>
             </group>
-            <group id="transactionmail" type="text" sortOrder="12" showInDefault="0" showInWebsite="1" showInStore="0">
+
+            <group id="transactionmail" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Transaction Email</label>
-                <field id="enable_customer" translate="label" type="select" sortOrder="20" showInDefault="0"
-                       showInWebsite="1" showInStore="0">
+                <field id="enable_customer" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enable Emarsys Transaction Emails</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="lock_magento_emails" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Lock email process via Magento</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Do not process emails via Magento if there is an error on Emarsys side</comment>
+                    <depends>
+                        <field id="*/*/enable_customer">1</field>
+                    </depends>
+                </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="schema_check" translate="label" type="text" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="schema_check" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Emarsys Schema Check</label>
                 <field id="background_runtime_schema" translate="label comment" sortOrder="25" type="time"
-                       showInDefault="0" showInWebsite="1" showInStore="0">
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Background Runtime</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\Backgroundruntime</source_model>
                 </field>
-                <field id="background_frequency_schema" translate="label comment" sortOrder="26" type="select" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="background_frequency_schema" translate="label comment" sortOrder="26" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Background Frequency</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\Frequency</source_model>
                     <backend_model>Emarsys\Emarsys\Model\Config\CronConfigSchema</backend_model>
                     <comment>If you select Hourly,Hours and Minutes not applicable together</comment>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
         </section>
         <section id="smart_insight" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Smart Insight</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="emarsys_info" translate="label" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Please switch to website level!</label>
-                <field id="emarsys_info" translate="label" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" />
+            <group id="info" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>This configuration applies to V1 (extension should be enabled)</label>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">0</field>
+                </depends>
             </group>
-            <group id="api_settings" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="api_settings" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Smart Insight API Settings</label>
-                <field id="enableapi" translate="label" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="enableapi" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enable API Export</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="merchant_id" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="merchant_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Merchant Id</label>
                     <backend_model>Emarsys\Emarsys\Model\Config\Backend\Trim</backend_model>
                 </field>
-                <field id="token" translate="label" type="text" sortOrder="15" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="token" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Bearer Token</label>
                     <backend_model>Emarsys\Emarsys\Model\Config\Backend\Trim</backend_model>
                 </field>
-                <field id="max_records_per_export" translate="label" type="select" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="max_records_per_export" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Maximum Records</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\MaxRecordsPerExport</source_model>
                 </field>
-                <field id="ping" translate="button_label" sortOrder="40" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="ping" translate="button_label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                     <button_label>Test Connection</button_label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Button\SmartInsightApiTestConnection</frontend_model>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="smart_insight" type="text" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="smart_insight" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Smart Insight</label>
-                <field id="smartinsight_enabled" translate="label" type="select" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="smartinsight_enabled" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Smart Insight Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="exportguest_checkoutorders" translate="label" type="select" sortOrder="22" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="exportguest_checkoutorders" translate="label" type="select" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Export guest checkout orders</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="execute_at" translate="label comment" sortOrder="23" type="time" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="execute_at" translate="label comment" sortOrder="23" type="time" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Execute and Export at</label>
                 </field>
-                <field id="smartinsightfrequency" translate="label comment" sortOrder="24" type="select" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="smartinsightfrequency" translate="label comment" sortOrder="24" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Frequency</label>
-                    <!-- source model which we created for drop down opt$exportBlock->getCsvFile()ions -->
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\smartinsightfrequency</source_model>
+                    <!-- source model which we created for drop down options -->
+                    <source_model>Emarsys\Emarsys\Model\Config\Source\Smartinsightfrequency</source_model>
                     <backend_model>Emarsys\Emarsys\Model\Config\SmartInsightCronConfig</backend_model>
                     <comment>For hours only minutes will be applicable.</comment>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
         </section>
         <section id="emarsys_predict" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Product Catalog</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="emarsys_info" translate="label" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Please switch to website level!</label>
-                <field id="emarsys_info" translate="label" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" />
+            <group id="info" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>This configuration applies to V1 (extension should be enabled)</label>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">0</field>
+                </depends>
             </group>
-            <group id="enable" type="text" sortOrder="1" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="enable" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Emarsys Product Export</label>
-                <field id="product_feed" translate="label comment" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="product_feed" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="async" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Multi Process</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Beta Multi Process Export (increases speed of product export)</comment>
+                </field>
+                <field id="process" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Max Process At Ones</label>
+                    <depends>
+                        <field id="emarsys_predict/enable/async">1</field>
+                    </depends>
+                </field>
+                <field id="max_products" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Max Products per Process</label>
+                    <options>
+                        <option label="2000">2000</option>
+                        <option label="3000">3000</option>
+                        <option label="5000">5000</option>
+                        <option label="10000">10000</option>
+                        <option label="20000">20000</option>
+                        <option label="30000">30000</option>
+                        <option label="40000">40000</option>
+                    </options>
+                    <depends>
+                        <field id="emarsys_predict/enable/async">1</field>
+                    </depends>
+                </field>
+                <field id="dump" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Dump tables instead of export</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="emarsys_predict/enable/async">1</field>
+                    </depends>
+                </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="availability" type="text" sortOrder="5" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="availability" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Settings for product availability:</label>
-                <field id="status" translate="label comment" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="status" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Product Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Consider Product Enable [ YES / NO ] if NO, product enable will be ignored</comment>
                 </field>
-                <field id="in_stock" translate="label comment" type="select" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="in_stock" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Is In Stock</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Consider Stock Level [ YES / NO ] if NO, in stock will be ignored</comment>
                 </field>
-                <field id="visibility" translate="label comment" type="select" sortOrder="30" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="visibility" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Visibility</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Consider Visibility [ YES / NO ] If NO, product visibility will be ignored</comment>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="catalog_api_settings" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="catalog_api_settings" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Feed Export API Settings</label>
-                <field id="enable_catalog_api" translate="label" type="select" sortOrder="10" showInDefault="0"
-                       showInWebsite="1" showInStore="1">
+                <field id="enable_catalog_api" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable API Export</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="catalog_merchant_id" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="catalog_merchant_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Merchant Id</label>
                     <backend_model>Emarsys\Emarsys\Model\Config\Backend\Trim</backend_model>
                 </field>
-                <field id="catalog_token" translate="label" type="text" sortOrder="15" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="catalog_token" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Bearer Token</label>
                     <backend_model>Emarsys\Emarsys\Model\Config\Backend\Trim</backend_model>
                 </field>
-                <field id="catalog_ping" translate="button_label" sortOrder="40" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="catalog_ping" translate="button_label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
                     <button_label>Test Connection</button_label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Button\CatalogApiTestConnection</frontend_model>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="feed_export" translate="label" type="text" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="0">
+            <group id="feed_export" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Feed Export</label>
-                <field id="execute_at" translate="label comment" sortOrder="21" type="time" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="execute_at" translate="label comment" sortOrder="21" type="time" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Execute and Export at</label>
                 </field>
-                <field id="productexportfrequency" translate="label comment" sortOrder="22" type="select" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="productexportfrequency" translate="label comment" sortOrder="22" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Frequency</label>
                     <!-- source model which we created for drop down options -->
                     <source_model>Emarsys\Emarsys\Model\Config\Source\ProductExportFrequency</source_model>
                     <backend_model>Emarsys\Emarsys\Model\Config\ProductExportCronConfig</backend_model>
                     <comment>For hours only minutes will be applicable.</comment>
                 </field>
-                <field id="include_bundle_product" translate="label comment" type="select" sortOrder="23" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="include_bundle_product" translate="label comment" type="select" sortOrder="23" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Include Bundle Product</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="categories" translate="label comment" type="text" sortOrder="24" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="categories" translate="label comment" type="text" sortOrder="24" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Exclude Categories:</label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\Categorytree</frontend_model>
                 </field>
-                <field id="excludedcategories" translate="label comment" type="text" sortOrder="25" showInDefault="0" showInWebsite="1" showInStore="0">
+                <field id="excludedcategories" translate="label comment" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Excluded Categories:</label>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
         </section>
         <section id="web_extend" translate="label" type="text" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1">
             <class>separator-top</class>
             <label>Web Extend</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="emarsys_info" translate="label" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Please switch to website level!</label>
-                <field id="emarsys_info" translate="label" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" />
+            <group id="info" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>This configuration applies to V1 (extension should be enabled)</label>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">0</field>
+                </depends>
             </group>
-            <group id="recommended_product_pages" translate="label" type="text" sortOrder="5" showInDefault="0" showInWebsite="1" showInStore="1">
+            <group id="recommended_product_pages" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Recommended product on pages</label>
-                <field id="recommended_home_page" translate="label comment" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="recommended_home_page" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Home Page</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\RecommendedProductOnHomePage</source_model>
                 </field>
-                <field id="recommended_category_page" translate="label comment" type="select" sortOrder="15" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="recommended_category_page" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Category Page</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\RecommendedProductOnCategory</source_model>
                 </field>
-                <field id="recommended_product_page" translate="label comment" type="select" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="recommended_product_page" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Product Detail Page</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\RecommendedProductOnProduct</source_model>
                 </field>
-                <field id="recommended_cart_page" translate="label comment" type="select" sortOrder="25" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="recommended_cart_page" translate="label comment" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Cart Page</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\RecommendedProductOnCart</source_model>
                 </field>
-                <field id="recommended_order_thankyou_page" translate="label comment" type="select" sortOrder="30" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="recommended_order_thankyou_page" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Order Thankyou Page</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\RecommendedProductOnOrderThankYouPage</source_model>
                 </field>
-                <field id="recommended_nosearch_result_page" translate="label comment" type="select" sortOrder="35" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="recommended_nosearch_result_page" translate="label comment" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>No Search Result Page</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\RecommendedProductOnSearchPage</source_model>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-            <group id="javascript_tracking" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="1">
+            <group id="javascript_tracking" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Javascript Tracking</label>
-                <field id="enable_javascript_integration" translate="label comment" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="enable_javascript_integration" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Web Extend JavaScript integration?</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="merchant_id" translate="label comment" type="text" sortOrder="20" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="merchant_id" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Merchant Id</label>
                     <backend_model>Emarsys\Emarsys\Model\Config\Backend\Trim</backend_model>
                     <validate>required-entry</validate>
                 </field>
-                <field id="testmode" translate="label comment" type="select" sortOrder="30" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="testmode" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Test Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="uniqueidentifier" translate="label comment" type="select" sortOrder="50" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="uniqueidentifier" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Item Unique Identification</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\UniqueIdentifier</source_model>
                 </field>
-                <field id="use_base_currency" translate="label comment" type="select" sortOrder="60" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="use_base_currency" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Use Base Currency</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Applicable for both cart and purchase commands. Please do not change the option after the initial setup</comment>
                 </field>
-                <field id="tax_included" translate="label comment" type="select" sortOrder="70" showInDefault="0" showInWebsite="1" showInStore="1">
+                <field id="tax_included" translate="label comment" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Track Prices with Taxes</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Applicable for only purchase command. Enable this parameter if you want to track price with taxes. Please do not change the option after the initial setup</comment>
                 </field>
-                <field id="ajaxupdate" translate="label comment" type="select" sortOrder="80" showInDefault="0" showInWebsite="1" showInStore="1">
-                    <label>Use Ajax Update</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Applicable for setEmail, setCustomerId, cart and purchase commands only. Enable Ajax if you have issues with cache.</comment>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
                 </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
-        </section>
-        <section id="landing_pages" translate="label" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="0">
-            <class>separator-top</class>
-            <label>Landing Pages</label>
-            <tab>emarsys_connect</tab>
-            <resource>Emarsys_Emarsys::settings</resource>
         </section>
         <section id="logs" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
             <class>separator-top</class>
             <label>Logs</label>
-            <tab>emarsys_connect</tab>
+            <tab>emarsys</tab>
             <resource>Emarsys_Emarsys::settings</resource>
-            <group id="log_setting" translate="label" type="text" sortOrder="16" showInDefault="1" showInWebsite="1" showInStore="0">
+            <group id="info" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>This configuration applies to V1 (extension should be enabled)</label>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">0</field>
+                </depends>
+            </group>
+            <group id="log_setting" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>Log Setting</label>
-                <field id="log_days" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="enable" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="save_to_file" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Save Logs Into Files</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>save logs into files with format emarsys_cron_log-YYYY-MM-DD.csv in magento var/log</comment>
+                </field>
+                <field id="log_days" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Save Log Days</label>
                     <source_model>Emarsys\Emarsys\Model\Config\Source\LogDays</source_model>
                 </field>
-                <field id="log_cleaning" translate="label comment" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="log_cleaning" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enable Log Cleaning</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="archive_data" translate="label comment" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Log Data</label>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\ArchiveData</source_model>
-                </field>
-                <field id="delete_archive_days" translate="label comment" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Delete archive data Days</label>
-                    <source_model>Emarsys\Emarsys\Model\Config\Source\DeleteArchiveDay</source_model>
-                </field>
-                <field id="archive_datapath" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Archive data path</label>
-                    <comment>Archive data path from magento root folder</comment>
-                </field>
-                <field id="log_report" translate="label comment" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Send Log Report</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="log_email_recipient" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Error Email Recipient</label>
-                    <validate>validate-emails</validate>
-                    <comment>(Comma Seperated)</comment>
-                </field>
-                <field id="downloadlogs" translate="button_label" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="downloadlogs" translate="button_label" sortOrder="12" showInDefault="100" showInWebsite="1" showInStore="0">
                     <button_label>Download Logs</button_label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\Logger</frontend_model>
                 </field>
-                <field id="clearlogs" translate="button_label" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="clearlogs" translate="button_label" sortOrder="13" showInDefault="110" showInWebsite="1" showInStore="0">
                     <button_label>Clear Logs</button_label>
                     <frontend_model>Emarsys\Emarsys\Block\System\Config\Form\LogCleanerButton</frontend_model>
                 </field>
+                <field id="emarsys_setting_enable" type="hidden" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <frontend_model>Emarsys\Emarsys\Block\System\Config\Enable</frontend_model>
+                </field>
+                <depends>
+                    <field id="*/*/emarsys_setting_enable">1</field>
+                </depends>
             </group>
         </section>
     </system>

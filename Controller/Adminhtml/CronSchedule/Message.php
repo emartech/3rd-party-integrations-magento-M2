@@ -1,19 +1,16 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\CronSchedule;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Cron\Model\ScheduleFactory;
 
-/**
- * Class Message
- * @package Emarsys\Emarsys\Controller\Adminhtml\CronSchedule
- */
 class Message extends Action
 {
     /**
@@ -23,6 +20,7 @@ class Message extends Action
 
     /**
      * Message constructor.
+     *
      * @param Context $context
      * @param ScheduleFactory $scheduleFactory
      */
@@ -42,14 +40,14 @@ class Message extends Action
     {
         $id = $this->getRequest()->getParam('id');
         if ($id) {
-            $cronDettails = $this->scheduleFactory->create()->load($id);
-            if ($cronDettails) {
-                printf("<pre>" . $cronDettails->getMessages() . "</pre>");
+            $cronDetails = $this->scheduleFactory->create()->load($id);
+            if ($cronDetails) {
+                printf('<pre>' . $cronDetails->getMessages() . '</pre>');
             } else {
-                printf("No Data Available");
+                printf('No Data Available');
             }
         } else {
-            printf("No Data Available");
+            printf('No Data Available');
         }
     }
 }

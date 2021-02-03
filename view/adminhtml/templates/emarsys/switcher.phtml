@@ -1,11 +1,12 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 ?>
 <?php if ($websites = $block->getWebsites()): ?>
+    <?php ksort($websites); ?>
     <div class="store-switcher store-view">
         <span class="store-switcher-label">
             <?php echo __('Store View:') ?>
@@ -40,6 +41,9 @@
                 id="store-change-button"><?php echo $block->getCurrentSelectionName() ?></button>
             <ul class="dropdown-menu" data-role="stores-list">
                 <?php foreach ($websites as $website): ?>
+                    <?php if (!(bool)$website->getConfig('emartech/emarsys_setting/enable')): ?>
+                        <?php continue; ?>
+                    <?php endif; ?>
                     <?php $showWebsite = false; ?>
                     <?php foreach ($website->getGroups() as $group): ?>
                         <?php $showGroup = false; ?>
@@ -55,11 +59,11 @@
                                        data-value="<?php echo $block->escapeHtml($store->getId()) ?>" href="#">
                                         <?php echo $block->escapeHtml($store->getName()) ?>
                                     </a>
-                                <?php
+                                    <?php
                                 } else {
                                     ?>
                                     <span><?php echo $block->escapeHtml($store->getName()) ?></span>
-                                <?php
+                                    <?php
                                 } ?>
                             </li>
                         <?php endforeach; ?>

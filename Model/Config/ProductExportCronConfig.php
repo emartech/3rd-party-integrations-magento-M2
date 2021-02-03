@@ -1,16 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Model\Config;
 
-/**
- * Class ProductExportCronConfig
- * @package Emarsys\Emarsys\Model\Config
- */
-class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
+use Exception;
+use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Value;
+use Magento\Framework\App\Config\ValueFactory;
+use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
+
+class ProductExportCronConfig extends Value
 {
     /**
      * Cron string path
@@ -18,7 +25,7 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
     const CRON_STRING_PATH = 'emarsys_product_sync/schedule/cron_expr';
 
     /**
-     * @var \Magento\Framework\App\Config\ValueFactory
+     * @var ValueFactory
      */
     protected $_configValueFactory;
 
@@ -28,24 +35,24 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
     protected $_runModelPath = '';
 
     /**
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Registry $registry
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList
-     * @param \Magento\Framework\App\Config\ValueFactory $configValueFactory
-     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param TypeListInterface $cacheTypeList
+     * @param ValueFactory $configValueFactory
+     * @param AbstractResource $resource
+     * @param AbstractDb $resourceCollection
      * @param string $runModelPath
      * @param array $data
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config,
-        \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
-        \Magento\Framework\App\Config\ValueFactory $configValueFactory,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        Context $context,
+        Registry $registry,
+        ScopeConfigInterface $config,
+        TypeListInterface $cacheTypeList,
+        ValueFactory $configValueFactory,
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
         $runModelPath = '',
         array $data = []
     ) {
@@ -58,7 +65,7 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
      * {@inheritdoc}
      *
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function afterSave()
     {
@@ -71,7 +78,7 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
                 '*',
                 '*',
                 '*',
-                '*'
+                '*',
             ];
         }
         if ($frequency == 'Daily') {
@@ -80,7 +87,7 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
                 intval($time[0]), //Hour
                 '*',
                 '*',
-                '*'
+                '*',
             ];
         }
         if ($frequency == 'Monthly') {
@@ -89,7 +96,7 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
                 intval($time[0]), //Hour
                 '1',
                 '*',
-                '*'
+                '*',
             ];
         }
         $cronExprString = join(' ', $cronExprArray);
@@ -106,8 +113,8 @@ class ProductExportCronConfig extends \Magento\Framework\App\Config\Value
             )->setScopeId(
                 $this->getScopeId()
             )->save();
-        } catch (\Exception $e) {
-            throw new \Exception(__('We can\'t save the cron expression.'));
+        } catch (Exception $e) {
+            throw new Exception(__('We can\'t save the cron expression.'));
         }
 
         return parent::afterSave();

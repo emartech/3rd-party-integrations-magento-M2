@@ -1,15 +1,21 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Field;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Result\PageFactory;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 use Emarsys\Emarsys\Model\FieldFactory;
 use Emarsys\Emarsys\Model\ResourceModel\Field;
 use Emarsys\Emarsys\Helper\Logs;
@@ -17,11 +23,8 @@ use Magento\Framework\Stdlib\DateTime\DateTime;
 use Emarsys\Emarsys\Model\Logs as EmarsysModelLogs;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Zend_Json;
 
-/**
- * Class SaveRecommended
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Field
- */
 class SaveRecommended extends Action
 {
     /**
@@ -30,7 +33,7 @@ class SaveRecommended extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -70,7 +73,13 @@ class SaveRecommended extends Action
     protected $logsHelper;
 
     /**
+     * @var EmarsysHelper
+     */
+    protected $emarsysHelper;
+
+    /**
      * SaveRecommended constructor.
+     *
      * @param Context $context
      * @param FieldFactory $fieldFactory
      * @param Field $resourceModelField
@@ -83,6 +92,7 @@ class SaveRecommended extends Action
      */
     public function __construct(
         Context $context,
+        EmarsysHelper $emarsysHelper,
         FieldFactory $fieldFactory,
         Field $resourceModelField,
         PageFactory $resultPageFactory,
@@ -93,6 +103,7 @@ class SaveRecommended extends Action
         StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
+        $this->emarsysHelper = $emarsysHelper;
         $this->session = $context->getSession();
         $this->resultPageFactory = $resultPageFactory;
         $this->date = $date;
@@ -105,12 +116,14 @@ class SaveRecommended extends Action
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return Redirect
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store');
+        $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
         $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
         $resultRedirect = $this->resultRedirectFactory->create();
         try {
@@ -140,7 +153,7 @@ class SaveRecommended extends Action
                 $logId = $this->logsHelper->manualLogs($logsArray);
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'Recommended Mapping';
-                $logsArray['description'] = 'Saved Recommended Mapping as ' . \Zend_Json::encode($recommendedData);
+                $logsArray['description'] = 'Saved Recommended Mapping as ' . Zend_Json::encode($recommendedData);
                 $logsArray['action'] = 'Saved Recommended Mapping Successful';
                 $logsArray['message_type'] = 'Success';
                 $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
@@ -149,7 +162,11 @@ class SaveRecommended extends Action
                 $logsArray['status'] = 'success';
                 $logsArray['messages'] = 'Saved Recommended Mapping Successful';
                 $this->logsHelper->manualLogs($logsArray);
-                $this->messageManager->addSuccessMessage("Recommended Customer-Field attributes mapped successfully");
+                $this->messageManager->addSuccessMessage(
+                    __(
+                        'Recommended Customer-Field attributes mapped successfully'
+                    )
+                );
             } else {
                 $logId = $this->logsHelper->manualLogs($logsArray);
                 $logsArray['id'] = $logId;
@@ -163,16 +180,16 @@ class SaveRecommended extends Action
                 $logsArray['status'] = 'error';
                 $logsArray['messages'] = 'Saved Recommended Mapping Completed';
                 $this->logsHelper->manualLogs($logsArray);
-                $this->messageManager->addErrorMessage("No Recommendations are added");
+                $this->messageManager->addErrorMessage(__('No Recommendations are added'));
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->emarsysLogs->addErrorLog(
                 'Running Customer Filed Recommended Mapping',
                 $e->getMessage(),
                 $storeId,
                 'SaveRecommended (Customer Filed)'
             );
-            $this->messageManager->addErrorMessage("Error occurred while mapping Customer-Field");
+            $this->messageManager->addErrorMessage(__('Error occurred while mapping Customer-Field'));
         }
 
         return $resultRedirect->setRefererOrBaseUrl();

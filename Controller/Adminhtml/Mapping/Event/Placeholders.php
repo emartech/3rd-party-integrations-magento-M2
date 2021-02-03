@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event;
@@ -16,6 +16,7 @@ use Emarsys\Emarsys\Model\ResourceModel\Emarsysmagentoevents\CollectionFactory a
 
 /**
  * Class Placeholders
+ *
  * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event
  */
 class Placeholders extends Action
@@ -62,7 +63,9 @@ class Placeholders extends Action
      */
     public function execute()
     {
-        /** @var Page $resultPage */
+        /**
+         * @var Page $resultPage
+         */
         $resultPage = $this->resultPageFactory->create();
         $magentoEvent = $result = false;
         $this->_setActiveMenu('Emarsys_Emarsys::emarsys_emarsysadminindex7');

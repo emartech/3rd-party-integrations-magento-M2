@@ -1,22 +1,19 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 namespace Emarsys\Emarsys\Observer;
 
 use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
-use Magento\{
-    Framework\Event\Observer,
-    Framework\Event\ObserverInterface,
-    Store\Model\StoreManagerInterface,
-    Customer\Model\CustomerFactory
-};
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Customer\Model\CustomerFactory;
 
 /**
  * Class CustomerSaveBefore
- * @package Emarsys\Emarsys\Observer
  */
 class CustomerSaveBefore implements ObserverInterface
 {

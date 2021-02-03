@@ -1,22 +1,22 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
 use Magento\Framework\View\Result\PageFactory;
 use Emarsys\Emarsys\Model\EventFactory;
 use Emarsys\Emarsys\Model\ResourceModel\Event;
 use Emarsys\Emarsys\Model\PlaceholdersFactory;
+use Zend_Json;
 
-/**
- * Class Saveplaceholdermapping
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event
- */
 class Saveplaceholdermapping extends Action
 {
     /**
@@ -25,7 +25,7 @@ class Saveplaceholdermapping extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -36,6 +36,7 @@ class Saveplaceholdermapping extends Action
 
     /**
      * Saveplaceholdermapping constructor.
+     *
      * @param Context $context
      * @param EventFactory $eventFactory
      * @param Event $eventResourceModel
@@ -49,7 +50,6 @@ class Saveplaceholdermapping extends Action
         PlaceholdersFactory $emarsysEventPlaceholderMappingFactory,
         PageFactory $resultPageFactory
     ) {
-    
         parent::__construct($context);
         $this->session = $context->getSession();
         $this->eventResourceModel = $eventResourceModel;
@@ -60,6 +60,7 @@ class Saveplaceholdermapping extends Action
 
     /**
      * SavePlaceHolderMapping Action
+     *
      * @return $this
      */
     public function execute()
@@ -68,18 +69,19 @@ class Saveplaceholdermapping extends Action
             $resultRedirect = $this->resultRedirectFactory->create();
             $placeholderData = $this->getRequest()->getPost('placeholderData');
             $placeholders = html_entity_decode($placeholderData);
-            $placeholderDataDecode = \Zend_Json::decode($placeholders, true);
+            $placeholderDataDecode = Zend_Json::decode($placeholders, true);
 
             foreach ($placeholderDataDecode as $placeholderItem) {
                 foreach ($placeholderItem as $key => $value) {
-                    $emarsysEventPlaceholderMapping = $this->emarsysEventPlaceholderMappingFactory->create()->load($key);
-                    $emarsysEventPlaceholderMapping->setEmarsysPlaceholderName($value);
-                    $emarsysEventPlaceholderMapping->save();
+                    $emarsysEventPlaceholderMapping = $this->emarsysEventPlaceholderMappingFactory->create()
+                        ->load($key);
+                    $emarsysEventPlaceholderMapping->setEmarsysPlaceholderName($value)
+                        ->save();
                 }
             }
-            $this->messageManager->addSuccessMessage("Placeholders mapped successfully");
-        } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage("Error occurred while mapping Event " . $e->getMessage());
+            $this->messageManager->addSuccessMessage(__('Placeholders mapped successfully'));
+        } catch (Exception $e) {
+            $this->messageManager->addErrorMessage(__('Error occurred while mapping Event %1', $e->getMessage()));
         }
 
         return $resultRedirect->setRefererOrBaseUrl();

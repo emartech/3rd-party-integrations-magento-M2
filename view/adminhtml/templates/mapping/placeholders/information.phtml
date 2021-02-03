@@ -1,13 +1,12 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 ?>
 <?php
-$magentoEvent = '';
-$templateName = '';
+$magentoEvent = $emarsysEvent = $templateName = '';
 $mappingId = $this->getRequest()->getParam("mapping_id");
 $storeId = $this->getRequest()->getParam("store");
 $objectManager = \Magento\Framework\App\ObjectManager::getInstance();

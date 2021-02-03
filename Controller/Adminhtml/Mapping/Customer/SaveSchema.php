@@ -1,31 +1,30 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Customer;
 
-use Magento\{
-    Backend\App\Action,
-    Backend\App\Action\Context,
-    Framework\View\Result\PageFactory,
-    Framework\Stdlib\DateTime\DateTime,
-    Store\Model\StoreManagerInterface,
-    Eav\Model\Entity\Attribute
-};
-use Emarsys\Emarsys\{
-    Helper\Customer,
-    Model\ResourceModel\Customer as EmarsysResourceModelCustomer,
-    Model\Logs,
-    Helper\Logs as EmarsysHelperLogs
-};
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Helper\Logs as EmarsysHelperLogs;
+use Emarsys\Emarsys\Model\Logs;
+use Emarsys\Emarsys\Model\ResourceModel\Customer as EmarsysResourceModelCustomer;
+use Exception;
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
+use Magento\Eav\Model\Entity\Attribute;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\View\Result\PageFactory;
+use Magento\Store\Model\StoreManagerInterface;
+use Zend_Json;
 
-/**
- * Class SaveSchema
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Customer
- */
 class SaveSchema extends Action
 {
     /**
@@ -34,14 +33,9 @@ class SaveSchema extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
-
-    /**
-     * @var
-     */
-    protected $customerHelper;
 
     /**
      * @var EmarsysResourceModelCustomer
@@ -56,12 +50,7 @@ class SaveSchema extends Action
     /**
      * @var Attribute
      */
-    protected  $attribute;
-
-    /**
-     * @var \Emarsys\Emarsys\Helper\Customer
-     */
-    protected $emarsysCustomerHelper;
+    protected $attribute;
 
     /**
      * @var EmarsysHelperLogs
@@ -79,9 +68,15 @@ class SaveSchema extends Action
     protected $date;
 
     /**
+     * @var EmarsysHelper
+     */
+    protected $emarsysHelper;
+
+    /**
      * SaveSchema constructor.
+     *
      * @param Context $context
-     * @param Customer $emarsysCustomerHelper
+     * @param EmarsysHelper $emarsysHelper
      * @param EmarsysResourceModelCustomer $customerResourceModel
      * @param PageFactory $resultPageFactory
      * @param Logs $emarsysLogs
@@ -92,7 +87,7 @@ class SaveSchema extends Action
      */
     public function __construct(
         Context $context,
-        Customer $emarsysCustomerHelper,
+        EmarsysHelper $emarsysHelper,
         EmarsysResourceModelCustomer $customerResourceModel,
         PageFactory $resultPageFactory,
         Logs $emarsysLogs,
@@ -102,9 +97,9 @@ class SaveSchema extends Action
         Attribute $attribute
     ) {
         parent::__construct($context);
+        $this->emarsysHelper = $emarsysHelper;
         $this->session = $context->getSession();
         $this->resultPageFactory = $resultPageFactory;
-        $this->emarsysCustomerHelper = $emarsysCustomerHelper;
         $this->customerResourceModel = $customerResourceModel;
         $this->date = $date;
         $this->emarsysLogs = $emarsysLogs;
@@ -114,8 +109,9 @@ class SaveSchema extends Action
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return $this|ResponseInterface|ResultInterface
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
@@ -123,6 +119,7 @@ class SaveSchema extends Action
          * To Get the schema from Emarsys and add/update in magento mapping table
          */
         $storeId = $this->getRequest()->getParam('store');
+        $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
         $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
         $resultRedirect = $this->resultRedirectFactory->create();
         try {
@@ -147,7 +144,7 @@ class SaveSchema extends Action
 
             $logsArray['id'] = $logId;
             $logsArray['emarsys_info'] = 'Update Schema';
-            $logsArray['description'] = 'Updated Schema as ' . \Zend_Json::encode($customerAttData);
+            $logsArray['description'] = 'Updated Schema as ' . Zend_Json::encode($customerAttData);
             $logsArray['action'] = 'Update Schema Successful';
             $logsArray['message_type'] = 'Success';
             $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
@@ -156,7 +153,7 @@ class SaveSchema extends Action
             $logsArray['status'] = 'success';
             $logsArray['messages'] = 'Update Schema Completed Successfully';
             $this->logsHelper->manualLogs($logsArray);
-            $schemaData = $this->emarsysCustomerHelper->getEmarsysCustomerSchema($storeId);
+            $schemaData = $this->emarsysHelper->getEmarsysCustomerSchema($storeId);
 
             if (isset($schemaData['data']) && !empty($schemaData['data'])) {
                 $this->customerResourceModel->updateCustomerSchema($schemaData, $storeId);
@@ -172,7 +169,7 @@ class SaveSchema extends Action
                     'SaveSchema(Customer)'
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->emarsysLogs->addErrorLog(
                 'Customer schema added/updated',
                 $e->getMessage(),

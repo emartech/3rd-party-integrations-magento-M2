@@ -1,22 +1,22 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Emarsys\Emarsys\Model\EventFactory;
 use Emarsys\Emarsys\Model\ResourceModel\Event;
 use Emarsys\Emarsys\Model\EmarsyseventmappingFactory;
 
-/**
- * Class ChangeValue
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event
- */
 class ChangeValue extends Action
 {
     /**
@@ -25,17 +25,18 @@ class ChangeValue extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
     /**
-     * @var \Emarsys\Emarsys\Model\EventFactory
+     * @var EventFactory
      */
     protected $eventFactory;
 
     /**
      * ChangeValue constructor.
+     *
      * @param Context $context
      * @param EventFactory $eventFactory
      * @param Event $eventResourceModel
@@ -59,7 +60,7 @@ class ChangeValue extends Action
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return $this|ResponseInterface|ResultInterface
      */
     public function execute()
     {

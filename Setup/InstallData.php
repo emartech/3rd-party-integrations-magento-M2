@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Setup;
@@ -19,7 +19,6 @@ use Magento\Framework\App\ResourceConnection;
 
 /**
  * Class InstallData
- * @package Emarsys\Emarsys\Setup
  */
 class InstallData implements InstallDataInterface
 {
@@ -59,7 +58,8 @@ class InstallData implements InstallDataInterface
     public function install(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         /** @var CustomerSetup $customerSetup */
-        $connection = $this->ResourceConnection->getConnection(\Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION);
+        $connection = $this->ResourceConnection
+            ->getConnection(\Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION);
         $table = $this->ResourceConnection->getTableName('emarsys_magento_events');
         if ($this->productMetadata->getEdition() == 'Enterprise') {
             $connection->query("INSERT INTO $table (`magento_event`,`config_path`) VALUES

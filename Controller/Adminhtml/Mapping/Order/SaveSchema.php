@@ -1,26 +1,25 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Order;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
+use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\View\Result\PageFactory;
 use Emarsys\Emarsys\Helper\Logs;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Emarsys\Emarsys\Model\ResourceModel\Order;
 use Magento\Store\Model\StoreManagerInterface;
-use Emarsys\Emarsys\Helper\Data\Proxy as EmarsysHelper;
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Zend_Json;
 
-/**
- * Class SaveSchema
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Order
- */
 class SaveSchema extends Action
 {
     /**
@@ -29,7 +28,7 @@ class SaveSchema extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -45,6 +44,7 @@ class SaveSchema extends Action
 
     /**
      * SaveSchema constructor.
+     *
      * @param Context $context
      * @param PageFactory $resultPageFactory
      * @param Logs $logsHelper
@@ -60,8 +60,7 @@ class SaveSchema extends Action
         DateTime $date,
         Order $orderResourceModel,
         StoreManagerInterface $storeManager,
-        EmarsysHelper $emarsysHelper,
-        ScopeConfigInterface $scopeConfig
+        EmarsysHelper $emarsysHelper
     ) {
         parent::__construct($context);
         $this->resultPageFactory = $resultPageFactory;
@@ -71,25 +70,24 @@ class SaveSchema extends Action
         $this->date = $date;
         $this->storeManager = $storeManager;
         $this->emarsysHelper = $emarsysHelper;
-        $this->scopeConfig = $scopeConfig;
     }
 
     /**
      * Save action
      *
-     * @return \Magento\Framework\Controller\Result\Redirect
-     * @throws \Exception
+     * @return Redirect
+     * @throws Exception
      */
     public function execute()
     {
         try {
             $session = $this->session->getData();
             $resultRedirect = $this->resultRedirectFactory->create();
+            $storeId = false;
             if (isset($session['store'])) {
                 $storeId = $session['store'];
-            } else {
-                $storeId = $this->emarsysHelper->getFirstStoreId();
             }
+            $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
             $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
             $errorStatus = true;
 
@@ -121,11 +119,11 @@ class SaveSchema extends Action
 
             $errorStatus = false;
             $logsArray['emarsys_info'] = 'Update Schema Successful';
-            $logsArray['description'] = 'Inserted Entries ' . \Zend_Json::encode($data);
+            $logsArray['description'] = 'Inserted Entries ' . Zend_Json::encode($data);
             $logsArray['message_type'] = 'Success';
             $this->logsHelper->manualLogs($logsArray);
             $this->messageManager->addSuccessMessage('Order Schema Updated Successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($logId) {
                 $logsArray['id'] = $logId;
                 $logsArray['emarsys_info'] = 'Update Schema not Successful';
@@ -134,8 +132,10 @@ class SaveSchema extends Action
                 $this->logsHelper->manualLogs($logsArray);
             }
             $this->messageManager->addErrorMessage(
-                __('There was a problem while updating order schema. Please refer emarsys logs for more information.
-                 %1', $e->getMessage())
+                __(
+                    'There was a problem while updating order schema. Please refer emarsys logs for more information. %1',
+                    $e->getMessage()
+                )
             );
         }
 

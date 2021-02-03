@@ -1,30 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event;
 
-use Magento\{
-    Backend\App\Action,
-    Backend\App\Action\Context,
-    Framework\View\Result\PageFactory,
-    Framework\Stdlib\DateTime\DateTime,
-    Store\Model\StoreManagerInterface
-};
-use Emarsys\Emarsys\{
-    Helper\Event,
-    Helper\Data,
-    Model\ResourceModel\Event as EmarsysResourceModelEvent,
-    Helper\Logs
-};
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Helper\Logs;
+use Exception;
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\View\Result\PageFactory;
+use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class SaveSchema
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event
- */
 class SaveSchema extends Action
 {
     /**
@@ -33,31 +26,35 @@ class SaveSchema extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
-     */
-    protected $session;
-
-    /**
      * @var
      */
     protected $customerHelper;
 
     /**
-     * @var
-     */
-    protected $customerResourceModel;
-
-    /**
      * @var StoreManagerInterface
      */
-    protected $_storeManager;
+    protected $storeManager;
+
+    /**
+     * @var Logs
+     */
+    protected $logsHelper;
+
+    /**
+     * @var EmarsysHelper
+     */
+    protected $emarsysHelper;
+
+    /**
+     * @var DateTime
+     */
+    protected $date;
 
     /**
      * SaveSchema constructor.
+     *
      * @param Context $context
-     * @param Event $eventHelper
-     * @param Data $emarsysHelper
-     * @param EmarsysResourceModelEvent $eventResourceModel
+     * @param EmarsysHelper $emarsysHelper
      * @param PageFactory $resultPageFactory
      * @param Logs $logsHelper
      * @param DateTime $date
@@ -65,34 +62,30 @@ class SaveSchema extends Action
      */
     public function __construct(
         Context $context,
-        Event $eventHelper,
-        Data $emarsysHelper,
-        EmarsysResourceModelEvent $eventResourceModel,
+        EmarsysHelper $emarsysHelper,
         PageFactory $resultPageFactory,
         Logs $logsHelper,
         DateTime $date,
         StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
-        $this->session = $context->getSession();
         $this->resultPageFactory = $resultPageFactory;
-        $this->eventResourceModel = $eventResourceModel;
-        $this->eventHelper = $eventHelper;
         $this->logsHelper = $logsHelper;
         $this->date = $date;
-        $this->_storeManager = $storeManager;
+        $this->storeManager = $storeManager;
         $this->emarsysHelper = $emarsysHelper;
     }
 
     /**
      * SaveSchema Action
-     * @return $this
-     * @throws \Exception
+     *
+     * @return Redirect
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store');
-        $websiteId = $this->_storeManager->getStore($storeId)->getWebsiteId();
+        $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
         $resultRedirect = $this->resultRedirectFactory->create();
         $errorStatus = true;
         try {
@@ -111,25 +104,25 @@ class SaveSchema extends Action
             if ($this->emarsysHelper->isEmarsysEnabled($websiteId)) {
                 $errorStatus = false;
                 $this->emarsysHelper->importEvents($storeId, $logId);
-                $this->messageManager->addSuccessMessage('Event schema added/updated successfully');
+                $this->messageManager->addSuccessMessage(__('Event schema added/updated successfully'));
             } else {
                 $logsArray['messages'] = 'Emarsys is Disabled for this Store';
                 $logsArray['emarsys_info'] = 'Update Schema';
-                $logsArray['description'] ='Update Schema was not Successful';
+                $logsArray['description'] = 'Update Schema was not Successful';
                 $logsArray['action'] = 'Schame Updated';
                 $logsArray['message_type'] = 'Error';
                 $logsArray['log_action'] = 'True';
                 $this->logsHelper->manualLogs($logsArray);
-                $this->messageManager->addErrorMessage('Emarsys is not Enabled for this store');
+                $this->messageManager->addErrorMessage(__('Emarsys is not Enabled for this store'));
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $logsArray['emarsys_info'] = 'Update Schema';
             $logsArray['description'] = $e->getMessage();
             $logsArray['action'] = 'Update Schema not successful';
             $logsArray['message_type'] = 'Error';
             $logsArray['log_action'] = 'True';
             $this->logsHelper->manualLogs($logsArray);
-            $this->messageManager->addErrorMessage('Error occurred while Updating Schema' . $e->getMessage());
+            $this->messageManager->addErrorMessage(__('Error occurred while Updating Schema %1', $e->getMessage()));
         }
 
         if ($errorStatus) {

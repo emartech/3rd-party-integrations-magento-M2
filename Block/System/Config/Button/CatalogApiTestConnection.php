@@ -1,15 +1,12 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block\System\Config\Button;
 
-/**
- * Class CatalogApiTestConnection
- * @package Emarsys\Emarsys\Block\System\Config\Button
- */
 class CatalogApiTestConnection extends AbstractButton
 {
     /**
@@ -19,6 +16,7 @@ class CatalogApiTestConnection extends AbstractButton
 
     /**
      * Set template to itself
+     *
      * @return $this
      */
     protected function _prepareLayout()
@@ -31,11 +29,14 @@ class CatalogApiTestConnection extends AbstractButton
     }
 
     /**
-     * @param $websiteId
+     * @param  $websiteId
      * @return string
      */
     protected function getAjaxActionUrl($websiteId)
     {
-        return $this->getUrl("emarsys_emarsys/testconnection/catalogapitestconnection", ["website" => $websiteId]);
+        return $this->getUrl(
+            "emarsys_emarsys/testconnection/catalogapitestconnection",
+            ["website" => $websiteId]
+        );
     }
 }

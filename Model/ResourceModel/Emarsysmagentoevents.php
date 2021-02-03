@@ -1,15 +1,14 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
 /**
  * Class Emarsysmagentoevents
- * @package Emarsys\Emarsys\Model\ResourceModel
  */
 class Emarsysmagentoevents extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
@@ -27,7 +26,7 @@ class Emarsysmagentoevents extends \Magento\Framework\Model\ResourceModel\Db\Abs
     protected $entityType;
 
     /**
-     * 
+     *
      * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Eav\Model\Entity\Type $entityType
      * @param \Magento\Eav\Model\Entity\Attribute $attribute

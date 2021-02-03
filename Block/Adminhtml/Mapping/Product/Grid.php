@@ -1,30 +1,33 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Product;
 
-/**
- * Class Grid
- * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Product
- */
-class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
-{
-    /**
-     * @var \Magento\Framework\Module\Manager
-     */
-    protected $moduleManager;
+use Emarsys\Emarsys\Block\Adminhtml\Mapping\Product\Renderer\EmarsysProduct;
+use Emarsys\Emarsys\Helper\Data;
+use Exception;
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Grid\Extended;
+use Magento\Backend\Model\Session;
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Data\Collection;
+use Magento\Framework\DataObject;
+use Magento\Framework\DataObjectFactory;
+use Magento\Framework\Exception\LocalizedException;
 
+class Grid extends Extended
+{
     /**
      * @var \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection
      */
     protected $_collection;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -34,53 +37,52 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     protected $backendHelper;
 
     /**
-     * @var \Emarsys\Emarsys\Model\ResourceModel\Product
-     */
-    protected $resourceModelProduct;
-
-    /**
-     * @var \Magento\Framework\Data\Collection
+     * @var Collection
      */
     protected $dataCollection;
 
     /**
-     * @var \Magento\Framework\DataObjectFactory
+     * @var DataObjectFactory
      */
     protected $dataObjectFactory;
 
     /**
+     * @var Data
+     */
+    protected $emarsysHelper;
+
+    /**
      * Grid constructor.
-     * @param \Magento\Backend\Block\Template\Context $context
+     *
+     * @param Context $context
      * @param \Magento\Backend\Helper\Data $backendHelper
      * @param \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection $_collection
-     * @param \Magento\Framework\Data\Collection $dataCollection
-     * @param \Magento\Framework\DataObjectFactory $dataObjectFactory
-     * @param \Emarsys\Emarsys\Model\ResourceModel\Product $resourceModelProduct
-     * @param \Magento\Framework\Module\Manager $moduleManager
+     * @param Collection $dataCollection
+     * @param DataObjectFactory $dataObjectFactory
+     * @param Data $emarsysHelper
      * @param array $data
      */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
+        Context $context,
         \Magento\Backend\Helper\Data $backendHelper,
         \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection $_collection,
-        \Magento\Framework\Data\Collection $dataCollection,
-        \Magento\Framework\DataObjectFactory $dataObjectFactory,
-        \Emarsys\Emarsys\Model\ResourceModel\Product $resourceModelProduct,
-        \Magento\Framework\Module\Manager $moduleManager,
+        Collection $dataCollection,
+        DataObjectFactory $dataObjectFactory,
+        Data $emarsysHelper,
         $data = []
     ) {
         $this->session = $context->getBackendSession();
         $this->_collection = $_collection;
-        $this->moduleManager = $moduleManager;
         $this->backendHelper = $backendHelper;
         $this->dataCollection = $dataCollection;
         $this->dataObjectFactory = $dataObjectFactory;
-        $this->resourceModelProduct = $resourceModelProduct;
+        $this->emarsysHelper = $emarsysHelper;
         parent::__construct($context, $backendHelper, $data);
     }
 
     /**
      * @return void
+     * @throws LocalizedException
      */
     protected function _construct()
     {
@@ -93,6 +95,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->setVarNameFilter('grid_record');
         $this->session->setData('gridData', '');
         $storeId = $this->getRequest()->getParam('store');
+        $storeId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId);
         $methods = $this->_collection->addVisibleFilter();
         $productMethods = [];
         foreach ($methods as $productCode => $productModel) {
@@ -116,14 +119,15 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
      */
     protected function _prepareCollection()
     {
-        $collection = $this->_collection->addVisibleFilter()->setOrder('main_table.frontend_label', 'ASC');
+        $collection = $this->_collection->addVisibleFilter()
+            ->setOrder('main_table.frontend_label', 'ASC');
         $this->setCollection($collection);
         return parent::_prepareCollection();
     }
 
     /**
-     * @return $this
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @return Extended
+     * @throws Exception
      */
     protected function _prepareColumns()
     {
@@ -134,15 +138,15 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
                 'type' => 'varchar',
                 'index' => 'frontend_label',
                 'header_css_class' => 'col-id',
-                'column_css_class' => 'col-id'
+                'column_css_class' => 'col-id',
             ]
         );
         $this->addColumn(
             'emarsys_attr_code',
             [
                 'header' => __('Emarsys Attribute'),
-                'renderer' => '\Emarsys\Emarsys\Block\Adminhtml\Mapping\Product\Renderer\EmarsysProduct',
-                'filter' => false
+                'renderer' => EmarsysProduct::class,
+                'filter' => false,
             ]
         );
 
@@ -150,15 +154,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid\Extended
     }
 
     /**
-     * @return string
-     */
-    public function getMainButtonsHtml()
-    {
-        return parent::getMainButtonsHtml();
-    }
-
-    /**
-     * @param \Magento\Catalog\Model\Product|\Magento\Framework\DataObject $row
+     * @param Product|DataObject $row
      * @return string
      */
     public function getRowUrl($row)

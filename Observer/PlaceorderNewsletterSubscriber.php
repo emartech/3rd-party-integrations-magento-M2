@@ -1,25 +1,22 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Observer;
 
 use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
-use Magento\{
-    Checkout\Model\Session,
-    Framework\Event\Observer,
-    Newsletter\Model\SubscriberFactory,
-    Sales\Model\Order,
-    Store\Model\StoreManagerInterface,
-    Framework\Event\ObserverInterface
-};
+use Magento\Checkout\Model\Session;
+use Magento\Framework\Event\Observer;
+use Magento\Newsletter\Model\SubscriberFactory;
+use Magento\Sales\Model\Order;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Event\ObserverInterface;
 
 /**
  * Class PlaceorderNewsletterSubscriber
- * @package Emarsys\Emarsys\Observer
  */
 class PlaceorderNewsletterSubscriber implements ObserverInterface
 {

@@ -1,44 +1,31 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Productexport;
 
-use Magento\Backend\Block\Widget\Form\Container;
-use Emarsys\Emarsys\Controller\Adminhtml\Productexport;
+use Emarsys\Emarsys\Block\Adminhtml\Export\Form as ExportForm;
+use Magento\Backend\Block\Widget\Context;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 
-/**
- * Class Form
- * @package Emarsys\Emarsys\Block\Adminhtml\Productexport
- */
-class Form extends \Magento\Backend\Block\Widget\Form
+class Form extends ExportForm
 {
-    protected $_template = 'bulkexport/bulkexport.phtml';
-
     /**
-     * @param \Magento\Backend\Block\Widget\Context $context
+     * Form constructor.
+     *
+     * @param Context $context
      * @param array $data
+     * @param EmarsysHelper $emarsysHelper
      */
     public function __construct(
-        \Magento\Backend\Block\Widget\Context $context,
-        array $data = []
+        Context $context,
+        array $data = [],
+        EmarsysHelper $emarsysHelper
     ) {
-        parent::__construct($context, $data);
+        parent::__construct($context, $data, $emarsysHelper);
         $this->setId('productExportForm');
-    }
-
-    protected function _beforeToHtml()
-    {
-        $this->isFromError = $this->getRequest()->getParam('error') === 'true';
-        return parent::_beforeToHtml();
-    }
-
-    public function getStoreId()
-    {
-        $storeId = $this->getRequest()->getParam('store');
-        return $storeId;
     }
 }

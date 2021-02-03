@@ -1,19 +1,18 @@
 <?php
 /**
- *
- * Copyright © 2015 Yagendracommerce. All rights reserved.
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Installation;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 
-/**
- * Class Checklist
- * @package Emarsys\Emarsys\Controller\Adminhtml\Installation
- */
 class Checklist extends Action
 {
     /**
@@ -28,6 +27,7 @@ class Checklist extends Action
 
     /**
      * Checklist constructor.
+     *
      * @param Context $context
      * @param EmarsysHelper $emarsysHelper
      * @param PageFactory $resultPageFactory
@@ -45,16 +45,21 @@ class Checklist extends Action
     /**
      * Index action
      *
-     * @return \Magento\Backend\Model\View\Result\Page
+     * @return Page
      */
     public function execute()
     {
         $store = $this->getRequest()->getParam('store');
         if (!$store) {
             $storeId = $this->emarsysHelper->getFirstStoreId();
-            return $this->resultRedirectFactory->create()->setUrl($this->getUrl('*/*/checklist', ['store' => $storeId]));
+            return $this->resultRedirectFactory->create()->setUrl(
+                $this->getUrl(
+                    '*/*/checklist',
+                    ['store' => $storeId]
+                )
+            );
         }
-        /** @var \Magento\Backend\Model\View\Result\Page $resultPage */
+        /** @var $resultPage Page */
         $resultPage = $this->resultPageFactory->create();
         $resultPage->getConfig()->getTitle()->prepend(__('Emarsys Installation Checklist'));
 

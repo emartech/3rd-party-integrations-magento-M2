@@ -1,33 +1,26 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2019 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block;
 
-use Magento\{
-    Catalog\Model\Category,
-    Catalog\Model\Product,
-    Framework\Exception\LocalizedException,
-    Framework\Exception\NoSuchEntityException,
-    Framework\View\Element\Template,
-    Framework\View\Element\Template\Context,
-    Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory,
-    Catalog\Model\CategoryFactory,
-    Framework\App\Request\Http,
-    Framework\Registry,
-    Directory\Model\CurrencyFactory,
-    Framework\EntityManager\MetadataPool,
-    Catalog\Api\Data\CategoryInterface,
-    Store\Model\StoreManagerInterface
-};
-use Emarsys\Emarsys\Helper\Data\Proxy as EmarsysHelper;
+use Magento\Catalog\Model\Category;
+use Magento\Catalog\Model\CategoryFactory;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
+use Magento\Directory\Model\CurrencyFactory;
+use Magento\Framework\App\Request\Http;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Registry;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Store\Model\StoreManagerInterface;
+use Emarsys\Emarsys\Helper\Data;
 
-/**
- * Class JavascriptTracking
- * @package Emarsys\Emarsys\Block
- */
 class JavascriptTracking extends Template
 {
     /**
@@ -56,21 +49,15 @@ class JavascriptTracking extends Template
     protected $categoryCollectionFactory;
 
     /**
-     * @var MetadataPool
-     */
-    protected $metadataPool;
-
-    /**
      * JavascriptTracking constructor.
      *
-     * @param Context                   $context
-     * @param CategoryFactory           $categoryFactory
-     * @param Http                      $request
-     * @param Registry                  $registry
-     * @param CurrencyFactory           $currencyFactory
+     * @param Context $context
+     * @param CategoryFactory $categoryFactory
+     * @param Http $request
+     * @param Registry $registry
+     * @param CurrencyFactory $currencyFactory
      * @param CategoryCollectionFactory $categoryCollectionFactory
-     * @param MetadataPool              $metadataPool
-     * @param array                     $data
+     * @param array $data
      */
     public function __construct(
         Context $context,
@@ -79,7 +66,6 @@ class JavascriptTracking extends Template
         Registry $registry,
         CurrencyFactory $currencyFactory,
         CategoryCollectionFactory $categoryCollectionFactory,
-        MetadataPool $metadataPool,
         array $data = []
     ) {
         $this->storeManager = $context->getStoreManager();
@@ -88,12 +74,12 @@ class JavascriptTracking extends Template
         $this->coreRegistry = $registry;
         $this->currencyFactory = $currencyFactory;
         $this->categoryCollectionFactory = $categoryCollectionFactory;
-        $this->metadataPool = $metadataPool;
         parent::__construct($context, $data);
     }
 
     /**
      * @return array
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function getPageHandleStatus()
@@ -108,23 +94,23 @@ class JavascriptTracking extends Template
             'catalog_product_view' => Data::XPATH_CATALOG_PRODUCT_VIEW,
             'checkout_cart_index' => Data::XPATH_CHECKOUT_CART_INDEX,
             'checkout_onepage_success' => Data::XPATH_CHECKOUT_ONEPAGE_SUCCESS,
-            'catalogsearch_result_index' => Data::XPATH_CATALOGSEARCH_RESULT_INDEX
+            'catalogsearch_result_index' => Data::XPATH_CATALOGSEARCH_RESULT_INDEX,
+            'search' => Data::XPATH_CATALOGSEARCH_RESULT_INDEX,
         ];
 
         if (array_key_exists($handle, $pageHandles)) {
-            $jsStatus = $this->getJsEnableStatusForAllPages();
-            if ($jsStatus == 1) {
+            if ($this->getJsEnableStatusForAllPages()) {
                 $path = $pageHandles[$handle];
                 $pageValue = $this->storeManager->getStore()->getConfig($path);
                 $pageData = explode('||', $pageValue);
                 $pageResult['logic'] = $pageData[0];
                 $pageResult['templateId'] = $pageData[1];
-                $pageResult['status'] = 'Valid';
+                $pageResult['status'] = true;
             } else {
-                $pageResult['status'] = 'Invalid';
+                $pageResult['status'] = false;
             }
         } else {
-            $pageResult['status'] = 'Invalid';
+            $pageResult['status'] = true;
         }
 
         return $pageResult;
@@ -145,11 +131,13 @@ class JavascriptTracking extends Template
      * Get Status of Web Extended Javascript integration from DB
      *
      * @return bool
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function getJsEnableStatusForAllPages()
     {
-        return (bool)$this->storeManager->getStore()->getConfig(Data::XPATH_WEBEXTEND_JS_TRACKING_ENABLED);
+        return (bool)$this->storeManager->getWebsite()->getConfig(Data::XPATH_EMARSYS_ENABLED)
+            && (bool)$this->storeManager->getStore()->getConfig(Data::XPATH_WEBEXTEND_JS_TRACKING_ENABLED);
     }
 
     /**
@@ -162,6 +150,24 @@ class JavascriptTracking extends Template
     }
 
     /**
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function useBaseCurrency()
+    {
+        return (bool)$this->storeManager->getStore()->getConfig(Data::XPATH_WEBEXTEND_USE_BASE_CURRENCY);
+    }
+
+    /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getUniqueIdentifier()
+    {
+        return $this->storeManager->getStore()->getConfig(Data::XPATH_WEBEXTEND_UNIQUE_ID);
+    }
+
+    /**
      * Get Tracking Data
      *
      * @return mixed
@@ -170,14 +176,16 @@ class JavascriptTracking extends Template
      */
     public function getTrackingData()
     {
-        return \Zend_Json::encode([
-            'product' => $this->getCurrentProduct(),
-            'category' => $this->getCategory(),
-            'search' => $this->getSearchData(),
-            'exchangeRate' => $this->getExchangeRate(),
-            'slug' => $this->getStoreSlug(),
-            'displayCurrency' => $this->getDisplayCurrency(),
-        ]);
+        return \Zend_Json::encode(
+            [
+                'product' => $this->getCurrentProduct(),
+                'category' => $this->getCategory(),
+                'search' => $this->getSearchData(),
+                'useBaseCurrency' => $this->useBaseCurrency(),
+                'slug' => $this->getStoreSlug(),
+                'displayCurrency' => $this->getDisplayCurrency(),
+            ]
+        );
     }
 
     /**
@@ -190,8 +198,8 @@ class JavascriptTracking extends Template
         $product = $this->coreRegistry->registry('current_product');
         if ($product instanceof Product) {
             return [
-                'sku' => $product->getSku(),
-                'id'  => $product->getId(),
+                'sku' => 'g/' . $product->getSku(),
+                'id' => $product->getId(),
             ];
         }
 
@@ -213,22 +221,24 @@ class JavascriptTracking extends Template
 
             $categoryIds = $this->removeDefaultCategories($category->getPathIds());
 
-            $linkField = $this->metadataPool->getMetadata(CategoryInterface::class)->getLinkField();
-
-            /** @var Collection $categoryCollection */
+            /**
+             * @var Collection $categoryCollection
+             */
             $categoryCollection = $this->categoryCollectionFactory->create()
+                ->addIdFilter($categoryIds)
                 ->setStore($this->storeManager->getStore())
-                ->addAttributeToSelect('name')
-                ->addFieldToFilter($linkField, ['in' => $categoryIds]);
+                ->addAttributeToSelect('name');
 
-            /** @var Category $category */
+            /**
+             * @var Category $category
+             */
             foreach ($categoryCollection as $categoryItem) {
-                $categoryList[] = addcslashes($categoryItem->getName(), "'");
+                $categoryList[] = $categoryItem->getName();
             }
 
             return [
                 'names' => $categoryList,
-                'ids'   => $categoryIds,
+                'ids' => $categoryIds,
             ];
         }
         return false;
@@ -274,23 +284,16 @@ class JavascriptTracking extends Template
     }
 
     /**
-     * @return float
-     * @throws NoSuchEntityException
-     */
-    public function getExchangeRate()
-    {
-        $currentCurrency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
-        $baseCurrency = $this->storeManager->getStore()->getBaseCurrency()->getCode();
-        return (float)$this->currencyFactory->create()->load($baseCurrency)->getAnyRate($currentCurrency);
-    }
-
-    /**
      * @return mixed
      * @throws NoSuchEntityException
      */
     public function getDisplayCurrency()
     {
-        return $this->storeManager->getStore()->getCurrentCurrency()->getCode();
+        if ($this->useBaseCurrency()) {
+            return $this->storeManager->getStore()->getBaseCurrency()->getCode();
+        } else {
+            return $this->storeManager->getStore()->getCurrentCurrency()->getCode();
+        }
     }
 
     /**
@@ -299,6 +302,21 @@ class JavascriptTracking extends Template
      */
     public function getStoreSlug()
     {
+        if ($this->isDefault($this->storeManager->getStore())) {
+            return '';
+        }
         return $this->storeManager->getStore()->getCode();
+    }
+
+    /**
+     * @param  $store
+     * @return bool
+     */
+    public function isDefault($store)
+    {
+        if (!$store->getId() && $store->getWebsite() && $store->getWebsite()->getStoresCount() == 0) {
+            return true;
+        }
+        return $store->getGroup()->getDefaultStoreId() == $store->getId();
     }
 }

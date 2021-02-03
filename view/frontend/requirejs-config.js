@@ -1,7 +1,9 @@
 var config = {
-    "map": {
-        "*": {
-            'Magento_Checkout/js/model/shipping-save-processor/default': 'Emarsys_Emarsys/js/model/shipping-save-processor/default'
+    config: {
+        mixins: {
+            'Magento_Checkout/js/action/set-shipping-information': {
+                'Emarsys_Emarsys/js/action/set-shipping-information-mixin': true
+            }
         }
     }
 };

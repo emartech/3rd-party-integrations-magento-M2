@@ -1,26 +1,22 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping\Event;
 
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Helper\Logs as EmarsysHelperLogs;
+use Emarsys\Emarsys\Model\EmarsyseventmappingFactory as EmarsysEventsFactory;
+use Emarsys\Emarsys\Model\EmarsysmagentoeventsFactory as EmarsysMagentoEvents;
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Grid\Extended;
-use Magento\Backend\Model\Session;
 use Magento\Backend\Helper\Data;
-use Emarsys\Emarsys\Model\EmarsysmagentoeventsFactory as EmarsysMagentoEvents;
-use Emarsys\Emarsys\Model\EmarsyseventmappingFactory as EmarsysEventsFactory;
-use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Magento\Backend\Model\Session;
 use Magento\Framework\App\ResourceConnection;
-use Emarsys\Emarsys\Helper\Logs as EmarsysHelperLogs;
 
-/**
- * Class Grid
- * @package Emarsys\Emarsys\Block\Adminhtml\Mapping\Event
- */
 class Grid extends Extended
 {
     /**
@@ -86,18 +82,21 @@ class Grid extends Extended
 
     /**
      * @return Extended
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function _prepareCollection()
     {
         $eventMappingCollection = $this->emarsysMagentoEvents->create()->getCollection();
         $storeId = (int)$this->getRequest()->getParam('store');
+        if (!$storeId) {
+            $storeId = $this->emarsysHelper->getFirstStoreId();
+        }
+
         $eventMappingCollection->getSelect()->joinLeft(
             ['emarsys_event_mapping' => $this->resourceConnection->getTableName('emarsys_event_mapping')],
-            'main_table.id = emarsys_event_mapping.magento_event_id',
+            'main_table.id = emarsys_event_mapping.magento_event_id AND emarsys_event_mapping.store_id = ' . $storeId,
             ['emarsys_event_id']
         );
-        $eventMappingCollection->addFieldToFilter('store_id', $storeId);
         $eventMappingCollection->setOrder('main_table.id', 'ASC');
 
         $this->setCollection($eventMappingCollection);
@@ -105,29 +104,33 @@ class Grid extends Extended
     }
 
     /**
-     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function _construct()
     {
         parent::_construct();
+        $this->setId('mappingEventGrid');
+        $this->setSaveParametersInSession(true);
         $storeId = $this->getRequest()->getParam('store');
-        if (!isset($storeId)) {
+        if (!$storeId) {
             $storeId = $this->emarsysHelper->getFirstStoreId();
         }
+
         $this->session->setData('store', $storeId);
+        $this->session->setData('storeId', $storeId);
         $this->session->setMappingGridData([]);
         $collection = $this->emarsysEventsFactory->create()->getCollection()
             ->addFieldToFilter('store_id', $storeId);
 
-        $mappingGridArray = [];
+        $mapGridArray = [];
         foreach ($collection as $col) {
-            $mappingGridArray[$col->getData('magento_event_id')]['magento_event_id'] = $col->getData('magento_event_id');
-            $mappingGridArray[$col->getData('magento_event_id')]['emarsys_event_id'] = $col->getData('emarsys_event_id');
+            $mapGridArray[$col->getData('magento_event_id')]['magento_event_id'] = $col->getData('magento_event_id');
+            $mapGridArray[$col->getData('magento_event_id')]['emarsys_event_id'] = $col->getData('emarsys_event_id');
         }
 
         $this->setDefaultSort('id');
         $this->setDefaultDir('ASC');
-        $this->session->setMappingGridData($mappingGridArray);
+        $this->session->setMappingGridData($mapGridArray);
         $this->session->setStoreId($storeId);
     }
 
@@ -145,17 +148,23 @@ class Grid extends Extended
         $recommended = $this->getRequest()->getParam('recommended');
 
         if (isset($recommended) && $recommended != "") {
-            $this->addColumn('emarsys_event_id', [
-                'header' => __('Emarsys Event'),
-                'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer\Emarsyseventmapping',
-                'filter' => false
-            ]);
+            $this->addColumn(
+                'emarsys_event_id',
+                [
+                    'header' => __('Emarsys Event'),
+                    'renderer' => \Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer\Emarsyseventmapping::class,
+                    'filter' => false,
+                ]
+            );
         } else {
-            $this->addColumn('emarsys_event_id', [
-                'header' => __('Emarsys Event'),
-                'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer\EmarsysEvent',
-                'filter' => false
-            ]);
+            $this->addColumn(
+                'emarsys_event_id',
+                [
+                    'header' => __('Emarsys Event'),
+                    'renderer' => \Emarsys\Emarsys\Block\Adminhtml\Mapping\Event\Renderer\EmarsysEvent::class,
+                    'filter' => false,
+                ]
+            );
         }
 
         return parent::_prepareColumns();
@@ -170,7 +179,7 @@ class Grid extends Extended
     }
 
     /**
-     * @param $row
+     * @param  $row
      * @return string
      */
     public function getRowUrl($row)

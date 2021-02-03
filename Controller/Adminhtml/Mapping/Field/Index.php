@@ -1,21 +1,18 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Field;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
-use Emarsys\Emarsys\Helper\Data\Proxy as EmarsysHelper;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 
-/**
- * Class Index
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Field
- */
 class Index extends Action
 {
     /**
@@ -30,6 +27,7 @@ class Index extends Action
 
     /**
      * Index constructor.
+     *
      * @param Context $context
      * @param EmarsysHelper $emarsysHelper
      * @param PageFactory $resultPageFactory
@@ -47,7 +45,7 @@ class Index extends Action
     /**
      * Index action
      *
-     * @return \Magento\Backend\Model\View\Result\Page
+     * @return Page
      */
     public function execute()
     {
@@ -56,7 +54,9 @@ class Index extends Action
             $storeId = $this->emarsysHelper->getFirstStoreId();
             return $this->resultRedirectFactory->create()->setUrl($this->getUrl('*/*', ['store' => $storeId]));
         }
-        /** @var \Magento\Backend\Model\View\Result\Page $resultPage */
+        /**
+         * @var Page $resultPage
+         */
         $resultPage = $this->resultPageFactory->create();
         $this->_setActiveMenu('Emarsys_Emarsys::emarsys_field_mapping');
         $resultPage->addBreadcrumb(__('Emarsys - Field Mapping'), __('Emarsys - Field Mapping'));

@@ -1,32 +1,25 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Orderexport;
 
-use Magento\{
-    Backend\App\Action,
-    Backend\App\Action\Context,
-    Framework\App\Request\Http,
-    Framework\Message\ManagerInterface as MessageManagerInterface,
-    Framework\Stdlib\DateTime\DateTime,
-    Framework\Stdlib\DateTime\Timezone as TimeZone,
-    Store\Model\StoreManagerInterface
-};
-use Emarsys\Emarsys\{
-    Helper\Data as EmarsysHelper,
-    Helper\Cron as EmarsysCronHelper,
-    Model\Order as EmarsysOrderModel,
-    Model\EmarsysCronDetails,
-    Model\Logs
-};
+use Emarsys\Emarsys\Helper\Cron as EmarsysCronHelper;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Model\EmarsysCronDetails;
+use Emarsys\Emarsys\Model\Logs;
+use Emarsys\Emarsys\Model\Order as EmarsysOrderModel;
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Request\Http;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\Stdlib\DateTime\Timezone as TimeZone;
+use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class OrderExport
- * @package Emarsys\Emarsys\Controller\Adminhtml\Orderexport
- */
 class OrderExport extends Action
 {
     /**
@@ -81,6 +74,7 @@ class OrderExport extends Action
 
     /**
      * OrderExport constructor.
+     *
      * @param Context $context
      * @param Http $request
      * @param EmarsysOrderModel $emarsysOrderModel
@@ -131,11 +125,14 @@ class OrderExport extends Action
         $url = $this->getUrl("emarsys_emarsys/orderexport/index", ["store" => $storeId]);
         try {
             //check emarsys enabled for the website
-            if ($this->emarsysHelper->getEmarsysConnectionSetting($websiteId)) {
+            if ($this->emarsysHelper->isEmarsysEnabled($websiteId)) {
                 //check smart insight enabled for the website
                 if ($this->emarsysHelper->getCheckSmartInsight($websiteId)) {
                     if (isset($data['fromDate']) && $data['fromDate'] != '') {
-                        $data['fromDate'] = $this->date->date('Y-m-d', strtotime($data['fromDate'])) . ' 00:00:01';
+                        $data['fromDate'] = $this->date->date(
+                            'Y-m-d',
+                            strtotime($data['fromDate'])
+                        ) . ' 00:00:01';
                     }
 
                     if (isset($data['toDate']) && $data['toDate'] != '') {
@@ -143,10 +140,16 @@ class OrderExport extends Action
                     }
 
                     //check sales collection exist
-                    $isCronjobScheduled = $this->cronHelper->checkCronjobScheduled(EmarsysCronHelper::CRON_JOB_SI_BULK_EXPORT, $storeId);
+                    $isCronjobScheduled = $this->cronHelper->checkCronjobScheduled(
+                        EmarsysCronHelper::CRON_JOB_SI_BULK_EXPORT,
+                        $storeId
+                    );
                     if (!$isCronjobScheduled) {
                         //no cron job scheduled yet, schedule a new cron job
-                        $cron = $this->cronHelper->scheduleCronJob(EmarsysCronHelper::CRON_JOB_SI_BULK_EXPORT, $storeId);
+                        $cron = $this->cronHelper->scheduleCronJob(
+                            EmarsysCronHelper::CRON_JOB_SI_BULK_EXPORT,
+                            $storeId
+                        );
 
                         //format and encode data in json to be saved in the table
                         $params = $this->cronHelper->getFormattedParams($data);
@@ -159,18 +162,34 @@ class OrderExport extends Action
                                 'A cron named "%1" have been scheduled for smart insight export for the store %2.',
                                 EmarsysCronHelper::CRON_JOB_SI_BULK_EXPORT,
                                 $store->getName()
-                            ));
+                            )
+                        );
                     } else {
                         //cron job already scheduled
-                        $this->messageManager->addErrorMessage(__('A cron is already scheduled to export orders for the store %1 ', $store->getName()));
+                        $this->messageManager->addErrorMessage(
+                            __(
+                                'A cron is already scheduled to export orders for the store %1 ',
+                                $store->getName()
+                            )
+                        );
                     }
                 } else {
                     //smart insight is disabled for this website
-                    $this->messageManager->addErrorMessage(__('Smart Insight is disabled for the store %1.', $store->getName()));
+                    $this->messageManager->addErrorMessage(
+                        __(
+                            'Smart Insight is disabled for the store %1.',
+                            $store->getName()
+                        )
+                    );
                 }
             } else {
                 //emarsys is disabled for this website
-                $this->messageManager->addErrorMessage(__('Emarsys is disabled for the website %1', $websiteId));
+                $this->messageManager->addErrorMessage(
+                    __(
+                        'Emarsys is disabled for the website %1',
+                        $websiteId
+                    )
+                );
             }
         } catch (\Exception $e) {
             //add exception to logs
@@ -181,7 +200,12 @@ class OrderExport extends Action
                 'OrderExport::execute()'
             );
             //report error
-            $this->messageManager->addErrorMessage(__('There was a problem while orders export. %1', $e->getMessage()));
+            $this->messageManager->addErrorMessage(
+                __(
+                    'There was a problem while orders export. %1',
+                    $e->getMessage()
+                )
+            );
         }
 
         return $this->resultRedirectFactory->create()->setPath($url);

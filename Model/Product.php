@@ -1,48 +1,43 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Model;
 
-use Magento\{
-    Eav\Model\Config as EavConfig,
-    Framework\App\Area,
-    Framework\Model\AbstractModel,
-    Framework\Model\Context,
-    Framework\Model\ResourceModel\AbstractResource,
-    Framework\Registry,
-    Framework\Message\ManagerInterface as MessageManagerInterface,
-    Framework\Data\Collection\AbstractDb,
-    Framework\Stdlib\DateTime\DateTime,
-    Framework\App\Filesystem\DirectoryList,
-    Framework\File\Csv,
-    Catalog\Helper\Image,
-    Catalog\Model\Product\Attribute\Source\Status,
-    Catalog\Model\Product\Visibility,
-    Catalog\Model\CategoryFactory,
-    Catalog\Model\Product as ProductModel,
-    Store\Model\App\Emulation,
-    Store\Model\StoreManagerInterface,
-    ConfigurableProduct\Model\Product\Type\Configurable as TypeConfigurable,
-    Bundle\Model\Product\Type as TypeBundle,
-    GroupedProduct\Model\Product\Type\Grouped as TypeGrouped
-};
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Emarsys\Emarsys\Helper\Logs as EmarsysHelperLogs;
+use Emarsys\Emarsys\Model\Emarsysproductexport as ProductExportModel;
+use Emarsys\Emarsys\Model\ResourceModel\Customer as EmarsysResourceModelCustomer;
+use Emarsys\Emarsys\Model\ResourceModel\Emarsysproductexport as ProductExportResourceModel;
+use Emarsys\Emarsys\Model\ResourceModel\Product as ProductResourceModel;
+use Magento\Bundle\Model\Product\Type as TypeBundle;
+use Magento\Catalog\Helper\Image;
+use Magento\Catalog\Model\CategoryFactory;
+use Magento\Catalog\Model\Product as ProductModel;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magento\Catalog\Model\Product\Visibility;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable as TypeConfigurable;
+use Magento\Directory\Model\CurrencyFactory;
+use Magento\Eav\Model\Config as EavConfig;
+use Magento\Framework\App\Area;
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Event\ManagerInterface as EventManager;
+use Magento\Framework\File\Csv;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
+use Magento\Framework\Serialize\Serializer\Serialize as Serializer;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\GroupedProduct\Model\Product\Type\Grouped as TypeGrouped;
+use Magento\Store\Model\App\Emulation;
+use Magento\Store\Model\StoreManagerInterface;
 
-use Emarsys\Emarsys\{
-    Helper\Logs as EmarsysHelperLogs,
-    Helper\Data as EmarsysHelper,
-    Model\ResourceModel\Customer as EmarsysResourceModelCustomer,
-    Model\ResourceModel\Product as ProductResourceModel,
-    Model\ResourceModel\Emarsysproductexport as ProductExportResourceModel,
-    Model\Emarsysproductexport as ProductExportModel
-};
-
-/**
- * Class Product
- * @package Emarsys\Emarsys\Model
- */
 class Product extends AbstractModel
 {
     /**
@@ -106,9 +101,19 @@ class Product extends AbstractModel
     protected $emarsysHelper;
 
     /**
+     * @var EventManager
+     */
+    protected $eventManager;
+
+    /**
      * @var Csv
      */
     protected $csvWriter;
+
+    /**
+     * @var Serializer
+     */
+    protected $serializer;
 
     /**
      * @var DirectoryList
@@ -130,6 +135,11 @@ class Product extends AbstractModel
      */
     protected $appEmulation;
 
+    /**
+     * @var CurrencyFactory
+     */
+    protected $currencyFactory;
+
     protected $_errorCount = false;
     protected $_mode = false;
     protected $_credentials = [];
@@ -142,10 +152,6 @@ class Product extends AbstractModel
     protected $_productTypeInstance = null;
 
     /**
-     * @var State
-     */
-    protected $state;
-    /**
      * @var TypeConfigurable
      */
     protected $typeConfigurable;
@@ -157,6 +163,22 @@ class Product extends AbstractModel
      * @var TypeGrouped
      */
     protected $typeGrouped;
+
+    /**
+     * @var 0|string
+     */
+    protected $isSimpleParent = 0;
+
+    public $attributeMap = [
+        'sku' => 'getSku',
+        'quantity_and_stock_status' => 'getQuantityAndStockStatus',
+        'category_ids' => 'getCategoryIds',
+        'image' => 'getImage',
+        'url_key' => 'getUrlKey',
+        'price' => 'getPrice',
+    ];
+
+    public $categoryNames;
 
     /**
      * Product constructor.
@@ -173,7 +195,9 @@ class Product extends AbstractModel
      * @param StoreManagerInterface $storeManager
      * @param EavConfig $eavConfig
      * @param EmarsysHelper $emarsysHelper
+     * @param EventManager $eventManager
      * @param Csv $csvWriter
+     * @param Serializer $serializer
      * @param DirectoryList $directoryList
      * @param ApiExport $apiExport
      * @param Image $imageHelper
@@ -181,6 +205,7 @@ class Product extends AbstractModel
      * @param TypeConfigurable $typeConfigurable
      * @param TypeBundle $typeBundle
      * @param TypeGrouped $typeGrouped
+     * @param CurrencyFactory $currencyFactory
      * @param Context $context
      * @param Registry $registry
      * @param AbstractResource|null $resource
@@ -200,7 +225,9 @@ class Product extends AbstractModel
         StoreManagerInterface $storeManager,
         EavConfig $eavConfig,
         EmarsysHelper $emarsysHelper,
+        EventManager $eventManager,
         Csv $csvWriter,
+        Serializer $serializer,
         DirectoryList $directoryList,
         ApiExport $apiExport,
         Image $imageHelper,
@@ -208,6 +235,7 @@ class Product extends AbstractModel
         TypeConfigurable $typeConfigurable,
         TypeBundle $typeBundle,
         TypeGrouped $typeGrouped,
+        CurrencyFactory $currencyFactory,
         Context $context,
         Registry $registry,
         AbstractResource $resource = null,
@@ -224,9 +252,11 @@ class Product extends AbstractModel
         $this->productExportResourceModel = $productExportResourceModel;
         $this->categoryFactory = $categoryFactory;
         $this->storeManager = $storeManager;
-        $this->eavConfig =  $eavConfig;
-        $this->emarsysHelper =  $emarsysHelper;
+        $this->eavConfig = $eavConfig;
+        $this->emarsysHelper = $emarsysHelper;
+        $this->eventManager = $eventManager;
         $this->csvWriter = $csvWriter;
+        $this->serializer = $serializer;
         $this->directoryList = $directoryList;
         $this->apiExport = $apiExport;
         $this->imageHelper = $imageHelper;
@@ -234,6 +264,7 @@ class Product extends AbstractModel
         $this->typeConfigurable = $typeConfigurable;
         $this->typeBundle = $typeBundle;
         $this->typeGrouped = $typeGrouped;
+        $this->currencyFactory = $currencyFactory;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
     }
 
@@ -243,18 +274,19 @@ class Product extends AbstractModel
     public function _construct()
     {
         parent::_construct();
-        $this->_init('Emarsys\Emarsys\Model\ResourceModel\Product');
+        $this->_init(\Emarsys\Emarsys\Model\ResourceModel\Product::class);
     }
 
     /**
      * @param string $mode
      * @param null $includeBundle
-     * @param null $excludedCategories
      * @return bool
      * @throws \Exception
      */
-    public function consolidatedCatalogExport($mode = EmarsysHelper::ENTITY_EXPORT_MODE_AUTOMATIC, $includeBundle = null)
-    {
+    public function consolidatedCatalogExport(
+        $mode = EmarsysHelper::ENTITY_EXPORT_MODE_AUTOMATIC,
+        $includeBundle = null
+    ) {
         set_time_limit(0);
 
         $result = false;
@@ -277,8 +309,11 @@ class Product extends AbstractModel
             $this->_mode = $mode;
 
             $allStores = $this->storeManager->getStores();
+            ksort($allStores);
 
-            /** @var \Magento\Store\Model\Store $store */
+            /**
+             * @var \Magento\Store\Model\Store $store
+             */
             foreach ($allStores as $store) {
                 $this->setCredentials($store, $logsArray);
             }
@@ -289,27 +324,47 @@ class Product extends AbstractModel
                 foreach ($website as $storeId => $store) {
                     foreach ($store['mapped_attributes_names'] as $mapAttribute) {
                         $emarsysFieldId = $mapAttribute['emarsys_attr_code'];
-                        $emarsysFieldNames[$storeId][] = $this->productResourceModel->getEmarsysFieldName($storeId, $emarsysFieldId);
+                        $emarsysFieldNames[$storeId][] = $this->productResourceModel->getEmarsysFieldName(
+                            $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId),
+                            $emarsysFieldId
+                        );
                         $magentoAttributeNames[$storeId][] = $mapAttribute['magento_attr_code'];
                     }
                 }
 
                 $this->productExportResourceModel->truncateTable();
 
-                $defaultStoreID = false;
-                $this->_mapHeader = ['item'];
+                $defaultStoreID = $defaultCurrencyCode = false;
+                $this->_mapHeader = ['item', 'group_id'];
                 $this->_processedStores = [];
+                $currencyStoreRate = 1;
                 foreach ($website as $storeId => $store) {
-                    $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+                    $this->appEmulation->startEnvironmentEmulation(
+                        $storeId,
+                        Area::AREA_FRONTEND,
+                        true
+                    );
+
+                    $this->attributeMap = $this->addAttributeProcessMethods($store['store']);
+
                     $currencyStoreCode = $store['store']->getDefaultCurrencyCode();
                     if (!$defaultStoreID) {
                         $defaultStoreID = $store['store']->getWebsite()->getDefaultStore()->getId();
+                        $defaultCurrencyCode = $store['store']->getWebsite()->getDefaultStore()->getDefaultCurrencyCode();
+                    }
+                    if ($defaultCurrencyCode != $currencyStoreCode) {
+                        $currencyStoreRate = $this->currencyFactory->create()
+                            ->load($defaultCurrencyCode)
+                            ->getAnyRate($currencyStoreCode);
                     }
 
                     $excludedCategories = $store['store']->getConfig(EmarsysHelper::XPATH_PREDICT_EXCLUDED_CATEGORIES);
 
                     if ($excludedCategories) {
-                        $excludedCategories = explode(',', str_replace(' ', '', $excludedCategories));
+                        $excludedCategories = explode(
+                            ',',
+                            str_replace(' ', '', $excludedCategories)
+                        );
                     }
 
                     if (empty($excludedCategories)) {
@@ -321,21 +376,28 @@ class Product extends AbstractModel
                         $storeId,
                         $currentPageNumber,
                         $magentoAttributeNames[$storeId],
-                        $includeBundle,
-                        $excludedCategories
+                        $includeBundle
                     );
 
                     $lastPageNumber = $collection->getLastPageNumber();
-                    $header = $emarsysFieldNames[$storeId];
+                    $headerOld = $emarsysFieldNames[$storeId];
+                    $header = [];
+                    foreach ($headerOld as $el) {
+                        $header[] = $el;
+                        if ($el == 'item') {
+                            $header[] = 'group_id';
+                        }
+                    }
                     $this->_categoryNames = [];
                     $this->_parentProducts = [];
 
                     $this->prepareHeader(
                         $store['store']->getCode(),
                         $header,
-                        ($storeId == $defaultStoreID) ? $storeId : 0,
-                        $currencyStoreCode
+                        $currencyStoreCode,
+                        ($storeId == $defaultStoreID) ? $storeId : 0
                     );
+                    $collection->addUrlRewrite();
 
                     while ($currentPageNumber <= $lastPageNumber) {
                         if ($currentPageNumber != 1) {
@@ -343,9 +405,9 @@ class Product extends AbstractModel
                                 $storeId,
                                 $currentPageNumber,
                                 $magentoAttributeNames[$storeId],
-                                $includeBundle,
-                                $excludedCategories
+                                $includeBundle
                             );
+                            $collection->addUrlRewrite();
                         }
                         $logsArray['emarsys_info'] = __('Processing data for store %1', $storeId);
                         $logsArray['description'] = __('%1 of %2', $currentPageNumber, $lastPageNumber);
@@ -355,24 +417,41 @@ class Product extends AbstractModel
                         $products = [];
                         foreach ($collection as $product) {
                             $catIds = $product->getCategoryIds();
-                            $categoryNames = $this->getCategoryNames($catIds, $storeId, $excludedCategories);
+                            $this->categoryNames = $this->getCategoryNames($catIds, $storeId, $excludedCategories);
                             $product->setStoreId($storeId);
+                            $params = [
+                                'default_store' => ($storeId == $defaultStoreID) ? $storeId : 0,
+                                'is_simple_parent' => 0,
+                                'store' => $store['store']->getCode(),
+                                'store_id' => $store['store']->getId(),
+                                'data' => $this->_getProductData(
+                                    $magentoAttributeNames[$storeId],
+                                    $product,
+                                    $store['store'],
+                                    $collection,
+                                    $logsArray
+                                ),
+                                'header' => $header,
+                                'currency_code' => $currencyStoreCode,
+                                'currency_rate' => $currencyStoreRate,
+                            ];
+
+                            if ($this->isSimpleParent) {
+                                $params['is_simple_parent'] = $this->isSimpleParent;
+                                $this->isSimpleParent = 0;
+                            }
+
                             $products[$product->getId()] = [
                                 'entity_id' => $product->getId(),
-                                'params' => serialize([
-                                    'default_store' => ($storeId == $defaultStoreID) ? $storeId : 0,
-                                    'store' => $store['store']->getCode(),
-                                    'store_id' => $store['store']->getId(),
-                                    'data' => $this->_getProductData($magentoAttributeNames[$storeId], $product, $categoryNames, $store['store'], $collection, $logsArray),
-                                    'header' => $header,
-                                    'currency_code' => $currencyStoreCode,
-                            ])];
+                                'params' => $this->serializer->serialize($params),
+                            ];
                         }
 
                         if (!empty($products)) {
                             $this->productExportResourceModel->saveBulkProducts($products);
                         }
                         $currentPageNumber++;
+                        $collection->clear();
                     }
                     $logsArray['emarsys_info'] = __('Data for store %1 prepared', $storeId);
                     $logsArray['description'] = __('Data for store %1 prepared', $storeId);
@@ -394,7 +473,9 @@ class Product extends AbstractModel
                         $logsArray
                     );
 
-                    $uploaded = $this->moveFile($store['store'], $csvFilePath, $logsArray, $mode, $store['merchant_id']);
+                    $store = reset($this->_credentials[$websiteId]);
+
+                    $uploaded = $this->moveFile($store['store'], $csvFilePath, $logsArray, $mode);
                     if ($uploaded) {
                         $logsArray['emarsys_info'] = __('Data for was uploaded');
                         $logsArray['description'] = __('Data for was uploaded');
@@ -445,11 +526,11 @@ class Product extends AbstractModel
      *
      * @param string $storeCode
      * @param array $header
-     * @param bool $isDefault
      * @param string $currencyCode
+     * @param bool|int $isDefault
      * @return mixed
      */
-    public function prepareHeader($storeCode, $header, $isDefault = false, $currencyCode)
+    public function prepareHeader($storeCode, $header, $currencyCode, $isDefault = false)
     {
         if (!array_key_exists($storeCode, $this->_processedStores)) {
             // $this->_processedStores[$storeCode] = array(oldKey => newKey);
@@ -458,6 +539,11 @@ class Product extends AbstractModel
                 if (strtolower($value) == 'item') {
                     unset($header[$key]);
                     $this->_processedStores[$storeCode][$key] = 0;
+                    continue;
+                }
+                if (strtolower($value) == 'group_id') {
+                    unset($header[$key]);
+                    $this->_processedStores[$storeCode][$key] = 1;
                     continue;
                 }
 
@@ -497,6 +583,7 @@ class Product extends AbstractModel
      * @param string $mode
      * @return bool
      * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Zend_Http_Client_Exception
      */
@@ -507,7 +594,8 @@ class Product extends AbstractModel
 
         $isBig = (filesize($csvFilePath) / pow(1024, 2)) > 100;
         $merchantId = $store->getConfig(EmarsysHelper::XPATH_PREDICT_MERCHANT_ID);
-        $url = $this->emarsysHelper->getEmarsysMediaUrlPath(ProductModel::ENTITY . '/' . $merchantId, $csvFilePath);
+        $websiteId = $store->getWebsiteId();
+        $url = $this->emarsysHelper->getEmarsysMediaUrlPath(ProductModel::ENTITY . '/' . $websiteId, $csvFilePath);
         if ($apiExportEnabled && !$isBig) {
             //get token from admin configuration
             $token = $store->getConfig(EmarsysHelper::XPATH_PREDICT_TOKEN);
@@ -523,7 +611,11 @@ class Product extends AbstractModel
             if ($apiExportResult['result'] == 1) {
                 //successfully uploaded file on Emarsys
                 $logsArray['emarsys_info'] = __('File uploaded to Emarsys');
-                $logsArray['description'] = __('File uploaded to Emarsys. File Name: %1. API Export result: %2', $url, $apiExportResult['resultBody']);
+                $logsArray['description'] = __(
+                    'File uploaded to Emarsys. File Name: %1. API Export result: %2',
+                    $url,
+                    $apiExportResult['resultBody']
+                );
                 $logsArray['message_type'] = 'Success';
                 $this->logsHelper->manualLogs($logsArray);
                 $this->_errorCount = false;
@@ -537,7 +629,7 @@ class Product extends AbstractModel
                 $this->_errorCount = true;
                 $msg = isset($apiExportResult['resultBody']) ? $apiExportResult['resultBody'] : '';
                 $logsArray['emarsys_info'] = __('Failed to upload file on Emarsys');
-                $logsArray['description'] = __('Failed to upload %1 on Emarsys. %2' , $url, $msg);
+                $logsArray['description'] = __('Failed to upload %1 on Emarsys. %2', $url, $msg);
                 $logsArray['message_type'] = 'Error';
                 $this->logsHelper->manualLogs($logsArray);
                 if ($mode == EmarsysHelper::ENTITY_EXPORT_MODE_MANUAL) {
@@ -568,7 +660,7 @@ class Product extends AbstractModel
                 $errorMessage = error_get_last();
                 $msg = isset($errorMessage['message']) ? $errorMessage['message'] : '';
                 $logsArray['emarsys_info'] = __('Failed to upload file on FTP server');
-                $logsArray['description'] = __('Failed to upload %1 on FTP server %2' , $url, $msg);
+                $logsArray['description'] = __('Failed to upload %1 on FTP server %2', $url, $msg);
                 $logsArray['message_type'] = 'Error';
                 $this->logsHelper->manualLogs($logsArray);
                 if ($mode == EmarsysHelper::ENTITY_EXPORT_MODE_MANUAL) {
@@ -580,7 +672,9 @@ class Product extends AbstractModel
             }
         }
 
-        $this->emarsysHelper->removeFilesInFolder($this->emarsysHelper->getEmarsysMediaDirectoryPath(ProductModel::ENTITY . '/' . $merchantId));
+        $this->emarsysHelper->removeFilesInFolder(
+            $this->emarsysHelper->getEmarsysMediaDirectoryPath(ProductModel::ENTITY . '/' . $websiteId)
+        );
 
         return $result;
     }
@@ -597,8 +691,8 @@ class Product extends AbstractModel
         $return = $this->_credentials;
         if (!is_null($storeId) && !is_null($websiteId)) {
             $return = null;
-            if (isset($this->_credentials[$storeId])) {
-                $return = $this->_credentials[$storeId];
+            if (isset($this->_credentials[$websiteId][$storeId])) {
+                $return = $this->_credentials[$websiteId][$storeId];
             }
         }
         return $return;
@@ -626,12 +720,16 @@ class Product extends AbstractModel
                     if ($merchantId == '' || $token == '') {
                         $this->_errorCount = true;
                         $logsArray['emarsys_info'] = __('Invalid API credentials');
-                        $logsArray['description'] = __('Invalid API credential. Please check your settings and try again');
+                        $logsArray['description'] = __(
+                            'Invalid API credential. Please check your settings and try again'
+                        );
                         $logsArray['message_type'] = 'Error';
                         $this->logsHelper->logs($logsArray);
                         if ($this->_mode == EmarsysHelper::ENTITY_EXPORT_MODE_MANUAL) {
                             $this->messageManager->addErrorMessage(
-                                __('Invalid API credential. Please check your settings and try again !!!')
+                                __(
+                                    'Invalid API credential. Please check your settings and try again !!!'
+                                )
                             );
                         }
                         return;
@@ -649,7 +747,9 @@ class Product extends AbstractModel
                         $this->logsHelper->logs($logsArray);
                         if ($this->_mode == EmarsysHelper::ENTITY_EXPORT_MODE_MANUAL) {
                             $this->messageManager->addErrorMessage(
-                                __("Failed to connect with FTP server. Please check your settings and try again !!!")
+                                __(
+                                    'Failed to connect with FTP server. Please check your settings and try again!'
+                                )
                             );
                         }
                         return;
@@ -660,7 +760,9 @@ class Product extends AbstractModel
                     $this->logsHelper->logs($logsArray);
                 }
 
-                $mappedAttributes = $this->productResourceModel->getMappedProductAttribute($storeId);
+                $mappedAttributes = $this->productResourceModel->getMappedProductAttribute(
+                    $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($storeId)
+                );
                 $mappingField = 0;
                 foreach ($mappedAttributes as $mapAttribute) {
                     $emarsysFieldId = $mapAttribute['emarsys_attr_code'];
@@ -708,14 +810,14 @@ class Product extends AbstractModel
     /**
      * Get Category Names
      *
-     * @param $catIds
-     * @param $storeId
-     * @param $excludedCategories
+     * @param  $catIds
+     * @param  $storeId
+     * @param  $excludedCategories
      * @return array
      */
     public function getCategoryNames($catIds, $storeId, $excludedCategories = [])
     {
-        $key = $storeId . '-' . serialize($catIds);
+        $key = $storeId . '-' . $this->serializer->serialize($catIds);
         if (!isset($this->_categoryNames[$key])) {
             $this->_categoryNames[$key] = [];
             foreach ($catIds as $catId) {
@@ -749,20 +851,32 @@ class Product extends AbstractModel
     }
 
     /**
-     * @param $magentoAttributeNames
+     * @param  $magentoAttributeNames
      * @param \Magento\Catalog\Model\Product $productObject
-     * @param $categoryNames
      * @param \Magento\Store\Model\Store $store
      * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
      * @param array $logsArray
      * @return array
      * @throws \Exception
      */
-    protected function _getProductData($magentoAttributeNames, $productObject, $categoryNames, $store, $collection, $logsArray)
-    {
-        $attributeData = [];
+    public function _getProductData(
+        $magentoAttributeNames,
+        $productObject,
+        $store,
+        $collection,
+        $logsArray
+    ) {
+        $attributeData = $parentProducts = [];
         foreach ($magentoAttributeNames as $attributeCode) {
             try {
+                $this->eventManager->dispatch('process_attribute_option_before', [
+                    'product_export' => $this,
+                    'product_object' => $productObject,
+                    'collection' => $collection,
+                    'store' => $store,
+                    'attribute_code' => $attributeCode
+                ]);
+
                 $attributeOption = $productObject->getData($attributeCode);
                 if (!is_array($attributeOption)) {
                     $attribute = $this->getEavAttribute($attributeCode);
@@ -773,85 +887,17 @@ class Product extends AbstractModel
                         $attributeOption = $productObject->getAttributeText($attributeCode);
                     }
                 }
-                switch ($attributeCode) {
-                    case 'quantity_and_stock_status':
-                        $status = ($store->getConfig(EmarsysHelper::XPATH_PREDICT_AVAILABILITY_STATUS) == 1)
-                            ? ($productObject->getStatus() == Status::STATUS_ENABLED)
-                            : true
-                        ;
-                        $inStock = ($store->getConfig(EmarsysHelper::XPATH_PREDICT_AVAILABILITY_IN_STOCK) == 1)
-                            ? $productObject->isAvailable()
-                            : true
-                        ;
-                        $visibility = ($store->getConfig(EmarsysHelper::XPATH_PREDICT_AVAILABILITY_VISIBILITY) == 1)
-                            ? ($productObject->getVisibility() != Visibility::VISIBILITY_NOT_VISIBLE)
-                            : true
-                        ;
 
-                        if ($status && $inStock && $visibility) {
-                            $attributeData[] = 'TRUE';
-                        } else {
-                            $attributeData[] = 'FALSE';
-                        }
-                        break;
-                    case 'category_ids':
-                        $attributeData[] = implode('|', $categoryNames);
-                        break;
-                    case is_array($attributeOption):
-                        $attributeData[] = implode(',', $attributeOption);
-                        break;
-                    case 'image':
-                        /** @var \Magento\Catalog\Helper\Image $helper */
-                        $url = $this->imageHelper
-                            ->init($productObject, 'product_base_image')
-                            ->setImageFile($attributeOption)
-                            ->getUrl();
-                        $attributeData[] = $url;
-                        break;
-                    case 'url_key':
-                        $url = $productObject->getProductUrl();
-                        if ($productObject->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
-                            $parentProducts = $this->typeConfigurable->getParentIdsByChild($productObject->getId());
-                            $this->_productTypeInstance = $this->typeConfigurable;
-                            if (empty($parentProducts)) {
-                                $parentProducts = $this->typeBundle->getParentIdsByChild($productObject->getId());
-                                $this->_productTypeInstance = $this->typeBundle;
-                                if (empty($parentProducts)) {
-                                    $parentProducts = $this->typeGrouped->getParentIdsByChild($productObject->getId());
-                                    $this->_productTypeInstance = $this->typeGrouped;
-                                }
-                            }
-                            if (!empty($parentProducts)) {
-                                $parentProductId = current($parentProducts);
-                                $parentProduct = $collection->getItemById($parentProductId);
-                                if (!$parentProduct) {
-                                    if (!isset($this->_parentProducts[$parentProductId])) {
-                                        $this->productModel->setTypeInstance($this->_productTypeInstance);
-                                        $this->_parentProducts[$parentProductId] = $this->productModel->load($parentProductId);
-                                        $parentProduct = $this->_parentProducts[$parentProductId];
-                                    } else {
-                                        $parentProduct = $this->_parentProducts[$parentProductId];
-                                    }
-                                }
-                                if ($parentProduct) {
-                                    $parentProduct->setStoreId($store->getId());
-                                    $url = $parentProduct->getProductUrl();
-                                }
-                            }
-                        }
-                        $attributeData[] = $url;
-                        break;
-                    case 'price':
-                        $price = $productObject->getMinimalPrice();
-                        if ($price <= 0.0001) {
-                            $price = $attributeOption;
-                        }
-                        $attributeData[] = number_format($price, 2, '.', '');
-                        break;
-                    default:
-                        $attributeData[] = $attributeOption;
-                        break;
-
+                if (key_exists($attributeCode, $this->attributeMap) && method_exists($this, $this->attributeMap[$attributeCode])) {
+                    $name = $this->attributeMap[$attributeCode];
+                    $this->$name($attributeOption, $productObject, $collection, $store, $attributeData);
+                } elseif (is_array($attributeOption)) {
+                    $attributeData[] = implode(',', $attributeOption);
+                } else {
+                    if ($attributeOption instanceof \Magento\Framework\Phrase) {
+                        $attributeOption = $attributeOption->getText();
+                    }
+                    $attributeData[] = $attributeOption;
                 }
             } catch (\Exception $e) {
                 $attributeData[] = '';
@@ -866,15 +912,226 @@ class Product extends AbstractModel
     }
 
     /**
-     * @param $attributeCode
-     * @return  AbstractAttribute
+     * @param mixed $attributeOption
+     * @param \Magento\Catalog\Model\Product $productObject
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param \Magento\Store\Model\Store $store
+     * @param array $attributeData
+     */
+    public function getSku($attributeOption, $productObject, $collection, $store, &$attributeData)
+    {
+        if ($productObject->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+            $attributeData[] = $attributeOption;
+            $parentProduct = $this->getParentProduct($productObject, $collection, $store);
+            if ($parentProduct['sku']) {
+                $attributeData[] = $parentProduct['sku'];
+            } else {
+                $attributeData[] = '';
+            }
+        } else {
+            if ($productObject->getTypeId() == \Magento\Catalog\Model\Product\Type::TYPE_SIMPLE) {
+                $this->isSimpleParent = $attributeOption;
+            }
+            $attributeData[] = 'g/' . $attributeOption;
+            $attributeData[] = $attributeOption;
+        }
+    }
+
+    /**
+     * @param mixed $attributeOption
+     * @param \Magento\Catalog\Model\Product $productObject
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param \Magento\Store\Model\Store $store
+     * @param array $attributeData
+     */
+    public function getQuantityAndStockStatus($attributeOption, $productObject, $collection, $store, &$attributeData)
+    {
+        $status = ($store->getConfig(EmarsysHelper::XPATH_PREDICT_AVAILABILITY_STATUS) == 1)
+            ? ($productObject->getStatus() == Status::STATUS_ENABLED)
+            : true;
+        $inStock = ($store->getConfig(EmarsysHelper::XPATH_PREDICT_AVAILABILITY_IN_STOCK) == 1)
+            ? $productObject->isAvailable()
+            : true;
+        $visibility =
+            ($store->getConfig(EmarsysHelper::XPATH_PREDICT_AVAILABILITY_VISIBILITY) == 1)
+                ? ($productObject->getVisibility() != Visibility::VISIBILITY_NOT_VISIBLE)
+                : true;
+
+        if ($status && $inStock && $visibility) {
+            $attributeData[] = 'TRUE';
+        } else {
+            $attributeData[] = 'FALSE';
+        }
+    }
+
+    /**
+     * @param mixed $attributeOption
+     * @param \Magento\Catalog\Model\Product $productObject
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param \Magento\Store\Model\Store $store
+     * @param array $attributeData
+     */
+    public function getCategoryIds($attributeOption, $productObject, $collection, $store, &$attributeData)
+    {
+        $attributeData[] = implode('|', $this->categoryNames);
+    }
+
+    /**
+     * @param mixed $attributeOption
+     * @param \Magento\Catalog\Model\Product $productObject
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param \Magento\Store\Model\Store $store
+     * @param array $attributeData
+     */
+    public function getImage($attributeOption, $productObject, $collection, $store, &$attributeData)
+    {
+        /**
+         * @var \Magento\Catalog\Helper\Image $helper
+         */
+        $url = $this->imageHelper
+            ->init($productObject, 'product_base_image')
+            ->setImageFile($attributeOption)
+            ->getUrl();
+
+        $parentProduct = $this->getParentProduct($productObject, $collection, $store);
+        if ((empty($attributeOption) || stristr($url, 'placeholder')) && $parentProduct['image']) {
+            $url = $parentProduct['image'];
+        }
+
+        $attributeData[] = $url;
+    }
+
+    /**
+     * @param mixed $attributeOption
+     * @param \Magento\Catalog\Model\Product $productObject
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param \Magento\Store\Model\Store $store
+     * @param array $attributeData
+     */
+    public function getUrlKey($attributeOption, $productObject, $collection, $store, &$attributeData)
+    {
+        $url = $productObject->getProductUrl();
+        $parentProduct = $this->getParentProduct($productObject, $collection, $store);
+        if ($parentProduct['url']) {
+            $url = $parentProduct['url'];
+        }
+        $attributeData[] = $url;
+    }
+
+    /**
+     * @param mixed $attributeOption
+     * @param \Magento\Catalog\Model\Product $productObject
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param \Magento\Store\Model\Store $store
+     * @param array $attributeData
+     */
+    public function getPrice($attributeOption, $productObject, $collection, $store, &$attributeData)
+    {
+        $price = $productObject->getMinimalPrice();
+        if ($price <= 0.0001) {
+            $price = $attributeOption;
+        }
+        $attributeData[] = number_format($price, 2, '.', '');
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product $productObject
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param \Magento\Store\Model\Store $store
+     * @return array
+     */
+    public function getParentProduct($productObject, $collection, $store)
+    {
+        $sku = false;
+        $url = false;
+        $image = false;
+        $parentProduct = null;
+
+        if ($productObject->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE
+            && $productObject->getTypeId() == \Magento\Catalog\Model\Product\Type::TYPE_SIMPLE
+        ) {
+            $parentProducts = $this->typeConfigurable->getParentIdsByChild($productObject->getId());
+            $this->_productTypeInstance = $this->typeConfigurable;
+            if (empty($parentProducts)) {
+                $parentProducts = $this->typeBundle->getParentIdsByChild($productObject->getId());
+                $this->_productTypeInstance = $this->typeBundle;
+                if (empty($parentProducts)) {
+                    $parentProducts = $this->typeGrouped->getParentIdsByChild($productObject->getId());
+                    $this->_productTypeInstance = $this->typeGrouped;
+                }
+            }
+
+            $parentId = current($parentProducts);
+            if ($parentId) {
+                if (!isset($this->_parentProducts[$store->getId()][$parentId])) {
+                    $parentProduct = $collection->getItemById($parentId);
+                    if ($parentProduct == null) {
+                        $this->productModel->setTypeInstance($this->_productTypeInstance);
+                        $parentProduct = $this->productModel->load($parentId);
+                    }
+                } else {
+                    return $this->_parentProducts[$store->getId()][$parentId];
+                }
+            }
+        }
+
+        if ($parentProduct !== null) {
+            $parentProduct->setStoreId($store->getId());
+            $sku = $parentProduct->getSku();
+            $url = $parentProduct->getProductUrl();
+
+            $image = $this->imageHelper
+                ->init($parentProduct, 'product_base_image')
+                ->setImageFile($parentProduct->getImage())
+                ->getUrl();
+            $this->_parentProducts[$store->getId()][$parentId] = ['sku' => $sku, 'url' => $url, 'image' => $image];
+        }
+
+        return ['sku' => $sku, 'url' => $url, 'image' => $image];
+    }
+
+    /**
+     * Add additional logic for attributes
+     * @param \Magento\Store\Model\Store $store
+     * @return array
+     */
+    public function addAttributeProcessMethods($store)
+    {
+        return $this->attributeMap;
+    }
+
+    /**
+     * @param  $attributeCode
+     * @return AbstractAttribute
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function getEavAttribute($attributeCode)
+    public function getEavAttribute($attributeCode)
     {
         if (!isset($this->_attributeCache[$attributeCode])) {
-            $this->_attributeCache[$attributeCode] = $this->eavConfig->getAttribute('catalog_product', $attributeCode);
+            $this->_attributeCache[$attributeCode] = $this->eavConfig->getAttribute(
+                'catalog_product',
+                $attributeCode
+            );
         }
         return $this->_attributeCache[$attributeCode];
+    }
+
+    /**
+     * @return \Magento\Framework\DB\Adapter\AdapterInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function truncateExportTable()
+    {
+        return $this->productExportResourceModel->truncateTable();
+    }
+
+    /**
+     * Gets Size of Product Collection And Max Product Id
+     *
+     * @return [int, int, int]
+     */
+    public function getSizeAndMaxAndMinId()
+    {
+        return $this->productExportModel->getSizeAndMaxAndMinId();
     }
 }

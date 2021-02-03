@@ -1,25 +1,29 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Support;
 
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\App\Area\FrontNameResolver;
 use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Framework\Translate\Inline\StateInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
-use Emarsys\Emarsys\Helper\Email as EmarsysHelperEmail;
 use Psr\Log\LoggerInterface as Logger;
+use Zend_Filter_Input;
 
-/**
- * Class Save
- * @package Emarsys\Emarsys\Controller\Adminhtml\Support
- */
 class Save extends Action
 {
     /**
@@ -63,17 +67,24 @@ class Save extends Action
     protected $emarsysHelper;
 
     /**
-     * @var EmarsysHelperEmail
+     * @var TransportBuilder
      */
-    protected $emailHelper;
+    protected $transportBuilder;
+
+    /**
+     * @var StateInterface
+     */
+    protected $inlineTranslation;
 
     /**
      * Save constructor.
+     *
      * @param Session $authSession
      * @param ScopeConfigInterface $scopeConfigInterface
      * @param StoreManagerInterface $storeManager
      * @param EmarsysHelper $emarsysHelper
-     * @param EmarsysHelperEmail $emailHelper
+     * @param TransportBuilder $transportBuilder
+     * @param StateInterface $inlineTranslation
      * @param Context $context
      * @param Logger $logger
      */
@@ -82,7 +93,8 @@ class Save extends Action
         ScopeConfigInterface $scopeConfigInterface,
         StoreManagerInterface $storeManager,
         EmarsysHelper $emarsysHelper,
-        EmarsysHelperEmail $emailHelper,
+        TransportBuilder $transportBuilder,
+        StateInterface $inlineTranslation,
         Context $context,
         Logger $logger
     ) {
@@ -91,14 +103,15 @@ class Save extends Action
         $this->scopeConfigInterface = $scopeConfigInterface;
         $this->storeManager = $storeManager;
         $this->emarsysHelper = $emarsysHelper;
-        $this->emailHelper = $emailHelper;
+        $this->transportBuilder = $transportBuilder;
+        $this->inlineTranslation = $inlineTranslation;
         $this->logger = $logger;
         $this->session = $context->getSession();
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return ResponseInterface|ResultInterface|void
+     * @throws NoSuchEntityException
      */
     public function execute()
     {
@@ -114,53 +127,63 @@ class Save extends Action
                 $priority = trim($data['priority']);
                 $message = trim($data['message']);
                 // it depends on the template variables
-                $emailTemplateVariables = [];
-                $emailTemplateVariables['type'] = $type;
-                $emailTemplateVariables['name'] = $name;
-                $emailTemplateVariables['email'] = $email;
-                $emailTemplateVariables['subject'] = $type . ' - ' . $subject;
-                $emailTemplateVariables['priority'] = $priority;
-                $emailTemplateVariables['message'] = $message;
-                $emailTemplateVariables['store_name'] = $this->storeManager->getStore()->getName();;
-                $emailTemplateVariables['domain'] = $this->storeManager->getStore()->getBaseUrl();
-                $emailTemplateVariables['phpvalue'] = $req['php_version']['current']['value'];
-                $emailTemplateVariables['memoryvalue'] = $req['memory_limit']['current']['value'];
-                $emailTemplateVariables['magentovalue'] = $req['magento_version']['current']['value'];
-                $emailTemplateVariables['curlvalue'] = $req['curl_enabled']['current']['value'];
-                $emailTemplateVariables['soapvalue'] = $req['soap_enabled']['current']['value'];
-                $inputFilter = new \Zend_Filter_Input(
+                $templateVars = [];
+                $templateVars['type'] = $type;
+                $templateVars['name'] = $name;
+                $templateVars['email'] = $email;
+                $templateVars['subject'] = $type . ' - ' . $subject;
+                $templateVars['priority'] = $priority;
+                $templateVars['message'] = $message;
+                $templateVars['store_name'] = $this->storeManager->getStore()->getName();
+                $templateVars['domain'] = $this->storeManager->getStore()->getBaseUrl();
+                $templateVars['phpvalue'] = $req['php_version']['current']['value'];
+                $templateVars['memoryvalue'] = $req['memory_limit']['current']['value'];
+                $templateVars['magentovalue'] = $req['magento_version']['current']['value'];
+                $templateVars['curlvalue'] = $req['curl_enabled']['current']['value'];
+                $templateVars['soapvalue'] = $req['soap_enabled']['current']['value'];
+                $inputFilter = new Zend_Filter_Input(
                     [],
                     [],
                     $data
                 );
                 $user = $this->authSession->getUser();
-                $senderInfo = [
+                $from = [
                     'email' => $user->getEmail(),
-                    'name' => $user->getUsername()
+                    'name' => $user->getUsername(),
                 ];
-                $storeId = $this->storeManager->getStore()->getId();
+                $storeId = $this->emarsysHelper->getFirstStoreId();
                 $emailRecievers = explode(',', $typeArray[1]);
+
                 foreach ($emailRecievers as $emailReciever) {
-                    $recieverInfo = [
+                    $to = [
                         'email' => $emailReciever,
-                        'name' => $name
+                        'name' => $name,
                     ];
-                    $this->emailHelper->sendEmail(
-                        $storeId,
-                        $emailTemplateVariables,
-                        $senderInfo,
-                        $recieverInfo
-                    );
+                    $templateOptions = [
+                        'area' => FrontNameResolver::AREA_CODE,
+                        'store' => $storeId,
+                    ];
+
+                    $this->inlineTranslation->suspend();
+                    $transport = $this->transportBuilder
+                        ->setTemplateIdentifier('help_email_template_id')
+                        ->setTemplateOptions($templateOptions)
+                        ->setTemplateVars($templateVars)
+                        ->setFrom($from)
+                        ->addTo($to)
+                        ->getTransport();
+                    $transport->sendMessage();
+                    $this->inlineTranslation->resume();
                 }
                 $data = $inputFilter->getUnescaped();
                 $id = $this->getRequest()->getParam('id');
                 if ($id) {
-                    throw new \Magento\Framework\Exception\LocalizedException(__('The wrong item is specified.'));
+                    throw new LocalizedException(__('The wrong item is specified.'));
                 }
                 $this->messageManager->addSuccessMessage(__('Request send succesfully'));
                 $this->_redirect('emarsys_emarsys/support/index');
                 return;
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->messageManager->addErrorMessage(__($e->getMessage()));
                 $this->logger->critical($e);
                 $this->session->setPageData($data);

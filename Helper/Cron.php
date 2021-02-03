@@ -1,47 +1,32 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2019 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Helper;
 
-use Magento\{
-    Framework\App\Helper\AbstractHelper,
-    Framework\App\Helper\Context,
-    Cron\Model\Schedule,
-    Cron\Model\ScheduleFactory,
-    Framework\Stdlib\DateTime\DateTime as MagentoDateTime
-};
-use Emarsys\Emarsys\{
-    Model\EmarsysCronDetailsFactory,
-    Model\Logs as Emarsyslogs
-};
+use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Cron\Model\Schedule;
+use Magento\Cron\Model\ScheduleFactory;
+use Magento\Framework\Stdlib\DateTime\DateTime as MagentoDateTime;
+use Emarsys\Emarsys\Model\EmarsysCronDetailsFactory;
+use Emarsys\Emarsys\Model\Logs as Emarsyslogs;
 
 /**
  * Class Cron
- * @package Emarsys\Emarsys\Helper
  */
 class Cron extends AbstractHelper
 {
     const CRON_JOB_CUSTOMER_SYNC_QUEUE = 'emarsys_customer_sync_queue';
 
-    const CRON_JOB_CUSTOMER_BULK_EXPORT_WEBDAV = 'emarsys_customer_bulk_export_webdav';
-
     const CRON_JOB_CUSTOMER_BULK_EXPORT_API = 'emarsys_customer_bulk_export_api';
-
-    //subscribers related
-    const CRON_JOB_SUBSCRIBERS_BULK_EXPORT_WEBDAV = 'emarsys_subscriber_bulk_export_webdav';
 
     const CRON_JOB_SUBSCRIBERS_BULK_EXPORT_API = 'emarsys_subscriber_bulk_export_api';
 
-    //product related
     const CRON_JOB_CATALOG_BULK_EXPORT = 'emarsys_catalog_bulk_export';
-
-    const CRON_JOB_CATALOG_SYNC = 'emarsys_product_sync';
-
-    //smart insight related
-    const CRON_JOB_SI_SYNC_QUEUE = 'emarsys_smartinsight_sync_queue';
 
     const CRON_JOB_SI_BULK_EXPORT = 'emarsys_smartinsight_bulk_export';
 
@@ -90,7 +75,8 @@ class Cron extends AbstractHelper
 
     /**
      * Returns true if cron job is scheduled
-     * @param $jobCode
+     *
+     * @param  $jobCode
      * @param null $storeId
      * @param null $websiteBasedChecking
      * @return bool
@@ -258,36 +244,6 @@ class Cron extends AbstractHelper
         }
 
         return false;
-    }
-
-    /**
-     * @param $exportMode
-     * @return array
-     */
-    public function getJobDetail($exportMode)
-    {
-        $jobDetails = [];
-
-        switch ($exportMode) {
-            case self::CRON_JOB_CUSTOMER_BULK_EXPORT_WEBDAV:
-                $jobDetails['job_code'] = 'customer';
-                $jobDetails['job_title'] = 'Customer Bulk Export';
-                break;
-            case self::CRON_JOB_CUSTOMER_BULK_EXPORT_API:
-                $jobDetails['job_code'] = 'customer';
-                $jobDetails['job_title'] = 'Customer Bulk Export';
-                break;
-            case self::CRON_JOB_SUBSCRIBERS_BULK_EXPORT_WEBDAV:
-                $jobDetails['job_code'] = 'subscriber';
-                $jobDetails['job_title'] = 'Subscriber Bulk Export';
-                break;
-            default:
-                $jobDetails['job_code'] = 'customer';
-                $jobDetails['job_title'] = 'Customer Bulk Export';
-                break;
-        }
-
-        return $jobDetails;
     }
 
     /**

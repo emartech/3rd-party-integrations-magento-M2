@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Observer;
@@ -13,7 +13,6 @@ use Magento\Newsletter\Model\SubscriberFactory;
 
 /**
  * Class NewsLetterSaveBefore
- * @package Emarsys\Emarsys\Observer
  */
 class NewsLetterSaveBefore implements ObserverInterface
 {
@@ -35,12 +34,12 @@ class NewsLetterSaveBefore implements ObserverInterface
         $subscriber = $observer->getSubscriber();
         $subscriberId = $subscriber->getSubscriberId();
         $oldSubscriptionStatus = $this->subscriberModel->create()->load($subscriberId)->getSubscriberStatus();
-        $CurrentSubscriptionStatus = $observer->getSubscriber()->getSubscriberStatus();
+        $currentSubscriptionStatus = $observer->getSubscriber()->getSubscriberStatus();
         $subscriber->setOrigData('subscriber_status', $oldSubscriptionStatus);
         $oldSubscriptionEmail = $this->subscriberModel->create()->load($subscriberId)->getEmail();
         $subscriber->setOrigData('subscriber_email', $oldSubscriptionEmail);
 
-        if ($oldSubscriptionStatus != $CurrentSubscriptionStatus ) {
+        if ($oldSubscriptionStatus != $currentSubscriptionStatus) {
             $subscriber['change_status_at'] = (date("Y-m-d H:i:s", time()));
         }
     }

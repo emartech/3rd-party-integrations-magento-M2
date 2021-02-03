@@ -4,11 +4,13 @@ namespace Emarsys\Emarsys\Controller\Index;
 
 use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 use Emarsys\Emarsys\Model\Logs;
+use Exception;
+use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http;
 
-class Sync extends \Magento\Framework\App\Action\Action
+class Sync extends Action
 {
     /**
      * @var ScopeConfigInterface
@@ -59,7 +61,8 @@ class Sync extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         try {
-            $notificationSecretKey = $this->scopeConfig->getValue('contacts_synchronization/emarsys_emarsys/notification_secret_key');
+            $notificationSecretKey = $this->scopeConfig
+                ->getValue('contacts_synchronization/emarsys_emarsys/notification_secret_key');
             if ($this->request->getParam('secret') == $notificationSecretKey) {
                 $websiteIds = explode(',', $this->getRequest()->getParam('website_ids'));
                 foreach ($websiteIds as $websiteId) {
@@ -73,7 +76,7 @@ class Sync extends \Magento\Framework\App\Action\Action
                     'sync action index'
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->emarsysLogs->addErrorLog(
                 'Emarsys Customer Sync',
                 $e->getMessage(),

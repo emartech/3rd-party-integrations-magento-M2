@@ -1,16 +1,14 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 ?>
 <?php
 /**
  * @var $block \Emarsys\Emarsys\Block\Adminhtml\Mapping\Emrattribute
  */
-?>
-<?php
 $storeId = $this->getRequest()->getParam('store');
 $saveUrl = $block->getUrl('emarsys_emarsys/mapping_emrattribute/save', ['store' => $storeId]);
 $deleteUrl = $block->getUrl('emarsys_emarsys/mapping_emrattribute/delete', ['store' => $storeId]);
@@ -25,36 +23,37 @@ $editUrl = $block->getUrl('emarsys_emarsys/mapping_emrattribute/edit', ['store' 
     <?php foreach ($result as $row) : ?>
         <?php
         $fieldType = $row['field_type'];
-        $disabled='';
+        $disabled = '';
         ?>
         <?php if (strpos($row['code'], 'c_') === false): ?>
             <?php $disabled = 'disabled'; ?>
         <?php endif; ?>
         <div class="emr_tbl emr_content">
             <input <?php echo $disabled; ?>
-                type="text"
-                value="<?php echo $row['code'] ?>"
-                name="field_name"
-                id="field_name_<?php echo $row['id'] ?>"/>
+                    type="text"
+                    value="<?php echo $row['code'] ?>"
+                    name="field_name"
+                    id="field_name_<?php echo $row['id'] ?>"/>
             <input <?php echo $disabled; ?>
-                type="text"
-                value="<?php echo $row['label']; ?>"
-                name="field_label"
-                id="field_label_<?php echo $row['id'] ?>"/>
+                    type="text"
+                    value="<?php echo $row['label']; ?>"
+                    name="field_label"
+                    id="field_label_<?php echo $row['id'] ?>"/>
             <span class="attributetype">
                 <input type="hidden"
                        value="<?php echo $fieldType; ?>"
                        name="field_label"
-                       class ="field_label_type"/>
-                <select style="display:none;" name="attribute_type" id="attribute_type_<?php echo $row['id'] ?>" <?php echo $disabled?> >
+                       class="field_label_type"/>
+                <select style="display:none;" name="attribute_type"
+                        id="attribute_type_<?php echo $row['id'] ?>" <?php echo $disabled ?> >
                     <option value='Varchar'>Varchar</option>
                     <option value='Text'>Text</option>
                     <option value='Character'>Character</option>
                     <option value='Integer'>Integer</option>
-                    <option value='String' >String</option>
+                    <option value='String'>String</option>
                     <option value='URL'>URL</option>
                     <option value='StringValue'>StringValue</option>
-                    <option value='Boolean' >Boolean</option>
+                    <option value='Boolean'>Boolean</option>
                     <option value='Float'>Float</option>
                 </select>
             </span>
@@ -69,7 +68,7 @@ $editUrl = $block->getUrl('emarsys_emarsys/mapping_emrattribute/edit', ['store' 
                    name="remove2"
                    class="remove2 action-default"
                    onclick="return deleteEmarAttr('<?php echo $deleteUrl; ?>','<?php echo $row['id']; ?>','<?php echo $row['store_id']; ?>');">Delete</a>
-            <?php endif;?>
+            <?php endif; ?>
         </div>
     <?php endforeach; ?>
 <?php else : ?>
@@ -77,8 +76,9 @@ $editUrl = $block->getUrl('emarsys_emarsys/mapping_emrattribute/edit', ['store' 
 <?php endif; ?>
 <br>
 <br>
-<form method="POST" action="<?php echo $saveUrl; ?>" id="emarAttribute" autocomplete="off"/>
-    <input type="hidden" name="form_key" value="<?php echo $block->getFormKey(); ?>"/>
+<form method="POST" action="<?php echo $saveUrl; ?>" id="emarAttribute" autocomplete="off">
+    <input type="hidden" name="form_key" value="<?= /* @escapeNotVerified */
+    $block->getFormKey(); ?>"/>
     <div class="emr_tbl header_label">
         <strong>Name</strong><strong>Label</strong>
     </div>
@@ -108,7 +108,7 @@ $editUrl = $block->getUrl('emarsys_emarsys/mapping_emrattribute/edit', ['store' 
     require([
         'jquery'
     ], function (jQuery) {
-        jQuery('.attributetype').find('.field_label_type').each(function(){
+        jQuery('.attributetype').find('.field_label_type').each(function () {
             jQuery(this).siblings().val(jQuery(this).val());
         });
     });

@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <!--
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 -->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <update handle="editor"/>
     <head>
         <css src="Emarsys_Emarsys::css/support.css"/>
@@ -15,8 +16,8 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="Emarsys\Emarsys\Block\Adminhtml\Support\Form" name="emarsys_emarsys_form" />
-            <block class="Emarsys\Emarsys\Block\Adminhtml\Support\Edit" name="emarsys_emarsys_form_edit" />
+            <block class="Emarsys\Emarsys\Block\Adminhtml\Support\Form" name="emarsys_emarsys_form"/>
+            <block class="Emarsys\Emarsys\Block\Adminhtml\Support\Edit" name="emarsys_emarsys_form_edit"/>
         </referenceContainer>
     </body>
 </page>

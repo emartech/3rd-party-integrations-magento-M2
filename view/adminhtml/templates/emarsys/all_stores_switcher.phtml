@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 ?>
 <?php if ($websites = $block->getWebsites()): ?>
@@ -40,7 +40,7 @@
                 id="store-change-button"><?php echo $block->getCurrentSelectionName() ?></button>
             <ul class="dropdown-menu" data-role="stores-list">
                 <li class="store-switcher-store-view">
-                    <?php if ($block->isStoreSwitchEnabled() && ($block->getStoreId() == 0)) : ?>
+                    <?php if ($block->isStoreSwitchEnabled() && ($block->getStoreId() == 0)): ?>
                         <span><?php echo $block->escapeHtml('All Stores') ?></span>
                     <?php else: ?>
                         <a data-role="store-view-id" data-value="<?php echo $block->escapeHtml(null) ?>" href="#">

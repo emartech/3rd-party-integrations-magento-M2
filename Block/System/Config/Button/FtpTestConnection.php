@@ -1,15 +1,12 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block\System\Config\Button;
 
-/**
- * Class FtpTestConnection
- * @package Emarsys\Emarsys\Block\System\Config\Button
- */
 class FtpTestConnection extends AbstractButton
 {
     /**
@@ -32,7 +29,7 @@ class FtpTestConnection extends AbstractButton
     }
 
     /**
-     * @param $websiteId
+     * @param  $websiteId
      * @return string
      */
     protected function getAjaxActionUrl($websiteId)

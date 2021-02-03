@@ -1,17 +1,14 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block\Adminhtml\Cronschedule;
 
 use Magento\Backend\Block\Widget\Container;
 
-/**
- * Class Content
- * @package Emarsys\Emarsys\Block\Adminhtml\Cronschedule
- */
 class Content extends Container
 {
     /**
@@ -28,7 +25,7 @@ class Content extends Container
         $this->setChild(
             'grid',
             $this->getLayout()->createBlock(
-                'Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Grid',
+                \Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Grid::class,
                 'emarsys.scheduler.grid'
             )
         );

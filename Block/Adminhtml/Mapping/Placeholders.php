@@ -1,16 +1,20 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block\Adminhtml\Mapping;
 
-/**
- * Class Placeholders
- * @package Emarsys\Emarsys\Block\Adminhtml\Mapping
- */
-class Placeholders extends \Magento\Backend\Block\Widget\Container
+use Emarsys\Emarsys\Block\Adminhtml\Mapping\Placeholders\Grid;
+use Magento\Backend\Block\Widget\Container;
+use Magento\Backend\Block\Widget\Context;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\UrlInterface;
+
+class Placeholders extends Container
 {
     /**
      * @var string
@@ -19,11 +23,12 @@ class Placeholders extends \Magento\Backend\Block\Widget\Container
 
     /**
      * Placeholders constructor.
-     * @param \Magento\Backend\Block\Widget\Context $context
+     *
+     * @param Context $context
      * @param array $data
      */
     public function __construct(
-        \Magento\Backend\Block\Widget\Context $context,
+        Context $context,
         $data = []
     ) {
         parent::__construct($context, $data);
@@ -31,13 +36,16 @@ class Placeholders extends \Magento\Backend\Block\Widget\Container
 
     /**
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     protected function _prepareLayout()
     {
         $this->setChild(
             'grid',
-            $this->getLayout()->createBlock('Emarsys\Emarsys\Block\Adminhtml\Mapping\Placeholders\Grid', 'emarsys.placeholders.grid')
+            $this->getLayout()->createBlock(
+                Grid::class,
+                'emarsys.placeholders.grid'
+            )
         );
         return parent::_prepareLayout();
     }
@@ -52,11 +60,12 @@ class Placeholders extends \Magento\Backend\Block\Widget\Container
 
     /**
      * @return string
+     * @throws NoSuchEntityException
      */
     public function getLoadImageUrl()
     {
         $store = $this->_storeManager->getStore();
-        $url = $store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_STATIC);
+        $url = $store->getBaseUrl(UrlInterface::URL_TYPE_STATIC);
 
         return $url . "adminhtml/Magento/backend/en_US/images/loader-2.gif";
     }

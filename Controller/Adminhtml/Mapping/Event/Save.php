@@ -1,13 +1,19 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Emarsys\Emarsys\Model\EventFactory;
 use Magento\Framework\Stdlib\DateTime\DateTime;
@@ -15,10 +21,6 @@ use Emarsys\Emarsys\Helper\Logs;
 use Emarsys\Emarsys\Model\EmarsyseventmappingFactory;
 use Emarsys\Emarsys\Model\ResourceModel\Emarsyseventmapping;
 
-/**
- * Class Save
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Event
- */
 class Save extends Action
 {
     /**
@@ -27,7 +29,7 @@ class Save extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -47,7 +49,23 @@ class Save extends Action
     protected $emarsysEventMappingFactory;
 
     /**
+     * @var DateTime
+     */
+    protected $date;
+
+    /**
+     * @var Logs
+     */
+    protected $logHelper;
+
+    /**
+     * @var UrlInterface
+     */
+    protected $_urlInterface;
+
+    /**
      * Save constructor.
+     *
      * @param Context $context
      * @param EventFactory $eventFactory
      * @param DateTime $date
@@ -77,7 +95,8 @@ class Save extends Action
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return $this|ResponseInterface|ResultInterface
+     * @throws Exception
      */
     public function execute()
     {
@@ -115,10 +134,10 @@ class Save extends Action
                 }
                 $emarsysEventIds[] = (int)$gridSessionData[$key]['emarsys_event_id'];
                 $model = $this->emarsysEventMappingFactory->create();
-                $model->setStoreId($storeId);
-                $model->setMagentoEventId((int)$gridSessionData[$key]['magento_event_id']);
-                $model->setEmarsysEventId((int)$gridSessionData[$key]['emarsys_event_id']);
-                $model->save();
+                $model->setStoreId($storeId)
+                    ->setMagentoEventId((int)$gridSessionData[$key]['magento_event_id'])
+                    ->setEmarsysEventId((int)$gridSessionData[$key]['emarsys_event_id'])
+                    ->save();
             }
             $errorStatus = false;
             $returnToStore = true;
@@ -128,13 +147,17 @@ class Save extends Action
             $logsArray['message_type'] = 'Success';
 
             $this->logHelper->manualLogs($logsArray);
-            $this->messageManager->addSuccessMessage("Events mapped successfully");
-        } catch (\Exception $e) {
+            $this->messageManager->addSuccessMessage(__("Events mapped successfully"));
+        } catch (Exception $e) {
             $logsArray['emarsys_info'] = 'Save Event Mapping';
             $logsArray['description'] = $e->getMessage();
             $logsArray['action'] = 'Event Mapping not successful.';
             $logsArray['message_type'] = 'Error';
-            $this->messageManager->addErrorMessage("Event Mapping Failed. Please refer emarsys logs for more information.");
+            $this->messageManager->addErrorMessage(
+                __(
+                    "Event Mapping Failed. Please refer emarsys logs for more information."
+                )
+            );
         }
 
         if ($errorStatus) {

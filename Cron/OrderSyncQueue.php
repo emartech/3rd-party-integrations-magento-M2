@@ -1,21 +1,16 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Cron;
 
-use Emarsys\{
-    Emarsys\Model\Order as EmarsysModelOrder,
-    Emarsys\Model\Logs
-};
+use Emarsys\Emarsys\Model\Logs;
+use Emarsys\Emarsys\Model\Order as EmarsysModelOrder;
 use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class OrderSyncQueue
- * @package Emarsys\Emarsys\Cron
- */
 class OrderSyncQueue
 {
     /**
@@ -35,6 +30,7 @@ class OrderSyncQueue
 
     /**
      * OrderSyncQueue constructor.
+     *
      * @param EmarsysModelOrder $emarsysOrderModel
      * @param StoreManagerInterface $storeManager
      * @param Logs $emarsysLogs
@@ -54,12 +50,7 @@ class OrderSyncQueue
         try {
             set_time_limit(0);
             $stores = $this->storeManager->getStores();
-            foreach ($stores as $store) {
-                $storeId = $store->getId();
-                if ($storeId == 0) {
-                    continue;
-                }
-
+            foreach ($stores as $storeId => $store) {
                 $this->emarsysOrderModel->syncOrders(
                     $storeId,
                     \Emarsys\Emarsys\Helper\Data::ENTITY_EXPORT_MODE_AUTOMATIC

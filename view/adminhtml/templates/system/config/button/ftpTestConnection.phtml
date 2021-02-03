@@ -1,21 +1,21 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 ?>
 <script>
     require(['prototype'], function () {
         function ftpTestConnection() {
             params = {
-                'hostname': document.getElementById('emarsys_settings_ftp_settings_hostname').value,
-                'port': document.getElementById('emarsys_settings_ftp_settings_port').value,
-                'username': document.getElementById('emarsys_settings_ftp_settings_username').value,
-                'password': document.getElementById('emarsys_settings_ftp_settings_ftp_password').value,
-                'bulkexpdir': document.getElementById('emarsys_settings_ftp_settings_ftp_bulk_export_dir').value,
-                'ftpssl': document.getElementById('emarsys_settings_ftp_settings_useftp_overssl').value,
-                'passivemode': document.getElementById('emarsys_settings_ftp_settings_usepassive_mode').value
+                'hostname': document.getElementById('emartech_ftp_settings_hostname').value,
+                'port': document.getElementById('emartech_ftp_settings_port').value,
+                'username': document.getElementById('emartech_ftp_settings_username').value,
+                'password': document.getElementById('emartech_ftp_settings_ftp_password').value,
+                'bulkexpdir': document.getElementById('emartech_ftp_settings_ftp_bulk_export_dir').value,
+                'ftpssl': document.getElementById('emartech_ftp_settings_useftp_overssl').value,
+                'passivemode': document.getElementById('emartech_ftp_settings_usepassive_mode').value
             };
             new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
                 parameters: params,

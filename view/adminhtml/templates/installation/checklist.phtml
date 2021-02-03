@@ -1,9 +1,11 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
+/** @var Emarsys\Emarsys\Block\Adminhtml\Installation\Checklist $block */
 ?>
 <?php if ($store = $block->getStore()): ?>
     <?php
@@ -118,16 +120,20 @@
                             </td>
                         </tr>
                         <?php
-                        $mandatoryFileds = ['Magento Customer ID', 'Magento Subscriber ID'];
+                        $mandatoryFileds = [
+                            \Emarsys\Emarsys\Helper\Data::CUSTOMER_ID => $block->getCustomerId(),
+                            \Emarsys\Emarsys\Helper\Data::SUBSCRIBER_ID => $block->getSubscriberId()
+                        ];
                         $customermandatoryFileds = [];
                         $filedsToCreate = [];
                         if ($emarsysCustomerFieldNames) {
-                            foreach ($mandatoryFileds as $customerField) {
-                                if (in_array($customerField, $emarsysCustomerFieldNames)) {
+                            foreach ($mandatoryFileds as $customerField => $customerInMagentoFieldId) {
+                                $customerInEmarsysFieldId = array_search($customerField, $emarsysCustomerFieldNames);
+                                if ($customerInEmarsysFieldId) {
                                     ?>
                                     <tr>
                                         <td class="label">
-                                            <label><?php echo $customerField; ?></label>
+                                            <label><?php echo $customerField; ?></br>(E <?php echo $customerInEmarsysFieldId; ?> => M <?php echo $customerInMagentoFieldId; ?>)</label>
                                         </td>
                                         <td class="value column_value_fail">Yes</td>
                                     </tr>
@@ -148,7 +154,7 @@
                         if ($filedsToCreate): ?>
                             <?php
                             $filedsToCreate = implode(',', $filedsToCreate);
-                            $CreateUrl = $this->getUrl(
+                            $createUrl = $this->getUrl(
                                 '*/mapping_customer/createfields',
                                 [
                                     'customerfields' => $filedsToCreate,
@@ -164,7 +170,7 @@
                                 <td class="label" colspan="2">
                                     <button id="add" title="Create Missing fields" type="button"
                                             class="action- scalable primary"
-                                            onclick="location.href = '<?php echo $CreateUrl; ?>'"
+                                            onclick="location.href = '<?php echo $createUrl; ?>'"
                                             data-ui-id="add-button">
                                         <span>Click Here</span>
                                     </button>

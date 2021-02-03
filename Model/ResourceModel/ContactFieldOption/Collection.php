@@ -1,17 +1,14 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Model\ResourceModel\ContactFieldOption;
 
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 
-/**
- * Class Collection
- * @package Emarsys\Emarsys\Model\ResourceModel\ContactFieldOption
- */
 class Collection extends AbstractCollection
 {
     /**
@@ -22,8 +19,8 @@ class Collection extends AbstractCollection
     protected function _construct()
     {
         $this->_init(
-            'Emarsys\Emarsys\Model\ContactFieldOption',
-            'Emarsys\Emarsys\Model\ResourceModel\ContactFieldOption'
+            \Emarsys\Emarsys\Model\ContactFieldOption::class,
+            \Emarsys\Emarsys\Model\ResourceModel\ContactFieldOption::class
         );
     }
 }

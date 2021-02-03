@@ -1,27 +1,26 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Controller\Adminhtml\Mapping\Product;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Session;
 use Magento\Framework\View\Result\PageFactory;
 use Emarsys\Emarsys\Model\ProductFactory;
-use Emarsys\Emarsys\Helper\Data\Proxy as EmarsysHelper;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
 use Magento\Store\Model\StoreManagerInterface;
 use Emarsys\Emarsys\Helper\Logs;
 use Emarsys\Emarsys\Model\Logs as EmarsysModelLogs;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Emarsys\Emarsys\Model\ResourceModel\Product;
+use Zend_Json;
 
-/**
- * Class Save
- * @package Emarsys\Emarsys\Controller\Adminhtml\Mapping\Product
- */
 class Save extends Action
 {
     /**
@@ -30,7 +29,7 @@ class Save extends Action
     protected $resultPageFactory;
 
     /**
-     * @var \Magento\Backend\Model\Session
+     * @var Session
      */
     protected $session;
 
@@ -52,7 +51,7 @@ class Save extends Action
     /**
      * @var EmarsysHelper
      */
-    protected $emsrsysHelper;
+    protected $emarsysHelper;
 
     /**
      * @var Logs
@@ -71,9 +70,10 @@ class Save extends Action
 
     /**
      * Save constructor.
+     *
      * @param Context $context
      * @param ProductFactory $productFactory
-     * @param EmarsysHelper $emsrsysHelper
+     * @param EmarsysHelper $emarsysHelper
      * @param StoreManagerInterface $storeManager
      * @param Logs $logsHelper
      * @param EmarsysModelLogs $emarsysLogs
@@ -84,22 +84,21 @@ class Save extends Action
     public function __construct(
         Context $context,
         ProductFactory $productFactory,
-        EmarsysHelper $emsrsysHelper,
+        EmarsysHelper $emarsysHelper,
         StoreManagerInterface $storeManager,
         Logs $logsHelper,
         EmarsysModelLogs $emarsysLogs,
         DateTime $date,
         Product $resourceModelProduct,
         PageFactory $resultPageFactory
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->session = $context->getSession();
         $this->resultPageFactory = $resultPageFactory;
         $this->productFactory = $productFactory;
         $this->emarsysLogs = $emarsysLogs;
         $this->resourceModelProduct = $resourceModelProduct;
-        $this->emsrsysHelper = $emsrsysHelper;
+        $this->emarsysHelper = $emarsysHelper;
         $this->logsHelper = $logsHelper;
         $this->date = $date;
         $this->storeManager = $storeManager;
@@ -125,9 +124,8 @@ class Save extends Action
             if (isset($session['storeId'])) {
                 $gridSessionStoreId = $session['storeId'];
             }
-            if ($gridSessionStoreId == 0) {
-                $gridSessionStoreId = $this->emsrsysHelper->getFirstStoreId();
-            }
+            $gridSessionStoreId = $this->emarsysHelper->getFirstStoreIdOfWebsiteByStoreId($gridSessionStoreId);
+
             $websiteId = $this->storeManager->getStore($gridSessionStoreId)->getWebsiteId();
             $logsArray['job_code'] = 'Product Mapping';
             $logsArray['status'] = 'started';
@@ -161,7 +159,10 @@ class Save extends Action
                 if (!empty($modelCollData)) {
                     foreach ($modelColl as $model) {
                         //Delete exsisting record
-                        $this->resourceModelProduct->deleteExistingEmarsysAttr($value['emarsys_attr_code'], $gridSessionStoreId);
+                        $this->resourceModelProduct->deleteExistingEmarsysAttr(
+                            $value['emarsys_attr_code'],
+                            $gridSessionStoreId
+                        );
                         if (isset($value['emarsys_attr_code'])) {
                             $model->setEmarsysAttrCode($value['emarsys_attr_code']);
                         }
@@ -171,7 +172,10 @@ class Save extends Action
                     }
                 } else {
                     //Delete exsisting record
-                    $this->resourceModelProduct->deleteExistingEmarsysAttr($value['emarsys_attr_code'], $gridSessionStoreId);
+                    $this->resourceModelProduct->deleteExistingEmarsysAttr(
+                        $value['emarsys_attr_code'],
+                        $gridSessionStoreId
+                    );
                     $model = $this->productFactory->create();
                     $model = $model->setData($value);
                     $model->setStoreId($gridSessionStoreId);
@@ -183,7 +187,7 @@ class Save extends Action
             $logsArray['emarsys_info'] = 'Save Product Mapping';
             $logsArray['action'] = 'Save Product Mapping Successful';
             $logsArray['message_type'] = 'Success';
-            $logsArray['description'] = 'Product Mapping Saved as ' . \Zend_Json::encode($savedValues);
+            $logsArray['description'] = 'Product Mapping Saved as ' . Zend_Json::encode($savedValues);
             $logsArray['executed_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['finished_at'] = $this->date->date('Y-m-d H:i:s', time());
             $logsArray['log_action'] = 'True';
@@ -194,15 +198,15 @@ class Save extends Action
              * Truncating the Mapping Table first
              */
             $this->resourceModelProduct->deleteUnmappedRows($gridSessionStoreId);
-            $this->messageManager->addSuccessMessage("Product attributes Mapped successfully");
-        } catch (\Exception $e) {
+            $this->messageManager->addSuccessMessage(__('Product attributes Mapped successfully'));
+        } catch (Exception $e) {
             $this->emarsysLogs->addErrorLog(
                 'Saving Product Mapping',
                 $e->getMessage(),
                 $gridSessionStoreId,
                 'Save(Product)'
             );
-            $this->messageManager->addErrorMessage("Error occurred while mapping Product attribute");
+            $this->messageManager->addErrorMessage(__('Error occurred while mapping Product attribute'));
         }
         return $resultRedirect->setRefererOrBaseUrl();
     }

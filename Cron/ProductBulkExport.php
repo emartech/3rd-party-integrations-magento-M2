@@ -1,25 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Cron;
 
-use Emarsys\Emarsys\{
-    Model\Product as EmarsysProductModel,
-    Helper\Cron as EmarsysCronHelper,
-    Model\Logs
-};
+use Emarsys\Emarsys\Model\Product as EmarsysProductModel;
+use Emarsys\Emarsys\Helper\Cron as CronHelper;
+use Emarsys\Emarsys\Model\Logs;
+use Emarsys\Emarsys\Model\ProductExportAsync as ProductExportAsync;
+use Magento\Store\Model\StoreManagerInterface;
+use Emarsys\Emarsys\Helper\Data;
 
-/**
- * Class ProductBulkExport
- * @package Emarsys\Emarsys\Cron
- */
 class ProductBulkExport
 {
     /**
-     * @var EmarsysCronHelper
+     * @var CronHelper
      */
     protected $cronHelper;
 
@@ -34,38 +32,65 @@ class ProductBulkExport
     protected $emarsysLogs;
 
     /**
+     * @var ProductExportAsync
+     */
+    private $productAsync;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * ProductBulkExport constructor.
      *
-     * @param EmarsysCronHelper $cronHelper
+     * @param CronHelper $cronHelper
      * @param EmarsysProductModel $emarsysProductModel
      * @param Logs $emarsysLogs
+     * @param StoreManagerInterface $storeManager
+     * @param ProductExportAsync $productAsync
      */
     public function __construct(
-        EmarsysCronHelper $cronHelper,
+        CronHelper $cronHelper,
         EmarsysProductModel $emarsysProductModel,
-        Logs $emarsysLogs
+        Logs $emarsysLogs,
+        StoreManagerInterface $storeManager,
+        ProductExportAsync $productAsync
     ) {
         $this->cronHelper = $cronHelper;
-        $this->emarsysProductModel =  $emarsysProductModel;
+        $this->emarsysProductModel = $emarsysProductModel;
         $this->emarsysLogs = $emarsysLogs;
+        $this->storeManager = $storeManager;
+        $this->productAsync = $productAsync;
     }
 
     public function execute()
     {
         try {
             set_time_limit(0);
-            $currentCronInfo = $this->cronHelper->getCurrentCronInformation(
-                \Emarsys\Emarsys\Helper\Cron::CRON_JOB_CATALOG_BULK_EXPORT
-            );
+            $currentCronInfo = $this->cronHelper->getCurrentCronInformation(CronHelper::CRON_JOB_CATALOG_BULK_EXPORT);
+            $emarsysProductSyncCronInfo = $this->cronHelper->getCurrentCronInformation('emarsys_product_sync');
 
-            if (!$currentCronInfo) {
+            if (!$currentCronInfo && !$emarsysProductSyncCronInfo) {
                 return;
+            }
+
+            $async = false;
+            foreach ($this->storeManager->getStores(true) as $store) {
+                $async = $store->getConfig('emarsys_predict/enable/async');
+                if ($async) {
+                    break;
+                }
             }
 
             $data = \Zend_Json::decode($currentCronInfo->getParams());
             $includeBundle = isset($data['includeBundle']) ? $data['includeBundle'] : null;
-
-            $this->emarsysProductModel->consolidatedCatalogExport(\Emarsys\Emarsys\Helper\Data::ENTITY_EXPORT_MODE_MANUAL, $includeBundle);
+            if (!$async) {
+                $this->emarsysProductModel->consolidatedCatalogExport(Data::ENTITY_EXPORT_MODE_MANUAL, $includeBundle);
+            } else {
+                echo "Async \n";
+                $this->productAsync->run(Data::ENTITY_EXPORT_MODE_MANUAL);
+            }
         } catch (\Exception $e) {
             $this->emarsysLogs->addErrorLog(
                 'ProductBulkExport',

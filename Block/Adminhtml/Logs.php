@@ -1,18 +1,20 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block\Adminhtml;
 
+use Emarsys\Emarsys\Block\Adminhtml\Logs\Grid;
+use Emarsys\Emarsys\Model\LogScheduleFactory;
+use Magento\Backend\Block\Template;
+use Magento\Backend\Block\Widget\Context;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\Timezone;
 
-/**
- * Class Logs
- * @package Emarsys\Log\Block\Adminhtml
- */
-class Logs extends \Magento\Backend\Block\Template
+class Logs extends Template
 {
     /**
      * @var string
@@ -20,7 +22,7 @@ class Logs extends \Magento\Backend\Block\Template
     protected $_template = '';
 
     /**
-     * @var \Emarsys\Emarsys\Model\LogScheduleFactory
+     * @var LogScheduleFactory
      */
     protected $logScheduleFactory;
 
@@ -30,14 +32,14 @@ class Logs extends \Magento\Backend\Block\Template
     protected $timezone;
 
     /**
-     * @param \Magento\Backend\Block\Widget\Context $context
-     * @param \Emarsys\Emarsys\Model\LogScheduleFactory $logScheduleFactory
+     * @param Context $context
+     * @param LogScheduleFactory $logScheduleFactory
      * @param Timezone $timezone
      * @param array $data
      */
     public function __construct(
-        \Magento\Backend\Block\Widget\Context $context,
-        \Emarsys\Emarsys\Model\LogScheduleFactory $logScheduleFactory,
+        Context $context,
+        LogScheduleFactory $logScheduleFactory,
         TimeZone $timezone,
         $data = []
     ) {
@@ -48,13 +50,16 @@ class Logs extends \Magento\Backend\Block\Template
 
     /**
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     protected function _prepareLayout()
     {
         $this->setChild(
             'grid',
-            $this->getLayout()->createBlock('Emarsys\Emarsys\Block\Adminhtml\Logs\Grid', 'loggrid')
+            $this->getLayout()->createBlock(
+                Grid::class,
+                'loggrid'
+            )
         );
         $this->_template = 'logs/grid.phtml';
 
@@ -63,6 +68,7 @@ class Logs extends \Magento\Backend\Block\Template
 
     /**
      * Render grid
+     *
      * @return string
      */
     public function getGridHtml()
@@ -81,8 +87,7 @@ class Logs extends \Magento\Backend\Block\Template
 
     public function getStoreId()
     {
-        $storeId = $this->getRequest()->getParam('store');
-        return $storeId;
+        return $this->getRequest()->getParam('store');
     }
 
     /**

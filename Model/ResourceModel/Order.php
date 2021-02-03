@@ -1,28 +1,23 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2018 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Model\ResourceModel;
 
-use Emarsys\Emarsys\{
-    Model\Logs,
-    Helper\Data as EmarsysHelper
-};
-use Magento\{
-    Framework\Model\ResourceModel\Db\AbstractDb,
-    Framework\Model\ResourceModel\Db\Context,
-    Eav\Model\Entity\Type,
-    Eav\Model\Entity\Attribute,
-    Store\Api\StoreRepositoryInterface,
-    Store\Model\StoreManagerInterface
-};
+use Emarsys\Emarsys\Model\Logs;
+use Emarsys\Emarsys\Helper\Data as EmarsysHelper;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\Context;
+use Magento\Eav\Model\Entity\Type;
+use Magento\Eav\Model\Entity\Attribute;
+use Magento\Store\Api\StoreRepositoryInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class Order
- * @package Emarsys\Emarsys\Model\ResourceModel
  */
 class Order extends AbstractDb
 {
@@ -180,7 +175,7 @@ class Order extends AbstractDb
             $data['emarsys_order_field'] = $key;
             $data['store_id'] = $storeId;
 
-            $this->getConnection()->insertOnDuplicate($this->getMainTable(), $data ,['emarsys_order_field']);
+            $this->getConnection()->insertOnDuplicate($this->getMainTable(), $data, ['emarsys_order_field']);
         }
     }
 
@@ -194,7 +189,7 @@ class Order extends AbstractDb
         foreach ($data as $key => $value) {
             $select = $this->getConnection()
                 ->select()
-                ->from( $this->getMainTable(), 'magento_column_name')
+                ->from($this->getMainTable(), 'magento_column_name')
                 ->where("magento_column_name = ?", $key);
 
             $result = $this->getConnection()->fetchOne($select);
@@ -289,8 +284,8 @@ class Order extends AbstractDb
         $select = $this->getConnection()
             ->select()
             ->from($this->getMainTable())
-            ->where('emarsys_order_field = (?)',$emarsysOrderField)
-            ->where('store_id = (?)',$storeId);
+            ->where('emarsys_order_field = (?)', $emarsysOrderField)
+            ->where('store_id = (?)', $storeId);
 
         $result = $this->getConnection()->fetchAll($select);
         if (!empty($result)) {
@@ -305,4 +300,3 @@ class Order extends AbstractDb
         return;
     }
 }
-

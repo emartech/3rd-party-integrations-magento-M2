@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <!--
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <emarsys_settings>
+        <emartech>
             <emarsys_setting>
                 <enable>0</enable>
                 <emarsys_api_endpoint>default</emarsys_api_endpoint>
@@ -20,9 +20,17 @@
                 <ftp_bulk_export_dir>/</ftp_bulk_export_dir>
                 <useftp_overssl>1</useftp_overssl>
                 <usepassive_mode>1</usepassive_mode>
-                <apiurl>https://api.github.com/repos/emartech/3rd-party-integrations-magento-M2/releases/latest</apiurl>
+                <apiurl>https://api.github.com/repos/romastepa/3rd-party-integrations-magento-M2/releases/latest</apiurl>
             </ftp_settings>
-        </emarsys_settings>
+            <async>
+                <enable>0</enable>
+                <frequency>2</frequency>
+                <cron_expr></cron_expr>
+            </async>
+            <country>
+                <cron_expr>37 1 * * *</cron_expr>
+            </country>
+        </emartech>
         <contacts_synchronization>
             <emarsys_emarsys>
                 <realtime_sync>1</realtime_sync>
@@ -50,11 +58,12 @@
         <smart_insight>
             <smart_insight>
                 <smartinsight_enabled>0</smartinsight_enabled>
-                <exportusing_emailidentifier>0</exportusing_emailidentifier>
-                <exportguest_checkoutorders>0</exportguest_checkoutorders>
+                <exportusing_emailidentifier>1</exportusing_emailidentifier>
+                <exportguest_checkoutorders>1</exportguest_checkoutorders>
                 <smartinsightfrequency>Daily</smartinsightfrequency>
             </smart_insight>
             <api_settings>
+                <max_records_per_export>500</max_records_per_export>
                 <max_records_per_export_option>100,500,1000</max_records_per_export_option>
                 <smartinsight_api_url>https://admin.scarabresearch.com/hapi/merchant/</smartinsight_api_url>
                 <smartinsight_order_api_url_key>/sales-data/api</smartinsight_order_api_url_key>
@@ -64,6 +73,10 @@
         <emarsys_predict>
             <enable>
                 <product_feed>0</product_feed>
+                <async>0</async>
+                <process>8</process>
+                <max_products>10000</max_products>
+                <dump>0</dump>
             </enable>
             <availability>
                 <status>1</status>
@@ -85,21 +98,52 @@
                 <testmode>0</testmode>
                 <identityregistered>email_address</identityregistered>
                 <uniqueidentifier>sku</uniqueidentifier>
-                <use_base_currency>0</use_base_currency>
+                <use_base_currency>1</use_base_currency>
                 <tax_included>0</tax_included>
             </javascript_tracking>
         </web_extend>
         <logs>
             <log_setting>
-                <log_days>15</log_days>
-                <log_cleaning>0</log_cleaning>
+                <enable>1</enable>
+                <log_days>2</log_days>
+                <log_cleaning>1</log_cleaning>
                 <log_report>0</log_report>
             </log_setting>
         </logs>
         <about_emarsys>
             <emarsys_release>
-                <release_url>https://github.com/emartech/3rd-party-integrations-magento-M2/releases/</release_url>
+                <release_url>https://github.com/romastepa/3rd-party-integrations-magento-M2/releases/</release_url>
             </emarsys_release>
         </about_emarsys>
+        <emarsys_schema_check>
+            <schedule>
+                <cron_expr>0 0 * * *</cron_expr>
+            </schedule>
+        </emarsys_schema_check>
+        <emarsys_reoptin_import>
+            <schedule>
+                <cron_expr>57 */2 * * *</cron_expr>
+            </schedule>
+        </emarsys_reoptin_import>
+        <emarsys_product_sync>
+            <schedule>
+                <cron_expr>7 */6 * * *</cron_expr>
+            </schedule>
+        </emarsys_product_sync>
+        <emarsys_smartinsight_sync_queue>
+            <schedule>
+                <cron_expr>17 */2 * * *</cron_expr>
+            </schedule>
+        </emarsys_smartinsight_sync_queue>
+        <emarsys_clean_log>
+            <schedule>
+                <cron_expr>27 */1 * * *</cron_expr>
+            </schedule>
+        </emarsys_clean_log>
+        <emarsys_clean_cron_details>
+            <schedule>
+                <cron_expr>29 */1 * * *</cron_expr>
+            </schedule>
+        </emarsys_clean_cron_details>
     </default>
 </config>

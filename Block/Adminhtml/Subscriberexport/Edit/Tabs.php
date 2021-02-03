@@ -1,36 +1,41 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
 
 namespace Emarsys\Emarsys\Block\Adminhtml\Subscriberexport\Edit;
 
-/**
- * Class Tabs
- * @package Emarsys\Emarsys\Block\Adminhtml\Subscriberexport\Edit
- */
+use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget;
+use Magento\Backend\Model\Auth\Session;
+use Magento\Cms\Model\Wysiwyg\ConfigFactory;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Json\EncoderInterface;
+use Magento\Framework\View\Element\AbstractBlock;
+
 class Tabs extends \Magento\Backend\Block\Widget\Tabs
 {
     /**
-     * @var \Magento\Cms\Model\Wysiwyg\ConfigFactory
+     * @var ConfigFactory
      */
     protected $wysiwygConfigFactory;
 
     /**
      * Tabs constructor.
-     * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
-     * @param \Magento\Backend\Model\Auth\Session $authSession
-     * @param \Magento\Cms\Model\Wysiwyg\ConfigFactory $wysiwygConfigFactory
+     *
+     * @param Context $context
+     * @param EncoderInterface $jsonEncoder
+     * @param Session $authSession
+     * @param ConfigFactory $wysiwygConfigFactory
      * @param array $data
      */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Json\EncoderInterface $jsonEncoder,
-        \Magento\Backend\Model\Auth\Session $authSession,
-        \Magento\Cms\Model\Wysiwyg\ConfigFactory $wysiwygConfigFactory,
+        Context $context,
+        EncoderInterface $jsonEncoder,
+        Session $authSession,
+        ConfigFactory $wysiwygConfigFactory,
         array $data = []
     ) {
         $this->wysiwygConfigFactory = $wysiwygConfigFactory;
@@ -48,16 +53,17 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
     }
 
     /**
-     * @return Mage_Core_Block_Abstract
-     * @throws Exception
+     * @return Widget|AbstractBlock
+     * @throws LocalizedException
      */
     protected function _beforeToHtml()
     {
         $this->addTab(
             'form_section',
             [
-                'content' => $this->getLayout()->createBlock('Emarsys\Emarsys\Adminhtml\Subscriberexport\Edit\Tab\Form')->toHtml(),
-                'active' => true
+                'content' => $this->getLayout()
+                    ->createBlock(\Emarsys\Emarsys\Block\Adminhtml\Subscriberexport\Edit\Tab\Form::class)->toHtml(),
+                'active' => true,
             ]
         );
         return parent::_beforeToHtml();
@@ -65,6 +71,7 @@ class Tabs extends \Magento\Backend\Block\Widget\Tabs
 
     /**
      * @return Mage_Core_Block_Abstract|void
+     * @throws LocalizedException
      */
     protected function _prepareLayout()
     {

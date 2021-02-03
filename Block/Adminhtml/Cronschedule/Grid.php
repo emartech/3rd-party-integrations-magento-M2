@@ -1,9 +1,10 @@
 <?php
 /**
- * @category   Emarsys
- * @package    Emarsys_Emarsys
- * @copyright  Copyright (c) 2017 Emarsys. (http://www.emarsys.net/)
+ * @category  Emarsys
+ * @package   Emarsys_Emarsys
+ * @copyright Copyright (c) 2020 Emarsys. (http://www.emarsys.net/)
  */
+
 namespace Emarsys\Emarsys\Block\Adminhtml\Cronschedule;
 
 use Magento\Cron\Model\ScheduleFactory;
@@ -11,10 +12,7 @@ use Magento\Cron\Model\Schedule;
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Helper\Data;
 use Magento\Backend\Block\Widget\Grid\Extended;
-/**
- * Class Grid
- * @package Emarsys\Emarsys\Block\Adminhtml\Cronschedule
- */
+
 class Grid extends Extended
 {
     /**
@@ -24,7 +22,7 @@ class Grid extends Extended
 
     /**
      * Grid constructor.
-     * @param ScheduleFactory $scheduleFactory
+     *
      * @param Context $context
      * @param Data $backendHelper
      * @param array $data
@@ -71,7 +69,7 @@ class Grid extends Extended
                 'header' => __('Id'),
                 'align' => 'left',
                 'width' => '50',
-                'index' => 'schedule_id'
+                'index' => 'schedule_id',
             ]
         );
 
@@ -81,7 +79,7 @@ class Grid extends Extended
                 'header' => __('Job Code'),
                 'align' => 'center',
                 'index' => 'job_code',
-                'width' => '300'
+                'width' => '300',
             ]
         );
 
@@ -133,14 +131,14 @@ class Grid extends Extended
                 'index' => 'status',
                 'type' => 'options',
                 'width' => '200',
-                'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer\StatusColor',
+                'renderer' => \Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer\StatusColor::class,
                 'options' => [
                     Schedule::STATUS_PENDING => Schedule::STATUS_PENDING,
                     Schedule::STATUS_RUNNING => Schedule::STATUS_RUNNING,
                     Schedule::STATUS_SUCCESS => Schedule::STATUS_SUCCESS,
                     Schedule::STATUS_MISSED => Schedule::STATUS_MISSED,
                     Schedule::STATUS_ERROR => Schedule::STATUS_ERROR,
-                ]
+                ],
             ]
         );
 
@@ -150,8 +148,8 @@ class Grid extends Extended
                 'header' => __('Params'),
                 'align' => 'center',
                 'width' => '50',
-                'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer\Params',
-                'filter' => false
+                'renderer' => \Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer\Params::class,
+                'filter' => false,
             ]
         );
 
@@ -161,8 +159,8 @@ class Grid extends Extended
                 'header' => __('Message'),
                 "align" => "center",
                 'width' => '50',
-                'renderer' => 'Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer\Message',
-                'filter' => false
+                'renderer' => \Emarsys\Emarsys\Block\Adminhtml\Cronschedule\Renderer\Message::class,
+                'filter' => false,
             ]
         );
 
@@ -182,11 +180,11 @@ class Grid extends Extended
                             ],
                         ],
                         'field' => 'id',
-                        'confirm' => __('Are you sure?')
+                        'confirm' => __('Are you sure?'),
                     ],
                 ],
                 'filter' => false,
-                'sortable' => false
+                'sortable' => false,
             ]
         );
 
